@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.nicovideo.jp/watch/*"],
+      "js": [
+        "00-config.js",
+        "10-observer.js", "11-wait.js",
+        "20-pipVideo.js", "21-pipButton.js",
+        "30-main.js"
+      ]
+    }
+  ],
+  "default_locale": "en"
+}
