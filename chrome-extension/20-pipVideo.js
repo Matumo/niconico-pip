@@ -269,7 +269,7 @@ const videoPipElement = document.createElement('video');
       console.error("R3 parent element is null.");
       return;
     }
-    r3ParentElement.insertBefore(videoPipElement, r3Element);
+    r3Element.insertBefore(videoPipElement, r3Element.firstChild);
     console.debug("Video element for PIP added.");
   }
 }
