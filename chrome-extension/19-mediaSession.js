@@ -203,12 +203,12 @@ let setMediaSession = null;
       const offset = details.seekOffset || 10;
       controlVideoSeekOffset(nicoVideoElement, videoPipElement, offset);
     });
-    navigator.mediaSession.setActionHandler('previoustrack', function() {
-      console.log("DEBUG: 009 Video previoustrack action.");
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', function() {
-      console.log("DEBUG: 010 Video nexttrack action.");
-    });
+    // navigator.mediaSession.setActionHandler('previoustrack', function() {
+    //   console.log("DEBUG: 009 Video previoustrack action.");
+    // });
+    // navigator.mediaSession.setActionHandler('nexttrack', function() {
+    //   console.log("DEBUG: 010 Video nexttrack action.");
+    // });
     navigator.mediaSession.setActionHandler('stop', function() {
       controlVideoPause(nicoVideoElement, videoPipElement);
       controlVideoSeek(nicoVideoElement, videoPipElement, 0);
