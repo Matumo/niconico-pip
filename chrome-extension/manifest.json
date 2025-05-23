@@ -13,7 +13,7 @@
     {
       "matches": ["https://www.nicovideo.jp/watch/*"],
       "js": [
-        "00-config.js",
+        "00-config.js", "01-videoInfo.js",
         "10-observer.js", "11-wait.js",
         "18-controlVideo.js", "19-mediaSession.js",
         "20-pipVideo.js", "21-pipButton.js",
