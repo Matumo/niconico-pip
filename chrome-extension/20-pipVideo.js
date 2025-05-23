@@ -249,6 +249,28 @@ const videoPipElement = document.createElement('video');
     destoryPipVideoElement();
   }
 
+  // サムネイルを16:9に変換
+  async function makePoster16by9(srcUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous'; // CORS回避
+      img.onload = function () {
+        const w = img.width;
+        const h = img.height;
+        const newH = w * 9 / 16;
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = newH;
+        const ctx = canvas.getContext('2d');
+        const offsetY = (h - newH) / 2;
+        ctx.drawImage(img, 0, offsetY, w, newH, 0, 0, w, newH);
+        resolve(canvas.toDataURL());
+      };
+      img.onerror = reject;
+      img.src = srcUrl;
+    });
+  }
+
   // PIP用のvideo要素の初期化
   initPipVideoElement = function (_r3Element, _nicoVideoElement, _videoPipElement) {
     const r3Element = _r3Element;
@@ -270,7 +292,12 @@ const videoPipElement = document.createElement('video');
     // video要素のサムネイル（poster）を設定
     const thumbnail = getVideoThumbnail();
     if (thumbnail) {
-      videoPipElement.setAttribute('poster', thumbnail);
+      makePoster16by9(thumbnail).then(dataUrl => {
+        videoPipElement.setAttribute('poster', dataUrl);
+      }).catch(e => {
+        console.warn("画像生成失敗", e);
+        videoPipElement.setAttribute('poster', thumbnail);
+      });
     } else {
       console.warn("Thumbnail not found.");
     }
