@@ -51,6 +51,9 @@
     initNicoVideoObserver(r5Element);
     initPipVideoElement(r3Element);
     initPipButtonElement(pipButtonClickCallback, tooltipButtonElement);
+    updateVideoDataForMediaSession();
+    setMediaSession(nicoVideoElement, videoPipElement);
+    registerSyncPlaybackStateEvent(nicoVideoElement, videoPipElement);
   }
 
   // PIP開始のイベントリスナーを登録

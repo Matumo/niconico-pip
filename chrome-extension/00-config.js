@@ -31,3 +31,6 @@ const waitForElementsSelectors = [
 ];
 
 const nicoVideoElementChangedEventName = 'nicoVideoElementChanged';
+
+const seekBackwardDefaultOffset = 10;
+const seekForwardDefaultOffset = 10;
