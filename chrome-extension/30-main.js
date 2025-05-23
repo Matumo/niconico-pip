@@ -49,7 +49,7 @@
     };
 
     initNicoVideoObserver(r5Element);
-    initPipVideoElement(r3Element);
+    initPipVideoElement(r3Element, nicoVideoElement, videoPipElement);
     initPipButtonElement(pipButtonClickCallback, tooltipButtonElement);
     updateVideoDataForMediaSession();
     setMediaSession(nicoVideoElement, videoPipElement);

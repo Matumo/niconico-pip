@@ -250,11 +250,29 @@ const videoPipElement = document.createElement('video');
   }
 
   // PIP用のvideo要素の初期化
-  initPipVideoElement = function (_r3Element) {
+  initPipVideoElement = function (_r3Element, _nicoVideoElement, _videoPipElement) {
     const r3Element = _r3Element;
+    const nicoVideoElement = _nicoVideoElement;
+    const videoPipElement = _videoPipElement;
     if (r3Element === null) {
       console.error("R3 element is null.");
       return;
+    }
+    if (nicoVideoElement === null) {
+      console.error("Nico video element is null.");
+      return;
+    }
+    if (videoPipElement === null) {
+      console.error("Video PIP element is null.");
+      return;
+    }
+
+    // video要素のサムネイル（poster）を設定
+    const thumbnail = getVideoThumbnail();
+    if (thumbnail) {
+      videoPipElement.setAttribute('poster', thumbnail);
+    } else {
+      console.warn("Thumbnail not found.");
     }
 
     // 既にPIP用のvideo要素がある場合は何もしない
