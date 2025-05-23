@@ -196,11 +196,11 @@ let setMediaSession = null;
       controlVideoSeek(nicoVideoElement, videoPipElement, seekTime);
     });
     navigator.mediaSession.setActionHandler('seekbackward', function(details) {
-      const seekTime = nicoVideoElement.currentTime - (details.seekOffset || 10);
-      avoidSeekBug();
+      const offset = - (details.seekOffset || seekBackwardDefaultOffset);
+      controlVideoSeekOffset(nicoVideoElement, videoPipElement, offset);
     });
     navigator.mediaSession.setActionHandler('seekforward', function(details) {
-      const offset = details.seekOffset || 10;
+      const offset = details.seekOffset || seekForwardDefaultOffset;
       controlVideoSeekOffset(nicoVideoElement, videoPipElement, offset);
     });
     // navigator.mediaSession.setActionHandler('previoustrack', function() {
