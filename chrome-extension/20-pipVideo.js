@@ -112,7 +112,13 @@ const videoPipElement = document.createElement('video');
 
     return true;
   }
-  function createPipVideoElement(nicoVideoElement, nicoCommentsElement) {
+  function createPipVideoElement(_nicoVideoElement, _nicoCommentsElement) {
+    const nicoVideoElement = _nicoVideoElement;
+    const nicoCommentsElement = _nicoCommentsElement
+    if (nicoVideoElement === null || nicoCommentsElement === null) {
+      console.warn("Nico video element or comments element is null.");
+      return;
+    }
     // 既に作成済みの場合は何もしない
     if (samePipVideoElementData(nicoVideoElement, nicoCommentsElement)) {
       console.debug("Video element already created.");
