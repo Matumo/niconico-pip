@@ -11,7 +11,7 @@ let waitForElements = null;
     waitForElementsInterval = setInterval(() => {
       // タイムアウト処理
       if (new Date().getTime() - startTime > waitForElementsTimeout) {
-        console.log("Timeout reached. Elements not found.");
+        console.warn("Timeout reached. Elements not found.");
         clearInterval(waitForElementsInterval);
         return;
       }
@@ -21,7 +21,7 @@ let waitForElements = null;
       for (const selector of waitForElementsSelectors) {
         elements[selector] = document.querySelector(selector);
         if (!elements[selector]) {
-          console.log(`Waiting for ${selector}...`);
+          console.debug(`Waiting for ${selector}...`);
           return;
         }
       }
@@ -29,12 +29,12 @@ let waitForElements = null;
       // サイズに0が設定されている場合は待機
       const nicoVideoElement = document.querySelector(nicoVideoElementSelector);
       if (nicoVideoElement.videoWidth === 0 || nicoVideoElement.videoHeight === 0) {
-        console.log("Waiting for video size...");
+        console.debug("Waiting for video size...");
         return;
       }
       const nicoCommentsElement = document.querySelector(nicoCommentsElementSelector);
       if (nicoCommentsElement.width === 0 || nicoCommentsElement.height === 0) {
-        console.log("Waiting for comments canvas size...");
+        console.debug("Waiting for comments canvas size...");
         return;
       }
 

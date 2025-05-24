@@ -148,17 +148,16 @@ let setMediaSession = null;
       controlVideoSeekOffset(nicoVideoElement, videoPipElement, offset);
     });
     // navigator.mediaSession.setActionHandler('previoustrack', function() {
-    //   console.log("DEBUG: 009 Video previoustrack action.");
     // });
     // navigator.mediaSession.setActionHandler('nexttrack', function() {
-    //   console.log("DEBUG: 010 Video nexttrack action.");
     // });
     navigator.mediaSession.setActionHandler('stop', function() {
       controlVideoPause(nicoVideoElement, videoPipElement);
       controlVideoSeek(nicoVideoElement, videoPipElement, 0);
     });
     // positionStateを更新するイベントを登録
-    updatePositionState(nicoVideoElement);
     registerPositionStateUpdateEvent(nicoVideoElement);
+    // 動画情報を更新
+    updatePositionState(nicoVideoElement);
   }
 }

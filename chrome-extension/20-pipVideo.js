@@ -15,7 +15,7 @@ const videoPipElement = document.createElement('video');
   function stopStream(stream) {
     if (stream && stream.getTracks) {
       stream.getTracks().forEach(track => track.stop());
-      console.log("Stream stopped.");
+      console.debug("Stream stopped.");
     } else {
       console.warn("Invalid stream, nothing to stop.");
     }
@@ -46,7 +46,8 @@ const videoPipElement = document.createElement('video');
   function setPipVideoSrc(type, value) {
     clearPipVideoElement();
     if (type === 'src') videoPipElement.src = value
-    if (type === 'srcObject') videoPipElement.srcObject = value;
+    else if (type === 'srcObject') videoPipElement.srcObject = value;
+    else console.warn("Invalid type for video source:", type);
   }
   function clearPipVideoElement() {
     videoPipElement.src = null;
@@ -81,26 +82,13 @@ const videoPipElement = document.createElement('video');
   setPipVideoSrc('srcObject', dummyStream);
   setStream(dummyStream);
 
-  // 描画範囲外でも再生を続ける
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      // videoPipElementであることを確認
-      if (entry.target !== videoPipElement) return;
-      // videoPipElementが再生中なら何もしない
-      if (!videoPipElement.paused) return;
-      // videoPipElementを再生
-      videoPipElement.play();
-      console.log("Video resumed.");
-    });
-  });
-  observer.observe(videoPipElement);
-
   // PIP用のvideo要素のコンテンツを管理
   let currentPipVideoElementData = {
     "nicoVideoElement": null,
     "nicoCommentsElement": null,
     "currentStream": null
   }
+  // 前回のPIP動画要素と現在のPIP動画要素が同じかどうかを判定する関数
   function samePipVideoElementData(nicoVideoElement, nicoCommentsElement) {
     if (currentPipVideoElementData.nicoVideoElement === null) return false;
     if (currentPipVideoElementData.nicoCommentsElement === null) return false;
@@ -112,6 +100,7 @@ const videoPipElement = document.createElement('video');
 
     return true;
   }
+  // PIP用のvideo要素を作成
   function createPipVideoElement(_nicoVideoElement, _nicoCommentsElement) {
     const nicoVideoElement = _nicoVideoElement;
     const nicoCommentsElement = _nicoCommentsElement
@@ -128,16 +117,18 @@ const videoPipElement = document.createElement('video');
     }
 
     // 作成済みのvideo要素があれば破棄
-    destoryPipVideoElement();
+    destroyPipVideoElement();
 
-    // video要素を作成
+    // キャンバスを作成
     const canvas = document.createElement('canvas');
     canvas.width = videoPipElement.videoWidth;
     canvas.height = videoPipElement.videoHeight;
 
+    // Streamを作成
     const stream = canvas.captureStream(60);
     setStream(stream);
 
+    // 描画関数
     const drawVideo = () => {
       const ctx = canvas.getContext('2d');
 
@@ -184,10 +175,11 @@ const videoPipElement = document.createElement('video');
       "currentStream": currentStream
     };
   }
-  function destoryPipVideoElement() {
+
+  // PIP用のvideo要素を破棄
+  function destroyPipVideoElement() {
     clearAnimation();
     clearStream();
-
     currentPipVideoElementData = {
       "nicoVideoElement": null,
       "nicoCommentsElement": null,
@@ -202,26 +194,32 @@ const videoPipElement = document.createElement('video');
       console.debug("Other element is in Picture-in-Picture.");
       return;
     }
+    // PIP用のvideo要素が存在しない場合は実行しない
+    if (!videoPipElement) {
+      console.warn("Video PIP element does not exist.");
+      return;
+    }
 
     const nicoVideoElement = _nicoVideoElement;
     const nicoCommentsElement = _nicoCommentsElement
 
     if (nicoVideoElement === null) {
-      console.error("Nico video element is null.");
+      console.warn("Nico video element is null.");
       return;
     }
     if (nicoCommentsElement === null) {
-      console.error("Nico comments element is null.");
+      console.warn("Nico comments element is null.");
       return;
     }
 
     // video要素の描画を行う処理
     createPipVideoElement(nicoVideoElement, nicoCommentsElement);
 
-    // video要素を表示して再生
+    // PIP用のvideo要素を表示
     videoPipElement.hidden = false;
     videoPipElement.play();
 
+    // 元の映像とコメントを非表示にする
     nicoVideoElement.hidden = true;
     nicoCommentsElement.hidden = true;
   }
@@ -232,21 +230,30 @@ const videoPipElement = document.createElement('video');
     const nicoCommentsElement = _nicoCommentsElement
 
     if (nicoVideoElement === null) {
-      console.error("Nico video element is null.");
+      console.warn("Nico video element is null.");
       return;
     }
     if (nicoCommentsElement === null) {
-      console.error("Nico comments element is null.");
+      console.warn("Nico comments element is null.");
       return;
     }
 
+    // PIP用のvideo要素が存在しない場合は何もしない
+    if (!videoPipElement) {
+      console.warn("Video PIP element does not exist.");
+      return;
+    }
+
+    // 元の映像とコメントを表示
     nicoVideoElement.hidden = false;
     nicoCommentsElement.hidden = false;
 
+    // PIP用のvideo要素を非表示にして停止
     videoPipElement.hidden = true;
     videoPipElement.pause();
 
-    destoryPipVideoElement();
+    // PIP用のvideo要素を破棄
+    destroyPipVideoElement();
   }
 
   // サムネイルを16:9に変換
@@ -277,15 +284,15 @@ const videoPipElement = document.createElement('video');
     const nicoVideoElement = _nicoVideoElement;
     const videoPipElement = _videoPipElement;
     if (r3Element === null) {
-      console.error("R3 element is null.");
+      console.warn("R3 element is null.");
       return;
     }
     if (nicoVideoElement === null) {
-      console.error("Nico video element is null.");
+      console.warn("Nico video element is null.");
       return;
     }
     if (videoPipElement === null) {
-      console.error("Video PIP element is null.");
+      console.warn("Video PIP element is null.");
       return;
     }
 
@@ -311,7 +318,7 @@ const videoPipElement = document.createElement('video');
     // PIP用のvideo要素をDOMに追加
     const r3ParentElement = r3Element.parentElement;
     if (!r3ParentElement) {
-      console.error("R3 parent element is null.");
+      console.warn("R3 parent element is null.");
       return;
     }
     r3Element.insertBefore(videoPipElement, r3Element.firstChild);
