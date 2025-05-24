@@ -48,3 +48,8 @@ const nicoVideoPageUrlPatternRegExp = new RegExp('^https://www\\.nicovideo\\.jp/
 // シークバーのデフォルトのシークオフセット（秒）
 const seekBackwardDefaultOffset = 10;
 const seekForwardDefaultOffset = 10;
+
+// ログ設定
+const logLevel = 'log';
+//const logLevel = 'debug';
+const logPrefix = '[niconico-pip]';
