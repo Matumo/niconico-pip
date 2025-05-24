@@ -6,14 +6,7 @@ let console = Object.create(originalConsole);
 // -----------------------------------------------------------------------------
 
 {
-  // prefixを追加
-  console.log = function(...args) { originalConsole.log(logPrefix, ...args); };
-  console.info = function(...args) { originalConsole.info(logPrefix, ...args); };
-  console.warn = function(...args) { originalConsole.warn(logPrefix, ...args); };
-  console.error = function(...args) { originalConsole.error(logPrefix, ...args); };
-  console.debug = function(...args) { originalConsole.debug(logPrefix, ...args); };
-
-  // ログレベルに応じて出力を制御
+  // ログレベル
   const logLevels = {
     "error": 4,
     "warn": 3,
@@ -22,11 +15,44 @@ let console = Object.create(originalConsole);
     "debug": 0
   };
   const currentLogLevel = logLevels[logLevel];
-  console.log = currentLogLevel <= logLevels["log"] ? console.log : function(...args) {};
-  console.info = currentLogLevel <= logLevels["info"] ? console.info : function(...args) {};
-  console.warn = currentLogLevel <= logLevels["warn"] ? console.warn : function(...args) {};
-  console.error = currentLogLevel <= logLevels["error"] ? console.error : function(...args) {};
-  console.debug = currentLogLevel <= logLevels["debug"] ? console.debug : function(...args) {};
+
+  // 呼び出し元を示す文字列を取得する関数（パス版）
+  function getCallerLocation(depth = 3) {
+    const stack = new Error().stack;
+    const lines = stack?.split('\n');
+    return lines?.[depth]?.trim().replace(/^at\s+/, '') || '';
+  }
+
+  // 呼び出し元を示す文字列を取得する関数（ファイル名のみ短縮版）
+  function getCallerLocationShort(depth = 3) {
+    const stack = new Error().stack;
+    const lines = stack?.split('\n');
+    const target = lines?.[depth]?.trim().replace(/^at\s+/, '') || '';
+    const m = target.match(/([^\/\\]+\.js:\d+:\d+)/);
+    return m ? m[1] : target;
+  }
+
+  // オーバーライド
+  console = new Proxy(originalConsole, {
+    get(target, prop) {
+      const levelValue = logLevels[prop];
+      // ログレベル管理対象かつ関数ならラップ
+      if (typeof target[prop] === "function" && typeof levelValue === "number") {
+        return (...args) => {
+          // 出力対象のログレベルはprefixを付けて出力
+          // callerを取得してログに追加する
+          if (currentLogLevel <= levelValue) {
+            const sufix = logSufixType === 'short' ? `@${getCallerLocationShort()}` :
+              logSufixType === 'long' ? `@${getCallerLocation()}` : '';
+            // 元のconsoleの関数を呼び出す
+            target[prop](logPrefix, ...args, sufix);
+          }
+        };
+      }
+      // 他は元のconsoleそのまま
+      return target[prop];
+    }
+  });
 
   console.log('Custom logger initialized with level:', logLevel);
 }
