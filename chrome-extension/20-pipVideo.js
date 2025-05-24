@@ -81,19 +81,19 @@ const videoPipElement = document.createElement('video');
   setPipVideoSrc('srcObject', dummyStream);
   setStream(dummyStream);
 
-  // 描画範囲外でも再生を続ける
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      // videoPipElementであることを確認
-      if (entry.target !== videoPipElement) return;
-      // videoPipElementが再生中なら何もしない
-      if (!videoPipElement.paused) return;
-      // videoPipElementを再生
-      videoPipElement.play();
-      console.log("Video resumed.");
-    });
-  });
-  observer.observe(videoPipElement);
+  // 描画範囲外でも再生を続ける --> registerSyncPlaybackStateEvent で不要になる？
+  // const observer = new IntersectionObserver(entries => {
+  //   entries.forEach(entry => {
+  //     // videoPipElementであることを確認
+  //     if (entry.target !== videoPipElement) return;
+  //     // videoPipElementが再生中なら何もしない
+  //     if (!videoPipElement.paused) return;
+  //     // videoPipElementを再生
+  //     videoPipElement.play();
+  //     console.log("Video resumed.");
+  //   });
+  // });
+  // observer.observe(videoPipElement);
 
   // PIP用のvideo要素のコンテンツを管理
   let currentPipVideoElementData = {
