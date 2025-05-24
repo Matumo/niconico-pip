@@ -35,18 +35,31 @@ let registerSyncPlaybackStateEvent = null;
     if (videoPipElement) {
       // videoPipElementがアクティブであるか確認
       const isVideoPipElementActive = isVideoPipElementInPip(videoPipElement);
+      const isPipPlaying = videoPipElement.paused === false;
       if (!isVideoPipElementActive) {
         // videoPipElementがアクティブでない場合は一時停止
-        videoPipElement.pause();
+        if (isPipPlaying) {
+          console.debug("VideoPipElement is not active, pausing.");
+          videoPipElement.pause();
+        }
       } else {
         // videoPipElementがアクティブな場合はステータスを同期
-        if (isPlaying) videoPipElement.play();
-        else videoPipElement.pause();
+        if (isPlaying !== isPipPlaying) {
+          console.debug("VideoPipElement is active, syncing playback state.",
+                        "isPlaying:", isPlaying, "isPipPlaying:", isPipPlaying);
+          if (isPlaying) videoPipElement.play();
+          else videoPipElement.pause();
+        }
       }
     }
     // MediaSessionのplaybackStateを更新
     if (isMediaSessionSupported()) {
-      navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      const isMediaSessionPlaying = navigator.mediaSession.playbackState === 'playing';
+      if (isPlaying !== isMediaSessionPlaying) {
+        console.debug("MediaSession playback state is different, updating.",
+                      "isPlaying:", isPlaying, "isMediaSessionPlaying:", isMediaSessionPlaying);
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      }
     }
   }
 
@@ -57,7 +70,12 @@ let registerSyncPlaybackStateEvent = null;
     // 暫定対処として、シークバーの線をクリックすることで動画冒頭に戻ると制御をリセットする
     const currentTimeElem = document.querySelector('div[aria-label="video - currentTime"]');
     const prevElem = currentTimeElem && currentTimeElem.previousElementSibling;
-    if (prevElem) prevElem.click();
+    if (prevElem) {
+      console.debug("Avoiding seek bug by clicking on the previous element.");
+      prevElem.click();
+    } else {
+      console.warn("Failed to avoid seek bug, previous element not found.");
+    }
   }
 
   // シーク時間の正規化

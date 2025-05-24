@@ -16,12 +16,12 @@ let updatePipButtonElement = null;
     const tooltipTriggerElement = _tooltipTriggerElement;
 
     if (pipButtonClickCallback === null) {
-      console.error("PIP button click callback is null.");
+      console.warn("PIP button click callback is null.");
       return;
     }
 
     if (tooltipTriggerElement === null) {
-      console.error("Tooltip trigger element is null.");
+      console.warn("Tooltip trigger element is null.");
       return;
     }
 

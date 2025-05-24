@@ -33,15 +33,15 @@
           init(elements);
           // メタデータ読み込みが完了してからPIPを開始
           if (videoPipElement.readyState >= 1) {
-            console.log("Video metadata already loaded.");
+            console.debug("Video metadata already loaded.");
             videoPipElement.requestPictureInPicture();
-            console.log("PIP started.");
+            console.debug("PIP started.");
           } else {
-            console.log("Video metadata not loaded. Waiting for metadata loaded.");
+            console.debug("Video metadata not loaded. Waiting for metadata loaded.");
             videoPipElement.addEventListener('loadedmetadata', () => {
-              console.log("Video metadata loaded.");
+              console.debug("Video metadata loaded.");
               videoPipElement.requestPictureInPicture();
-              console.log("PIP started.");
+              console.debug("PIP started.");
             });
           }
         }
@@ -101,13 +101,13 @@
       init(elements);
       const currentPiP = document.pictureInPictureElement;
       if (currentPiP === videoPipElement) {
-        console.log("PIP is enabled.");
+        console.debug("PIP is enabled.");
         const nicoVideoElement = elements[nicoVideoElementSelector];
         const nicoCommentsElement = elements[nicoCommentsElementSelector];
         startPip(nicoVideoElement, nicoCommentsElement);
-        console.log("PIP video element updated.");
+        console.debug("PIP video element updated.");
       } else {
-        console.log("PIP is disabled.");
+        console.debug("PIP is disabled.");
       }
     });
   });
