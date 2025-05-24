@@ -97,6 +97,19 @@
   // 動画が変更されたときのイベントリスナーを登録
   window.addEventListener(nicoVideoElementChangedEventName, () => {
     console.log("Change nico video element event.");
+    // 正規表現を使ってURLが動画再生ページかどうかを確認
+    const url = window.location.href;
+    if (!nicoVideoPageUrlPatternRegExp.test(url)) {
+      console.debug("Not a Nico video page. Skipping initialization.");
+      // videoPipElementがPiP状態であれば終了
+      if (document.pictureInPictureElement === videoPipElement) {
+        console.debug("Exiting PIP because not a Nico video page.");
+        document.exitPictureInPicture();
+      }
+      return;
+    }
+    // 要素の取得と初期化処理を実行
+    console.debug("Nico video page detected. Initializing...");
     waitForElements((elements) => {
       init(elements);
       const currentPiP = document.pictureInPictureElement;
@@ -110,6 +123,13 @@
         console.debug("PIP is disabled.");
       }
     });
+  });
+
+  // URLが変更されたときのイベントリスナーを登録
+  window.addEventListener(nicoVideoPageUrlChangedEventName, () => {
+    console.log("Change nico video page URL event.");
+    // とりあえず動画要素の変更イベントを発火（動画再生ページであるかどうかはイベントハンドラに判断させる）
+    window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
   });
 
   // 初期化処理を実行
