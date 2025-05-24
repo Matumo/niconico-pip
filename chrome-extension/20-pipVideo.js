@@ -4,6 +4,7 @@
 let startPip = null;
 let endPip = null;
 let initPipVideoElement = null;
+let requestPip = null;
 // -----------------------------------------------------------------------------
 
 // --- variable ----------------------------------------------------------------
@@ -323,5 +324,22 @@ const videoPipElement = document.createElement('video');
     }
     r3Element.insertBefore(videoPipElement, r3Element.firstChild);
     console.debug("Video element for PIP added.");
+  }
+
+  // PIPの要求
+  requestPip = function () {
+    // メタデータ読み込みが完了してからPIPを開始
+    if (videoPipElement.readyState >= 1) {
+      console.debug("Video metadata already loaded.");
+      videoPipElement.requestPictureInPicture();
+      console.debug("PIP started.");
+    } else {
+      console.debug("Video metadata not loaded. Waiting for metadata loaded.");
+      videoPipElement.addEventListener('loadedmetadata', () => {
+        console.debug("Video metadata loaded.");
+        videoPipElement.requestPictureInPicture();
+        console.debug("PIP started.");
+      });
+    }
   }
 }

@@ -31,19 +31,8 @@
           console.log("Entering PIP by button click.");
           // 初期化処理
           init(elements);
-          // メタデータ読み込みが完了してからPIPを開始
-          if (videoPipElement.readyState >= 1) {
-            console.debug("Video metadata already loaded.");
-            videoPipElement.requestPictureInPicture();
-            console.debug("PIP started.");
-          } else {
-            console.debug("Video metadata not loaded. Waiting for metadata loaded.");
-            videoPipElement.addEventListener('loadedmetadata', () => {
-              console.debug("Video metadata loaded.");
-              videoPipElement.requestPictureInPicture();
-              console.debug("PIP started.");
-            });
-          }
+          // PIP要求
+          requestPip();
         }
       });
     };
@@ -59,6 +48,13 @@
   // PIP開始のイベントリスナーを登録
   window.addEventListener('enterpictureinpicture', (event) => {
     console.log("Entery PIP event.");
+
+    // videoPipElementではなければvideoPipElementで開き直す
+    if (document.pictureInPictureElement !== videoPipElement) {
+      console.debug("Video PIP element is not in Picture-in-Picture. Opening video PIP element.");
+      requestPip(); // PIP要求
+      return;
+    }
 
     const nicoVideoElement = document.querySelector(nicoVideoElementSelector);
     if (!nicoVideoElement) {
