@@ -132,6 +132,16 @@
     window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
   });
 
+  // bodyに対してラジオボタンの変更を監視
+  document.body.addEventListener('change', (event) => {
+    // 動画プレイヤー設定の「コントローラーを常に表示」を切り替えた際にPIPボタンを再描画するための処理
+    if (event.target.matches('input[type="radio"]')) {
+      console.debug("Radio button changed. Redrawing PIP button.");
+      // PIPボタンを再描画するためにイベントを発火
+      window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
+    }
+  });
+
   // 初期化処理を実行
   window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
 })();
