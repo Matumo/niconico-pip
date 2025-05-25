@@ -40,6 +40,8 @@ let updatePipButtonElement = null;
     pipButtonElement.style.fontWeight = 'bold';
     pipButtonElement.style.cursor = 'pointer';
     pipButtonElement.style.marginTop = '-1px'; // 上に少しずらす
+    // フォント指定: Segoe UI (Windows), Helvetica Neue (macOS)
+    pipButtonElement.style.fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
 
     // PIPボタンの色を設定
     pipButtonElement.style.color = pipButtonOnMouseOutColor;
