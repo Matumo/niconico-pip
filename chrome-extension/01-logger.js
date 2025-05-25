@@ -40,12 +40,13 @@ let console = Object.create(originalConsole);
       if (typeof target[prop] === "function" && typeof levelValue === "number") {
         return (...args) => {
           // 出力対象のログレベルはprefixを付けて出力
-          // callerを取得してログに追加する
+          // 経過時間とcallerを取得してログに追加する
           if (currentLogLevel <= levelValue) {
+            const now = performance.now();
             const sufix = logSufixType === 'short' ? `@${getCallerLocationShort()}` :
               logSufixType === 'long' ? `@${getCallerLocation()}` : '';
             // 元のconsoleの関数を呼び出す
-            target[prop](logPrefix, ...args, sufix);
+            target[prop](logPrefix, `(${now.toFixed(1)} ms)`, ...args, sufix);
           }
         };
       }
@@ -54,5 +55,7 @@ let console = Object.create(originalConsole);
     }
   });
 
-  console.log('Custom logger initialized with level:', logLevel);
+  console.log('Custom logger initialized.',
+              `Log level: ${logLevel},`,
+              `Date: ${new Date().toISOString()}`);
 }
