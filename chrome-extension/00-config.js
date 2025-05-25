@@ -3,8 +3,8 @@ const prefixId = 'com-matumo-dev-niconico-pip';
 const pipButtonElementId = `${prefixId}-pip-button`;
 const pipVideoElementId = `${prefixId}-pip-video`;
 
-const videoPipCanvasHeight = 1080;
-const videoPipCanvasWidth = 1920;
+const videoPipCanvasHeight = 720;
+const videoPipCanvasWidth = 1280;
 
 const pipButtonOnMouseOverColor = '#ffffff';
 const pipButtonOnMouseOutColor = '#cccccc';
