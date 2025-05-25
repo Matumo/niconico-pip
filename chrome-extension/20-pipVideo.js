@@ -127,7 +127,8 @@ const videoPipElement = document.createElement('video');
       }
 
       // canvasをクリア
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black'; // 黒をセット
+      ctx.fillRect(0, 0, canvas.width, canvas.height); // 全体を塗りつぶし
 
       // nicoVideoElementを中央揃えで描画
       if (nicoVideoElement.videoWidth > 0 && nicoVideoElement.videoHeight > 0) {
