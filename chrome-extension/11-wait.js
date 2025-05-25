@@ -34,25 +34,29 @@ let waitForElements = null;
     // 既に待機中のインターバルがあればクリア
     if (waitForElementsInterval) clearInterval(waitForElementsInterval);
     // インターバルの設定
-    const startTime = new Date().getTime();
+    const startTime = performance.now()
     let waitForElementsIntervalTime = waitForElementsIntervalTimeMin;
     let waitForElementsLoopCount = 0;
     function intervalFunc() {
       // 要素を取得
       const elements = getElements();
+      // 時間計測
+      const now = performance.now();
+      const diff = now - startTime;
+      // 要素が取得できた場合はコールバックを実行して終了
       if (elements) {
-        const diff = new Date().getTime() - startTime;
         console.debug("Elements are ready.", `Time taken: ${diff} ms`);
         clearInterval(waitForElementsInterval);
         callback(elements);
         return;
       }
+      // 要素がまだ取得できない場合はリトライ
       // ループ回数をカウント
       waitForElementsLoopCount++;
+      // 待機時間の見直しとタイムアウト処理
       if (waitForElementsLoopCount >= waitForElementsIntervalTimeLoopCount) {
         waitForElementsLoopCount = 0;
         // タイムアウト処理
-        const diff = new Date().getTime() - startTime;
         if (diff > waitForElementsTimeout) {
           console.warn("Timeout reached. Elements not found.");
           clearInterval(waitForElementsInterval);
