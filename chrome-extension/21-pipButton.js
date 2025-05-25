@@ -35,11 +35,21 @@ let updatePipButtonElement = null;
     pipButtonElement.style.padding = '0px';
     pipButtonElement.style.margin = '0px';
     pipButtonElement.style.border = 'none';
-    pipButtonElement.style.color = '#cccccc';
     pipButtonElement.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-    pipButtonElement.style.fontSize = '16px';
+    pipButtonElement.style.fontSize = '18px';
     pipButtonElement.style.fontWeight = 'bold';
     pipButtonElement.style.cursor = 'pointer';
+    pipButtonElement.style.marginTop = '-1px'; // 上に少しずらす
+
+    // PIPボタンの色を設定
+    pipButtonElement.style.color = pipButtonOnMouseOutColor;
+    // ホバーで色を変える
+    pipButtonElement.addEventListener('mouseenter', () => {
+      pipButtonElement.style.color = pipButtonOnMouseOverColor;
+    });
+    pipButtonElement.addEventListener('mouseleave', () => {
+      pipButtonElement.style.color = pipButtonOnMouseOutColor;
+    });
 
     // ボタンをクリックしたときの処理
     pipButtonElement.addEventListener('click', pipButtonClickCallback);
