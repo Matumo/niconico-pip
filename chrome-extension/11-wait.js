@@ -70,7 +70,7 @@ let waitForElements = null;
         }
         // 待機時間を見直す
         waitForElementsIntervalTime = Math.min(
-          waitForElementsIntervalTime + waitForElementsIntervalTimeMin,
+          waitForElementsIntervalTime + waitForElementsIntervalTimeStep,
           waitForElementsIntervalTimeMax
         );
         console.debug(`Adjusting wait interval to ${waitForElementsIntervalTime} ms.`);

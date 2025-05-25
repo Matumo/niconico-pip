@@ -26,7 +26,8 @@ const nicoCommentsElementSelector = 'div[data-name="comment"] > canvas';
 
 // バックオフ実装用
 const waitForElementsIntervalTimeMin = 10;  // 待機間隔時間の最小値（ミリ秒）
-const waitForElementsIntervalTimeMax = 100; // 待機間隔時間の最大値（ミリ秒）
+const waitForElementsIntervalTimeMax = 500; // 待機間隔時間の最大値（ミリ秒）
+const waitForElementsIntervalTimeStep = 10; // 待機間隔時間の増加ステップ（ミリ秒）
 const waitForElementsIntervalTimeLoopCount = 10; // 待機間隔の見直し間隔（このループ回数を超えたら再設定する）
 const waitForElementsTimeout = 2 * 60 * 1000;    // タイムアウト時間（待機時間の見直しと同時にチェックする）
 // 取得対象の要素セレクタ
