@@ -239,3 +239,6 @@ $RECYCLE.BIN/
 
 # Build output
 build
+
+# Debug Configurations
+chrome-extension/00-debug.js

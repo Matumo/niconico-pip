@@ -51,7 +51,6 @@ const seekBackwardDefaultOffset = 10;
 const seekForwardDefaultOffset = 10;
 
 // ログ設定
-const debugMode = false;
 const logPrefix = '[niconico-pip]';
 const logLevel = debugMode ? 'debug' : 'log'; // ログレベル: 'error', 'warn', 'info', 'log', 'debug'
 const logSufixType = debugMode ? 'long' : 'none'; // ログのサフィックスタイプ: 'none', 'short', 'long'
