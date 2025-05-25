@@ -22,25 +22,13 @@ const videoPipElement = document.createElement('video');
     }
   }
   function setStream(stream) {
+    if (currentStream === stream) return;
     if (currentStream) stopStream(currentStream);
     currentStream = stream;
   }
   function clearStream() {
     if (currentStream) stopStream(currentStream);
     currentStream = null;
-  }
-
-  let currentAnimationId = null;
-  function stopAnimation(id) {
-    if (id) cancelAnimationFrame(id);
-  }
-  function setAnimation(id) {
-    if (currentAnimationId) stopAnimation(currentAnimationId);
-    currentAnimationId = id;
-  }
-  function clearAnimation() {
-    if (currentAnimationId) stopAnimation(currentAnimationId);
-    currentAnimationId = null;
   }
 
   // video要素のソース設定
@@ -50,8 +38,10 @@ const videoPipElement = document.createElement('video');
     else if (type === 'srcObject') videoPipElement.srcObject = value;
     else console.warn("Invalid type for video source:", type);
   }
+
+  // video要素のソースをクリア
   function clearPipVideoElement() {
-    videoPipElement.src = null;
+    videoPipElement.removeAttribute('src');
     videoPipElement.srcObject = null;
   }
 
@@ -86,18 +76,15 @@ const videoPipElement = document.createElement('video');
   // PIP用のvideo要素のコンテンツを管理
   let currentPipVideoElementData = {
     "nicoVideoElement": null,
-    "nicoCommentsElement": null,
-    "currentStream": null
+    "nicoCommentsElement": null
   }
   // 前回のPIP動画要素と現在のPIP動画要素が同じかどうかを判定する関数
   function samePipVideoElementData(nicoVideoElement, nicoCommentsElement) {
     if (currentPipVideoElementData.nicoVideoElement === null) return false;
     if (currentPipVideoElementData.nicoCommentsElement === null) return false;
-    if (currentPipVideoElementData.currentStream === null) return false;
 
     if (currentPipVideoElementData.nicoVideoElement !== nicoVideoElement) return false;
     if (currentPipVideoElementData.nicoCommentsElement !== nicoCommentsElement) return false;
-    if (currentPipVideoElementData.currentStream !== currentStream) return false;
 
     return true;
   }
@@ -124,14 +111,20 @@ const videoPipElement = document.createElement('video');
     const canvas = document.createElement('canvas');
     canvas.width = videoPipElement.videoWidth;
     canvas.height = videoPipElement.videoHeight;
+    // canvasのコンテキストを取得
+    const ctx = canvas.getContext('2d');
 
     // Streamを作成
-    const stream = canvas.captureStream(60);
+    const stream = canvas.captureStream();
     setStream(stream);
 
     // 描画関数
     const drawVideo = () => {
-      const ctx = canvas.getContext('2d');
+      // 別のStreamが設定されている場合は描画を中止
+      if (currentStream !== stream) {
+        console.debug("Current stream has changed. Stopping drawing.");
+        return;
+      }
 
       // canvasをクリア
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,7 +156,7 @@ const videoPipElement = document.createElement('video');
       }
 
       // アニメーションを続ける
-      setAnimation(requestAnimationFrame(drawVideo));
+      requestAnimationFrame(drawVideo);
     };
     drawVideo();
 
@@ -172,19 +165,17 @@ const videoPipElement = document.createElement('video');
     // 作成済みのvideo要素の情報を保存
     currentPipVideoElementData = {
       "nicoVideoElement": nicoVideoElement,
-      "nicoCommentsElement": nicoCommentsElement,
-      "currentStream": currentStream
+      "nicoCommentsElement": nicoCommentsElement
     };
+    console.debug("Video element for PIP created.");
   }
 
   // PIP用のvideo要素を破棄
   function destroyPipVideoElement() {
-    clearAnimation();
     clearStream();
     currentPipVideoElementData = {
       "nicoVideoElement": null,
-      "nicoCommentsElement": null,
-      "currentStream": null
+      "nicoCommentsElement": null
     };
   }
 
