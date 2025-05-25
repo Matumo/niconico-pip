@@ -58,7 +58,7 @@ let waitForElements = null;
         waitForElementsLoopCount = 0;
         // タイムアウト処理
         if (diff > waitForElementsTimeout) {
-          console.warn("Timeout reached. Elements not found.");
+          console.log("Timeout reached. Elements not found.");
           clearInterval(waitForElementsInterval);
           return;
         }
