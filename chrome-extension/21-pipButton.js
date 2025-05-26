@@ -16,12 +16,12 @@ let updatePipButtonElement = null;
     const tooltipTriggerElement = _tooltipTriggerElement;
 
     if (pipButtonClickCallback === null) {
-      console.error("PIP button click callback is null.");
+      console.warn("PIP button click callback is null.");
       return;
     }
 
     if (tooltipTriggerElement === null) {
-      console.error("Tooltip trigger element is null.");
+      console.warn("Tooltip trigger element is null.");
       return;
     }
 
@@ -35,11 +35,25 @@ let updatePipButtonElement = null;
     pipButtonElement.style.padding = '0px';
     pipButtonElement.style.margin = '0px';
     pipButtonElement.style.border = 'none';
-    pipButtonElement.style.color = '#cccccc';
     pipButtonElement.style.backgroundColor = 'rgba(0, 0, 0, 0)';
-    pipButtonElement.style.fontSize = '16px';
+    pipButtonElement.style.fontSize = '18px';
     pipButtonElement.style.fontWeight = 'bold';
     pipButtonElement.style.cursor = 'pointer';
+    pipButtonElement.style.marginTop = '-1px'; // 上に少しずらす
+    // フォント指定: Segoe UI (Windows), Helvetica Neue (macOS)
+    pipButtonElement.style.fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+    // 文字の選択を無効化
+    pipButtonElement.style.userSelect = 'none';
+
+    // PIPボタンの色を設定
+    pipButtonElement.style.color = pipButtonOnMouseOutColor;
+    // ホバーで色を変える
+    pipButtonElement.addEventListener('mouseenter', () => {
+      pipButtonElement.style.color = pipButtonOnMouseOverColor;
+    });
+    pipButtonElement.addEventListener('mouseleave', () => {
+      pipButtonElement.style.color = pipButtonOnMouseOutColor;
+    });
 
     // ボタンをクリックしたときの処理
     pipButtonElement.addEventListener('click', pipButtonClickCallback);

@@ -31,31 +31,30 @@
           console.log("Entering PIP by button click.");
           // 初期化処理
           init(elements);
-          // メタデータ読み込みが完了してからPIPを開始
-          if (videoPipElement.readyState >= 1) {
-            console.log("Video metadata already loaded.");
-            videoPipElement.requestPictureInPicture();
-            console.log("PIP started.");
-          } else {
-            console.log("Video metadata not loaded. Waiting for metadata loaded.");
-            videoPipElement.addEventListener('loadedmetadata', () => {
-              console.log("Video metadata loaded.");
-              videoPipElement.requestPictureInPicture();
-              console.log("PIP started.");
-            });
-          }
+          // PIP要求
+          requestPip();
         }
       });
     };
 
     initNicoVideoObserver(r5Element);
-    initPipVideoElement(r3Element);
+    initPipVideoElement(r3Element, nicoVideoElement, videoPipElement);
     initPipButtonElement(pipButtonClickCallback, tooltipButtonElement);
+    updateVideoDataForMediaSession();
+    setMediaSession(nicoVideoElement, videoPipElement);
+    registerSyncPlaybackStateEvent(nicoVideoElement, videoPipElement);
   }
 
   // PIP開始のイベントリスナーを登録
   window.addEventListener('enterpictureinpicture', (event) => {
     console.log("Entery PIP event.");
+
+    // videoPipElementではなければvideoPipElementで開き直す
+    if (document.pictureInPictureElement !== videoPipElement) {
+      console.debug("Video PIP element is not in Picture-in-Picture. Opening video PIP element.");
+      requestPip(); // PIP要求
+      return;
+    }
 
     const nicoVideoElement = document.querySelector(nicoVideoElementSelector);
     if (!nicoVideoElement) {
@@ -94,19 +93,49 @@
   // 動画が変更されたときのイベントリスナーを登録
   window.addEventListener(nicoVideoElementChangedEventName, () => {
     console.log("Change nico video element event.");
+    // 正規表現を使ってURLが動画再生ページかどうかを確認
+    const url = window.location.href;
+    if (!nicoVideoPageUrlPatternRegExp.test(url)) {
+      console.debug("Not a Nico video page. Skipping initialization.");
+      // videoPipElementがPiP状態であれば終了
+      if (document.pictureInPictureElement === videoPipElement) {
+        console.debug("Exiting PIP because not a Nico video page.");
+        document.exitPictureInPicture();
+      }
+      return;
+    }
+    // 要素の取得と初期化処理を実行
+    console.debug("Nico video page detected. Initializing...");
     waitForElements((elements) => {
       init(elements);
       const currentPiP = document.pictureInPictureElement;
       if (currentPiP === videoPipElement) {
-        console.log("PIP is enabled.");
+        console.debug("PIP is enabled.");
         const nicoVideoElement = elements[nicoVideoElementSelector];
         const nicoCommentsElement = elements[nicoCommentsElementSelector];
         startPip(nicoVideoElement, nicoCommentsElement);
-        console.log("PIP video element updated.");
+        console.debug("PIP video element updated.");
       } else {
-        console.log("PIP is disabled.");
+        console.debug("PIP is disabled.");
       }
     });
+  });
+
+  // URLが変更されたときのイベントリスナーを登録
+  window.addEventListener(nicoVideoPageUrlChangedEventName, () => {
+    console.log("Change nico video page URL event.");
+    // とりあえず動画要素の変更イベントを発火（動画再生ページであるかどうかはイベントハンドラに判断させる）
+    window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
+  });
+
+  // bodyに対してラジオボタンの変更を監視
+  document.body.addEventListener('change', (event) => {
+    // 動画プレイヤー設定の「コントローラーを常に表示」を切り替えた際にPIPボタンを再描画するための処理
+    if (event.target.matches('input[type="radio"]')) {
+      console.debug("Radio button changed. Redrawing PIP button.");
+      // PIPボタンを再描画するためにイベントを発火
+      window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
+    }
   });
 
   // 初期化処理を実行
