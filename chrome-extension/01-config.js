@@ -44,7 +44,7 @@ const nicoVideoElementChangedEventName = `${prefixId}-nicoVideoElementChanged`;
 // サイトURLの変更イベント名
 const nicoVideoPageUrlChangedEventName = `${prefixId}-nicoVideoPageUrlChanged`;
 // 動画再生ページのURLパターン（正規表現）
-const nicoVideoPageUrlPatternRegExp = new RegExp('^https://www\\.nicovideo\\.jp/watch/\\w+$');
+const nicoVideoPageUrlPatternRegExp = new RegExp('^https://www\\.nicovideo\\.jp/watch/.+$');
 
 // シークバーのデフォルトのシークオフセット（秒）
 const seekBackwardDefaultOffset = 10;
