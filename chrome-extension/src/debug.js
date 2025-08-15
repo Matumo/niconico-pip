@@ -54,6 +54,11 @@ if (debugMode) {
       container.style.zIndex = '9999';
       container.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
       container.style.padding = '15px';
+      // 先頭タイトル
+      const title = document.createElement('div');
+      title.textContent = '<< DEBUG >>';
+      container.appendChild(title);
+      // コンテナリスト
       const containerList = [];
       for (let i = 0; i < 10; i++) {
         const div = document.createElement('div');
@@ -130,7 +135,7 @@ if (debugMode) {
       const name = 'debug-2';
       const text = `Status: ${status.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${status.type || 'Unknown'}, Details: ${status.details || 'None'}\n` +
-                   `Prev: ${prev.playing ? 'Playing' : 'Paused'}, ` +
+                   `Prev Status: ${prev.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${prev.type || 'Unknown'}, Details: ${prev.details || 'None'}`;
       addTextElement(name, text, 'left bottom', 0);
     });
