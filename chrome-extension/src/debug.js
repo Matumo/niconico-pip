@@ -133,7 +133,7 @@ if (debugMode) {
       const status = detail.status;
       const prev = detail.prevStatus;
       const name = 'debug-2';
-      const text = `Status: ${status.playing ? 'Playing' : 'Paused'}, ` +
+      const text = `Current Status: ${status.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${status.type || 'Unknown'}, Details: ${status.details || 'None'}\n` +
                    `Prev Status: ${prev.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${prev.type || 'Unknown'}, Details: ${prev.details || 'None'}`;
