@@ -22,7 +22,7 @@ let getNicoSupporterLogo = null;
     }
     if (nicoSupporterLogoImgStatus === "error") {
       // 5秒経過している場合は再読み込み
-      const now = Date.now();
+      const now = performance.now();
       if (now - nicoSupporterLogoImgLastUpdated > 5 * 1000) {
         console.debug("Nico supporter logo loading failed. Retrying...");
       } else {
