@@ -205,6 +205,10 @@ let drawPip = null;
     return true; // 描画成功
   }
 
+  let lastUpdateProgressValue = -1;
+  let lastUpdateProgressTime = 0;
+  const maxProgressTime = 8 * 1000; // 8秒かけて100%になる進捗バー
+
   // 次の動画紹介を描画
   function drawNextVideo(ctx) {
     // a要素
@@ -225,11 +229,26 @@ let drawPip = null;
       // 数値に変換
       try {
         _progressValue = parseFloat(progressValueText);
-      } catch (e) {
-        if (debugMode) {
-          console.error("Failed to parse progress value:", e);
+        // 進捗バーの更新を記録
+        const now = performance.now();
+        if (lastUpdateProgressValue !== _progressValue) {
+          lastUpdateProgressValue = _progressValue;
+          lastUpdateProgressTime = now;
         }
-        _progressValue = -1; // 変換失敗時は-1に
+        // 進捗バーの差分を計算して加算することで滑らかに動かす
+        // 進捗バーが初期状態（値が0）の場合は何もしない
+        if (_progressValue > 0) {
+          const elapsedTime = now - lastUpdateProgressTime;
+          // 加算する進捗バーの値を計算（加算しすぎないように制限）
+          const progressIncrement = (100.0 / maxProgressTime) * Math.min(elapsedTime, 200);
+          //console.debug("Progress value:", _progressValue, "Increment:", progressIncrement, "elapsedTime:", elapsedTime);
+          _progressValue += progressIncrement;
+        }
+        // 100%を超えないように制限
+        if (_progressValue > 100) _progressValue = 100;
+      } catch (e) {
+        if (debugMode) console.error("Failed to parse progress value:", e);
+        _progressValue = -1; // 変換失敗時は-1にする
       }
     }
     // 進捗値が無効な場合は0に設定
