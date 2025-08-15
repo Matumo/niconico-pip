@@ -432,8 +432,14 @@ if (debugMode) {
   // testThumbnail();
 
 
-
-
+  // // サムネイル画像のキャッシュ機能のテスト
+  // // sm9からsm20まで、1秒間隔でサムネイル画像を取得
+  // for (let i = 9; i <= 20; i++) {
+  //   const url = `https://www.nicovideo.jp/watch/sm${i}`;
+  //   setTimeout(() => {
+  //     getNicoVideoThumbnailImage(url);
+  //   }, i * 1000);
+  // }
 
 
 

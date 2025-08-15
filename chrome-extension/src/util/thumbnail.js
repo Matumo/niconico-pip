@@ -10,12 +10,40 @@ let getNicoVideoThumbnailImage = null;
 // "https://img.cdn.nimg.jp/s/nicovideo/thumbnails/" で始まるものに限定する
 
 {
-  // キャッシュキー（ページ単位で変えたい場合は pageUrl を含める設計に拡張可能）
-  const CACHE_KEY_NICO_VIDEO_THUMBNAIL = "nico_video_thumbnail_image";
+  // キャッシュキー生成
+  const CACHE_KEY_NICO_VIDEO_THUMBNAIL_BASE = "nico_video_thumbnail_image";
+  function buildThumbnailCacheKey(pageUrl) {
+    if (!pageUrl || typeof pageUrl !== 'string') pageUrl = 'unknown';
+    return CACHE_KEY_NICO_VIDEO_THUMBNAIL_BASE + '|' + pageUrl;
+  }
 
-  // 同期インターフェイス: ロード済みなら Image を返し、未ロード/ロード中/失敗時は null を返す
-  // 初回またはリトライ可能な失敗時に内部で非同期ロードを開始する
+  // キャッシュキーリスト
+  let cache_keys = [];
+  // キャッシュの最大保有数
+  const CACHE_MAX_SIZE = 5;
+  // キャッシュの個数チェック関数
+  function checkCacheSize() {
+    // キャッシュの最大保有数を超えた場合は、キャッシュキーリストの全キャッシュをクリアする
+    if (cache_keys.length > CACHE_MAX_SIZE) {
+      for (const key of cache_keys) {
+        cache_delete(key);
+        console.debug("Clearing cache for key:", key);
+      }
+      cache_keys = [];
+    }
+  }
+
+  // サムネイル画像の取得
   getNicoVideoThumbnailImage = function (pageUrl, { timeoutMs = 8000 } = {}) {
+    // URLチェック
+    const WatchPage_Prefix = "https://www.nicovideo.jp/watch/";
+    if (!pageUrl.startsWith(WatchPage_Prefix)) {
+      console.warn("Invalid URL:", pageUrl);
+      return null;
+    }
+
+    // キャッシュキーを生成
+    const CACHE_KEY_NICO_VIDEO_THUMBNAIL = buildThumbnailCacheKey(pageUrl);
     // ロード済みの場合はキャッシュの値を返す
     const status = cache_getStatus(CACHE_KEY_NICO_VIDEO_THUMBNAIL);
     if (status === "loaded") {
@@ -36,8 +64,13 @@ let getNicoVideoThumbnailImage = null;
       }
     }
 
+    // キャッシュサイズのチェック
+    checkCacheSize();
+
     // ロード開始
     cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "loading", null);
+    // キャッシュキーリストに追加
+    cache_keys.push(CACHE_KEY_NICO_VIDEO_THUMBNAIL);
 
     (async () => {
       try {

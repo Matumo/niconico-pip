@@ -8,6 +8,7 @@
 let cache_getStatus = null;
 let cache_getData = null;
 let cache_set = null;
+let cache_delete = null;
 let cache_canRetry = null;
 // -----------------------------------------------------------------------------
 
@@ -48,6 +49,11 @@ let cache_canRetry = null;
     } else {
       entry.retryCount = 0;
     }
+  };
+
+  // キャッシュ削除
+  cache_delete = function (key) {
+    delete cacheStore[key];
   };
 
   // リトライ可能判定
