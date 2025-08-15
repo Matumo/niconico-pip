@@ -205,60 +205,10 @@ let drawPip = null;
     return true; // 描画成功
   }
 
-  // 次の動画のサムネイルを取得
-  let nextVideoThumbnail = null;
-  let nextVideoThumbnailUrl = null; // サムネイルのURL
-  let nextVideoThumbnailStatus = "none"; // none, loading, loaded, error
-  let nextVideoThumbnailLastUpdated = 0; // 最後に更新した時間（ミリ秒）
-  function getNextVideoThumbnail(url) {
-    if (nextVideoThumbnailStatus === "loaded" && nextVideoThumbnailUrl === url) {
-      return nextVideoThumbnail; // 既にロード済み
-    }
-    if (nextVideoThumbnailStatus === "loading" && nextVideoThumbnailUrl === url) {
-      //console.debug("Next video thumbnail is still loading.");
-      return nextVideoThumbnail; // ロード中
-    }
-    if (nextVideoThumbnailStatus === "error" && nextVideoThumbnailUrl === url) {
-      // 5秒経過している場合は再読み込み
-      const now = performance.now();
-      if (now - nextVideoThumbnailLastUpdated > 5 * 1000) {
-        console.debug("Next video thumbnail loading failed. Retrying...", now - nextVideoThumbnailLastUpdated);
-      } else {
-        //console.debug("Next video thumbnail loading failed. Waiting for retry.");
-        return null; // ロード失敗で待機中
-      }
-    }
-    // ロード前の初期化
-    nextVideoThumbnailStatus = "loading";
-    nextVideoThumbnail = null;
-    nextVideoThumbnailUrl = url;
-    nextVideoThumbnailLastUpdated = performance.now();
-    // サムネイル要素を取得
-    const thumbnailElement = context.elements.nextVideo.nextVideoThumbnail;
-    if (!thumbnailElement) {
-      console.warn("Next video thumbnail element not found.");
-      nextVideoThumbnailStatus = "error"; // エラー状態に設定
-      return null; // エラー
-    }
-    // img要素の画像をfetchしてキャッシュ
-    const img = new Image();
-    img.crossOrigin = 'anonymous'; // CORS回避
-    img.src = url;
-    img.onload = () => {
-      console.debug("Next video thumbnail cached successfully.");
-      nextVideoThumbnail = img; // キャッシュ成功
-      nextVideoThumbnailStatus = "loaded"; // ロード完了
-    };
-    img.onerror = () => {
-      console.debug("Failed to load next video thumbnail:", url);
-      nextVideoThumbnailStatus = "error"; // エラー状態に設定
-      nextVideoThumbnail = null; // エラー時はnullに設定
-    };
-    return nextVideoThumbnail; // ロード中またはエラー状態
-  }
-
   // 次の動画紹介を描画
   function drawNextVideo(ctx) {
+    // a要素
+    const link = context.elements.nextVideo.nextVideoLink;
     // img要素
     const thumbnail = context.elements.nextVideo.nextVideoThumbnail;
     // altから動画のタイトルを取得
@@ -293,11 +243,10 @@ let drawPip = null;
     drawTextLogo(ctx, '次の動画', 'rgba(220, 235, 255, 0.85)'); // 優しい青系背景
 
     // サムネイル（img要素）を描画
-    if (thumbnail) {
-      //const thumbnailData = getNextVideoThumbnail(thumbnail.src);
-      const thumbnailData = null;
-      // 上下は中央に合わせる
-      // 左右は画像の右端を、キャンバスの中央に合わせる
+    if (thumbnail && link) {
+      // 次の動画のサムネイルを取得
+      const thumbnailData = getNicoVideoThumbnailImage(link.href);
+      // 上下は中央に、右は画像の右端をキャンバスの中央に合わせる
       // サムネイルは16:9のアスペクト比を想定
       if (thumbnailData && thumbnailData instanceof HTMLImageElement) {
         const thumbnailWidth = thumbnailData.width;
@@ -324,8 +273,7 @@ let drawPip = null;
     }
 
     // タイトルを描画
-    // 上下は中央に合わせる
-    // 左右はキャンバスの中央から描画を開始する
+    // 上下は中央に、左右はキャンバスの中央から描画を開始する
     ctx.fillStyle = 'black';
     ctx.font = `45px ${fontFamily}`;
     ctx.textAlign = 'left';
