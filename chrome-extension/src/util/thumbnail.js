@@ -10,19 +10,70 @@ let getNicoVideoThumbnailImage = null;
 // "https://img.cdn.nimg.jp/s/nicovideo/thumbnails/" で始まるものに限定する
 
 {
-  // 非同期でサムネイル画像を取得
-  let nicoVideoThumbnailImage = null;
-  getNicoVideoThumbnailImage = async (pageUrl, { timeoutMs = 8000 } = {}) => {
-    const url = await getNicoVideoThumbnailUrl(pageUrl, { timeoutMs });
-    if (!url) return null;
-    if (nicoVideoThumbnailImage) {
-      return nicoVideoThumbnailImage;
+  // キャッシュキー（ページ単位で変えたい場合は pageUrl を含める設計に拡張可能）
+  const CACHE_KEY_NICO_VIDEO_THUMBNAIL = "nico_video_thumbnail_image";
+
+  // 同期インターフェイス: ロード済みなら Image を返し、未ロード/ロード中/失敗時は null を返す
+  // 初回またはリトライ可能な失敗時に内部で非同期ロードを開始する
+  getNicoVideoThumbnailImage = function (pageUrl, { timeoutMs = 8000 } = {}) {
+    // ロード済みの場合はキャッシュの値を返す
+    const status = cache_getStatus(CACHE_KEY_NICO_VIDEO_THUMBNAIL);
+    if (status === "loaded") {
+      return cache_getData(CACHE_KEY_NICO_VIDEO_THUMBNAIL);
     }
-    const img = new Image();
-    img.crossOrigin = 'anonymous'; // CORS回避
-    img.src = url;
-    nicoVideoThumbnailImage = img;
-    return img;
+    // ロード中はnullを返す
+    if (status === "loading") {
+      return null;
+    }
+    // エラー時はリトライ可能ならロードに進む
+    // リトライ不可能ならnullを返す
+    if (status === "error") {
+      if (cache_canRetry(CACHE_KEY_NICO_VIDEO_THUMBNAIL)) {
+        console.debug("Thumbnail loading failed. Retrying...");
+      } else {
+        console.debug("Thumbnail loading failed. Waiting for retry.");
+        return null;
+      }
+    }
+
+    // ロード開始
+    cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "loading", null);
+
+    (async () => {
+      try {
+        // URL取得
+        // エラー時はキャッシュにエラー状態を保存
+        const url = await getNicoVideoThumbnailUrl(pageUrl, { timeoutMs });
+        if (!url) {
+          console.debug("Thumbnail URL not found.");
+          cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "error", null);
+          return;
+        }
+        // ロード処理（非同期）
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // CORS回避
+        img.src = url;
+        // ロード完了時にキャッシュに保存
+        img.onload = () => {
+          console.debug("Thumbnail image loaded.");
+          cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "loaded", img);
+          console.debug("Thumbnail URL:", img.src);
+          console.debug("Thumbnail natural size:", img.naturalWidth, "x", img.naturalHeight);
+        };
+        // エラー時はキャッシュにエラー状態を保存
+        img.onerror = (e) => {
+          console.debug("Failed to load thumbnail image.", e);
+          cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "error", null);
+        };
+      } catch (e) {
+        // 例外発生時はキャッシュにエラー状態を保存
+        console.debug("Exception while loading thumbnail image.", e);
+        cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "error", null);
+      }
+    })();
+
+    // ロード開始したので現時点では null
+    return null;
   };
 
   // 非同期でサムネイル画像のURLを返す

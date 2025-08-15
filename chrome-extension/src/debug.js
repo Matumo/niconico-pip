@@ -412,15 +412,22 @@ if (debugMode) {
   // testThumbnailUrl();
 
   // // サムネイル画像を取得するテスト
-  // const testThumbnail = async () => {
-  //   const url = "https://www.nicovideo.jp/watch/sm9";
-  //   const img = await getNicoVideoThumbnailImage(url);
-  //   if (img) {
-  //     // document.body.appendChild(img);
-  //     console.log("サムネイル画像を取得しました:", img.src);
-  //   } else {
-  //     console.error("サムネイル画像の取得に失敗しました");
-  //   }
+  // const testThumbnail = ({ url = "https://www.nicovideo.jp/watch/sm9",
+  //                          max = 10, interval = 500, append = false } = {}) => {
+  //   let n = 0;
+  //   const timer = setInterval(() => {
+  //     const img = getNicoVideoThumbnailImage(url);
+  //     if (img) {
+  //       if (append) document.body.appendChild(img);
+  //       console.log(`Thumbnail retrieved successfully (attempt ${n + 1} of ${max}): ${img.src}`);
+  //       clearInterval(timer);
+  //     } else if (++n >= max) {
+  //       console.error(`Thumbnail retrieval failed after ${max} attempts.`);
+  //       clearInterval(timer);
+  //     } else {
+  //       console.debug(`Thumbnail not yet available. Retrying (attempt ${n + 1} of ${max})...`);
+  //     }
+  //   }, interval);
   // };
   // testThumbnail();
 
