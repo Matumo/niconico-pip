@@ -30,6 +30,7 @@
         "src/util/pipStream.js",
         "src/util/pipDraw.js",
         "src/util/time.js",
+        "src/util/cache.js",
         "src/util/supporterLogo.js",
         "src/util/ad.js",
 
