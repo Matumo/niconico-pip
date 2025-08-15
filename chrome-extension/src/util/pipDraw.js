@@ -268,17 +268,17 @@ let drawPip = null;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     const titleX = 40; // 左からのオフセット
-    const titleY = 70; // 上からのオフセット
+    const titleY = 80; // 上からのオフセット
     ctx.fillText(title, titleX, titleY, videoPipCanvasWidth - titleX * 2); // キャンバスの幅に合わせて描画
     // 残り時間を描画
     ctx.font = `35px ${fontFamily}`;
     ctx.textBaseline = 'top'; // テキストの基準線を上に設定
     const remainingTimeX = titleX; // 左からのオフセット
-    const remainingTimeY = titleY + 70; // タイトルの下に配置
+    const remainingTimeY = titleY + 90; // タイトルの下に配置
     ctx.fillText(remainingTime, remainingTimeX, remainingTimeY, videoPipCanvasWidth - remainingTimeX * 2); // キャンバスの幅に合わせて描画
     // 進捗をバーで描画
     const progressBarX = titleX; // 左からのオフセット
-    const progressBarY = remainingTimeY + 40; // 残り時間の下に配置
+    const progressBarY = remainingTimeY + 50; // 残り時間の下に配置
     const progressBarWidth = videoPipCanvasWidth - progressBarX * 2; // キャンバスの幅に合わせて描画
     const progressBarHeight = 10; // バーの高さ
     // バーの背景
@@ -300,7 +300,7 @@ let drawPip = null;
         // 左からのオフセットは、キャンバスの左半分で中央に配置
         const thumbnailX = (videoPipCanvasWidth / 4) - (thumbnailData.width / 2);
         // 上からのオフセットは、進捗バーの下に配置
-        const thumbnailY = progressBarY + progressBarHeight + 80;
+        const thumbnailY = progressBarY + progressBarHeight + 70;
         // 描画
         ctx.drawImage(thumbnailData, thumbnailX, thumbnailY);
         // 広告枠が存在する場合は、サムネイル画像に広告枠を描画
