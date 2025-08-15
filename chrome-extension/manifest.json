@@ -32,6 +32,7 @@
         "src/util/time.js",
         "src/util/cache.js",
         "src/util/supporterLogo.js",
+        "src/util/thumbnail.js",
         "src/util/ad.js",
 
         "src/pre-handler/status.js",

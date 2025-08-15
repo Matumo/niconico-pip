@@ -399,9 +399,30 @@ if (debugMode) {
     }
   });
 
+  // // サムネイル画像のURLを取得するテスト
+  // const testThumbnailUrl = async () => {
+  //   const url = "https://www.nicovideo.jp/watch/sm9";
+  //   const thumbnailUrl = await getNicoVideoThumbnailUrl(url);
+  //   if (thumbnailUrl) {
+  //     console.log("サムネイル画像のURLを取得しました:", thumbnailUrl);
+  //   } else {
+  //     console.error("サムネイル画像のURLの取得に失敗しました");
+  //   }
+  // };
+  // testThumbnailUrl();
 
-
-
+  // // サムネイル画像を取得するテスト
+  // const testThumbnail = async () => {
+  //   const url = "https://www.nicovideo.jp/watch/sm9";
+  //   const img = await getNicoVideoThumbnailImage(url);
+  //   if (img) {
+  //     // document.body.appendChild(img);
+  //     console.log("サムネイル画像を取得しました:", img.src);
+  //   } else {
+  //     console.error("サムネイル画像の取得に失敗しました");
+  //   }
+  // };
+  // testThumbnail();
 
 
 
