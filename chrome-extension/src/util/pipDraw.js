@@ -242,44 +242,14 @@ let drawPip = null;
     // テキストロゴを描画
     drawTextLogo(ctx, '次の動画', 'rgba(220, 235, 255, 0.85)'); // 優しい青系背景
 
-    // サムネイル（img要素）を描画
-    if (thumbnail && link) {
-      // 次の動画のサムネイルを取得
-      const thumbnailData = getNicoVideoThumbnailImage(link.href);
-      // 上下は中央に、右は画像の右端をキャンバスの中央に合わせる
-      // サムネイルは16:9のアスペクト比を想定
-      if (thumbnailData && thumbnailData instanceof HTMLImageElement) {
-        const thumbnailWidth = thumbnailData.width;
-        const thumbnailHeight = thumbnailData.height;
-        const aspectRatio = thumbnailWidth / thumbnailHeight;
-        const canvasAspectRatio = videoPipCanvasWidth / videoPipCanvasHeight;
-
-        let drawWidth, drawHeight;
-        if (aspectRatio > canvasAspectRatio) {
-          // 横長の画像
-          drawWidth = videoPipCanvasWidth * 0.8; // キャンバスの80%の幅
-          drawHeight = drawWidth / aspectRatio; // 高さを計算
-        } else {
-          // 縦長の画像
-          drawHeight = videoPipCanvasHeight * 0.8; // キャンバスの80%の高さ
-          drawWidth = drawHeight * aspectRatio; // 幅を計算
-        }
-
-        const offsetX = (videoPipCanvasWidth - drawWidth) / 2; // 中央に配置
-        const offsetY = (videoPipCanvasHeight - drawHeight) / 2; // 中央に配置
-
-        ctx.drawImage(thumbnailData, offsetX, offsetY, drawWidth, drawHeight);
-      }
-    }
-
     // タイトルを描画
     // 上下は中央に、左右はキャンバスの中央から描画を開始する
     ctx.fillStyle = 'black';
     ctx.font = `45px ${fontFamily}`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    const titleX = 20; // 左からのオフセット
-    const titleY = 200; // 上からのオフセット
+    const titleX = 40; // 左からのオフセット
+    const titleY = 70; // 上からのオフセット
     ctx.fillText(title, titleX, titleY, videoPipCanvasWidth - titleX * 2); // キャンバスの幅に合わせて描画
     // 残り時間を描画
     ctx.font = `35px ${fontFamily}`;
@@ -301,6 +271,28 @@ let drawPip = null;
     ctx.fillStyle = progressBarColor;
     const progressBarFilledWidth = (progressValue / 100) * progressBarWidth; // 進捗に応じた幅
     ctx.fillRect(progressBarX, progressBarY, progressBarFilledWidth, progressBarHeight);
+
+    // サムネイル（img要素）を描画
+    if (thumbnail && link) {
+      // 次の動画のサムネイルを取得
+      const thumbnailData = getNicoVideoThumbnailImage(link.href);
+      // サムネイルは取得時にサイズ変換されているため、canvasをそのまま描画する
+      if (thumbnailData && thumbnailData instanceof HTMLCanvasElement) {
+        // 左からのオフセットは、キャンバスの左半分で中央に配置
+        const thumbnailX = (videoPipCanvasWidth / 4) - (thumbnailData.width / 2);
+        // 上からのオフセットは、進捗バーの下に配置
+        const thumbnailY = progressBarY + progressBarHeight + 80;
+        // 描画
+        ctx.drawImage(thumbnailData, thumbnailX, thumbnailY);
+        // 広告枠が存在する場合は、サムネイル画像に広告枠を描画
+        //const adBox = context.elements.nextVideo.nextVideoAdBox;
+        const adBox = document.querySelector(selector_player_nextVideo_adBox);
+        if (adBox) {
+          const diff = -12;
+          ctx.drawImage(adBox, thumbnailX + diff, thumbnailY + diff, 150, 150);
+        }
+      }
+    }
 
     if (progressValue === 100) return false; // 次の動画に遷移するのでロード円を描画する
     return true; // 描画成功

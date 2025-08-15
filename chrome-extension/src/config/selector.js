@@ -62,6 +62,8 @@ const selector_player_nextVideo_progress =
 const selector_player_nextVideo_link = selector_player_nextVideo + ' a[data-anchor-page="watch"]';
 // 次の動画のサムネイル
 const selector_player_nextVideo_thumbnail = selector_player_nextVideo_link + ' img';
+// 次の動画の広告枠
+const selector_player_nextVideo_adBox = selector_player_nextVideo_link + '> div[class="pos_relative"] > img';
 // キャンセルボタン
 //const selector_player_nextVideo_cancelButton =
 //  selector_player_nextVideo + ' button[data-element-page="watch"][data-element-area="player"][data-element-name="next_video_confirmation_cancel"]';
@@ -111,6 +113,7 @@ const selectorList = {
     nextVideoProgress: selector_player_nextVideo_progress,
     nextVideoLink: selector_player_nextVideo_link,
     nextVideoThumbnail: selector_player_nextVideo_thumbnail,
+    //nextVideoAdBox: selector_player_nextVideo_adBox,
     //nextVideoCancelBtn: selector_player_nextVideo_cancelButton,
     nextVideoPlayNowBtn: selector_player_nextVideo_playNowButton
   },

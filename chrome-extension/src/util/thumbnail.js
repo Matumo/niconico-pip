@@ -17,6 +17,23 @@ let getNicoVideoThumbnailImage = null;
     return CACHE_KEY_NICO_VIDEO_THUMBNAIL_BASE + '|' + pageUrl;
   }
 
+  // 縮小したサムネイル画像のCanvasを生成
+  function buildThumbnailCanvas(img, width = 320, height = 180) {
+    const c = document.createElement('canvas');
+    c.width = width; c.height = height;
+    const ctx = c.getContext('2d');
+    const iw = img.naturalWidth || 1;
+    const ih = img.naturalHeight || 1;
+    const scale = Math.min(width / iw, height / ih, 1); // 拡大しない
+    const dw = (iw * scale) | 0;
+    const dh = (ih * scale) | 0;
+    const ox = ((width - dw) / 2) | 0;
+    const oy = ((height - dh) / 2) | 0;
+    ctx.clearRect(0, 0, width, height); // 透明背景
+    ctx.drawImage(img, 0, 0, iw, ih, ox, oy, dw, dh);
+    return c;
+  }
+
   // キャッシュキーリスト
   let cache_keys = [];
   // キャッシュの最大保有数
@@ -38,7 +55,7 @@ let getNicoVideoThumbnailImage = null;
     // URLチェック
     const WatchPage_Prefix = "https://www.nicovideo.jp/watch/";
     if (!pageUrl.startsWith(WatchPage_Prefix)) {
-      console.warn("Invalid URL:", pageUrl);
+      console.debug("Invalid URL:", pageUrl);
       return null;
     }
 
@@ -59,7 +76,7 @@ let getNicoVideoThumbnailImage = null;
       if (cache_canRetry(CACHE_KEY_NICO_VIDEO_THUMBNAIL)) {
         console.debug("Thumbnail loading failed. Retrying...");
       } else {
-        console.debug("Thumbnail loading failed. Waiting for retry.");
+        // console.debug("Thumbnail loading failed. Waiting for retry.");
         return null;
       }
     }
@@ -89,9 +106,13 @@ let getNicoVideoThumbnailImage = null;
         // ロード完了時にキャッシュに保存
         img.onload = () => {
           console.debug("Thumbnail image loaded.");
-          cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "loaded", img);
           console.debug("Thumbnail URL:", img.src);
           console.debug("Thumbnail natural size:", img.naturalWidth, "x", img.naturalHeight);
+          // 縮小したサムネイル画像のCanvasを生成
+          const ratio = 0.4;
+          const canvas = buildThumbnailCanvas(img, 1280 * ratio, 720 * ratio);
+          // サムネイルをキャッシュに保存
+          cache_set(CACHE_KEY_NICO_VIDEO_THUMBNAIL, "loaded", canvas);
         };
         // エラー時はキャッシュにエラー状態を保存
         img.onerror = (e) => {
