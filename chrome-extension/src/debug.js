@@ -143,6 +143,29 @@ if (debugMode) {
 
   // 再生時間の表示
   if (debug_viewTime) {
+    // 再生フレーム数とページ時間の表示
+    const fastUpdateInfoContainer = document.createElement('div');
+    fastUpdateInfoContainer.id = `${prefixId}-fast-update-info`;
+    fastUpdateInfoContainer.style.fontSize = '20px';
+    fastUpdateInfoContainer.style.fontFamily = fontFamily;
+    fastUpdateInfoContainer.style.color = 'white';
+    fastUpdateInfoContainer.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
+    fastUpdateInfoContainer.style.margin = '10px 0'; // 上下 左右
+    // span要素を作成
+    const span = document.createElement('span');
+    span.id = `${prefixId}-fast-update-info-span`;
+    span.style.fontSize = '20px';
+    span.style.fontFamily = fontFamily;
+    span.style.color = 'white';
+    span.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
+    span.style.margin = '10px 0'; // 上下 左右
+    // 文字を縁取り
+    span.style.webkitTextStroke = '3px black';
+    span.style.textStroke = '3px black';
+    span.style.paintOrder = 'stroke';
+    fastUpdateInfoContainer.appendChild(span);
+    addContainer('right bottom', 0, fastUpdateInfoContainer);
+
     addEventListener(window, "debug-再生時間更新時に再生時間をコンテナに描画", videoTimeChangedEventName, (event) => {
       const { detail } = event;
       const currentTime = detail.currentTime;
@@ -162,7 +185,7 @@ if (debugMode) {
                   `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
                   `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
                   `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
-      addTextElement(name, text, 'right bottom', 0);
+      addTextElement(name, text, 'right bottom', 1);
     });
   }
 
@@ -214,7 +237,7 @@ if (debugMode) {
       //buttonContainer.style.marginBottom = '10px';
       buttonContainer.style.margin = '10px 0'; // 上下 左右
       // コンテナに追加
-      addContainer('right bottom', 1, buttonContainer);
+      addContainer('right bottom', 2, buttonContainer);
       // 再生ボタン
       const playButton = createButton('Play', () => {
         if (playerController_play) {

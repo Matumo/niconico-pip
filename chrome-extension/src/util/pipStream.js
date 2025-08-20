@@ -117,19 +117,27 @@ let checkAndRecoverCanvas = null;
     }
     // 描画関数
     const draw = function () {
-      // context.pip.animation.frameCount++;
-      // // FPSの更新
-      // const now = performance.now();
-      // if (now - context.pip.animation.fpsLastUpdateTime >= 1000) {
-      //   const diffTime = now - context.pip.animation.fpsLastUpdateTime;
-      //   const frameCount = context.pip.animation.frameCount;
-      //   const frameCountDiff = frameCount - context.pip.animation.fpsLastUpdateFrameCount;
-      //   context.pip.animation.fps = Math.round(frameCountDiff / (diffTime / 1000));
-      //   context.pip.animation.fpsLastUpdateTime = now;
-      //   context.pip.animation.fpsLastUpdateFrameCount = frameCount;
-      //   // デバッグ用にFPSをログ出力
-      //   console.debug(`PIP Animation FPS: ${context.pip.animation.fps}`);
-      // }
+      // デバッグ用
+      if (debugMode && debug_viewTime) {
+        const now = performance.now();
+        context.pip.animation.frameCount++;
+        // FPSの更新
+        if (now - context.pip.animation.fpsLastUpdateTime >= 1000) {
+          const diffTime = now - context.pip.animation.fpsLastUpdateTime;
+          const frameCount = context.pip.animation.frameCount;
+          const frameCountDiff = frameCount - context.pip.animation.fpsLastUpdateFrameCount;
+          context.pip.animation.fps = Math.round(frameCountDiff / (diffTime / 1000));
+          context.pip.animation.fpsLastUpdateTime = now;
+          context.pip.animation.fpsLastUpdateFrameCount = frameCount;
+        }
+        const fastUpdateInfoContainer = document.getElementById(`${prefixId}-fast-update-info-span`);
+        if (fastUpdateInfoContainer) {
+          fastUpdateInfoContainer.textContent = `Frame Count: ${context.pip.animation.frameCount}\n` +
+                                                `Performance Time: ${now.toFixed(2)} ms\n` +
+                                                `PIP Animation FPS: ${context.pip.animation.fps}`
+        }
+      }
+
       // pause中は何もしない
       if (isPaused) {
         console.debug("Stream is paused.");
