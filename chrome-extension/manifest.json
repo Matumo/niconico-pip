@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -13,14 +13,64 @@
     {
       "matches": ["https://www.nicovideo.jp/*"],
       "js": [
-        "00-debug.js", "01-config.js", "02-logger.js",
-        "09-videoInfo.js",
-        "10-observer.js", "11-wait.js",
-        "18-controlVideo.js", "19-mediaSession.js",
-        "20-pipVideo.js", "21-pipButton.js",
-        "30-main.js"
+        "src/config/debug.js",
+        "src/config/config.js",
+        "src/config/event.js",
+        "src/config/selector.js",
+        "src/ad/message.js",
+
+        "src/config/context.js",
+
+        "src/util/logger.js",
+        "src/util/event.js",
+        "src/util/context.js",
+        "src/util/observer.js",
+        "src/util/status.js",
+        "src/util/controller.js",
+        "src/util/pipStream.js",
+        "src/util/pipDraw.js",
+        "src/util/time.js",
+        "src/util/cache.js",
+        "src/util/supporterLogo.js",
+        "src/util/thumbnail.js",
+        "src/util/ad.js",
+
+        "src/pre-handler/status.js",
+        "src/pre-handler/time.js",
+
+        "src/handler/page.js",
+        "src/handler/pipVideo.js",
+        "src/handler/pipStream.js",
+        "src/handler/pipButton.js",
+        "src/handler/mediaSession.js",
+        "src/handler/ad.js",
+        "src/handler/pip.js",
+
+        "src/observer/page.js",
+        "src/observer/elements.js",
+        "src/observer/info.js",
+        "src/observer/timer.js",
+
+        "src/main.js",
+        "src/debug.js"
       ]
+    },
+    {
+      "matches": [
+        "https://imasdk.googleapis.com/*",
+        "https://dc-cdn.ads.nicovideo.jp/*"
+      ],
+      "js": [
+        "src/ad/config.js",
+        "src/ad/message.js",
+        "src/util/logger.js",
+        "src/ad/ad.js"
+      ],
+      "all_frames": true
     }
   ],
+  "background": {
+    "service_worker": "src/ad/message.js"
+  },
   "default_locale": "en"
 }
