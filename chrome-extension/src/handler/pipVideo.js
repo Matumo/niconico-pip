@@ -19,8 +19,7 @@
     const dummyCanvas = document.createElement('canvas');
     dummyCanvas.width = videoPipCanvasWidth;
     dummyCanvas.height = videoPipCanvasHeight;
-    //const dummyCtx = dummyCanvas.getContext('2d');
-    const dummyCtx = dummyCanvas.getContext('2d', { willReadFrequently: true });
+    const dummyCtx = dummyCanvas.getContext('2d');
     dummyCtx.fillStyle = 'black';
     dummyCtx.fillRect(0, 0, dummyCanvas.width, dummyCanvas.height);
     const dummyStream = dummyCanvas.captureStream(1);
@@ -64,8 +63,7 @@
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = newH;
-        //const ctx = canvas.getContext('2d');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const ctx = canvas.getContext('2d');
         const offsetY = (h - newH) / 2;
         ctx.drawImage(img, 0, offsetY, w, newH, 0, 0, w, newH);
         resolve(canvas.toDataURL());
