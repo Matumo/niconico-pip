@@ -135,34 +135,52 @@ let getNicoVideoThumbnailImage = null;
     const html = await fetchHtmlWithTimeout(pageUrl, timeoutMs);
     if (!html) return null;
     console.debug("Fetched HTML for thumbnail:", pageUrl);
-    // console.debug("Fetched HTML content:", html); // 必要なら有効化
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const images = collectOgImageUrls(doc, pageUrl, true);
-    console.log(images);
+    const images = collectThumbnailUrls(doc, pageUrl, { once: false });
+    console.debug("Thumbnail candidates (merged sources):", images);
     return images.length > 0 ? images[0] : null;
   };
 
   // プレフィックス（これで始まるURLのみを有効とみなす）
-  const VALID_PREFIX = 'https://img.cdn.nimg.jp/s/nicovideo/thumbnails/';
+  const ThumbnailUrlPrefix = 'https://img.cdn.nimg.jp/s/nicovideo/thumbnails/';
 
   // og:image を収集する
   // 1件だけ取得する場合は once を true にする
-  function collectOgImageUrls(doc, baseUrl, once = false) {
-    const metas = doc.querySelectorAll('meta[property="og:image"]');
+  // og:image と <link rel="preload" as="image"> を一括収集
+  function collectThumbnailUrls(doc, baseUrl, { once = false } = {}) {
     const seen = new Set();
     const out = [];
+
+    // 1. og:image
+    const metas = doc.querySelectorAll('meta[property="og:image"]');
     for (const m of metas) {
       console.debug("Found og:image meta tag:", m);
       const raw = (m.getAttribute('content') || '').trim();
       if (!raw) continue;
       const url = toAbsoluteUrl(raw, baseUrl);
       if (!url) continue;
-      if (url.startsWith(VALID_PREFIX) && !seen.has(url)) {
+      if (url.startsWith(ThumbnailUrlPrefix) && !seen.has(url)) {
         seen.add(url);
         out.push(url);
-        if (once) break; // 1件だけ取得する場合はここで終了
+        if (once) return out;
       }
     }
+
+    // 2. preload link
+    const links = doc.querySelectorAll('link[rel="preload"][as="image"][href]');
+    for (const l of links) {
+      console.debug("Found preload image link:", l);
+      const raw = (l.getAttribute('href') || '').trim();
+      if (!raw) continue;
+      const url = toAbsoluteUrl(raw, baseUrl);
+      if (!url) continue;
+      if (url.startsWith(ThumbnailUrlPrefix) && !seen.has(url)) {
+        seen.add(url);
+        out.push(url);
+        if (once) return out;
+      }
+    }
+
     return out;
   }
 
@@ -174,13 +192,13 @@ let getNicoVideoThumbnailImage = null;
       const res = await fetch(url, {
         redirect: 'follow',            // 3xxリダイレクトは自動追従
         referrerPolicy: 'no-referrer', // Refererを送らない（プライバシー配慮）
-        signal: ac.signal,             // AbortController で中断可能
-        credentials: 'omit',           // Cookie等は送らない（意図せぬ認証送信を防止）
+        signal: ac.signal              // AbortController で中断可能
       });
       const content_type = res.headers.get('content-type') || '';
       if (!content_type.includes('text/html')) return null; // HTML以外は対象外
       return await res.text();
-    } catch {
+    } catch (error) {
+      if (debugMode) console.error("Failed to fetch HTML:", url, error);
       return null;
     } finally {
       clearTimeout(timer);
