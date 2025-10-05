@@ -120,21 +120,50 @@ let checkAndRecoverCanvas = null;
       // デバッグ用
       if (debugMode && debug_viewTime) {
         const now = performance.now();
-        context.pip.animation.frameCount++;
+        context.debug.pip.frameCount++;
         // FPSの更新
-        if (now - context.pip.animation.fpsLastUpdateTime >= 1000) {
-          const diffTime = now - context.pip.animation.fpsLastUpdateTime;
-          const frameCount = context.pip.animation.frameCount;
-          const frameCountDiff = frameCount - context.pip.animation.fpsLastUpdateFrameCount;
-          context.pip.animation.fps = Math.round(frameCountDiff / (diffTime / 1000));
-          context.pip.animation.fpsLastUpdateTime = now;
-          context.pip.animation.fpsLastUpdateFrameCount = frameCount;
+        if (now - context.debug.pip.fpsLastUpdateTime >= 1000) {
+          const diffTime = now - context.debug.pip.fpsLastUpdateTime;
+          const frameCount = context.debug.pip.frameCount;
+          const frameCountDiff = frameCount - context.debug.pip.fpsLastUpdateFrameCount;
+          context.debug.pip.fps = (frameCountDiff / (diffTime / 1000));
+          context.debug.pip.fpsLastUpdateTime = now;
+          context.debug.pip.fpsLastUpdateFrameCount = frameCount;
         }
-        const fastUpdateInfoContainer = document.getElementById(`${prefixId}-fast-update-info-span`);
-        if (fastUpdateInfoContainer) {
-          fastUpdateInfoContainer.textContent = `Frame Count: ${context.pip.animation.frameCount}\n` +
-                                                `Performance Time: ${now.toFixed(2)} ms\n` +
-                                                `PIP Animation FPS: ${context.pip.animation.fps}`
+        const fastUpdateInfoContainer1 = document.getElementById(`${prefixId}-fast-update-info-span-1`);
+        if (fastUpdateInfoContainer1) {
+          fastUpdateInfoContainer1.textContent = `Performance Time: ${now.toFixed(2)} ms\n` +
+                                                 `PIP Animation Frame: ${context.debug.pip.frameCount}\n` +
+                                                 `PIP Animation FPS: ${context.debug.pip.fps.toFixed(2)}\n` +
+                                                 `SeekBar Ratio: ${(getSeekBarCurrentRatioValue() * 100).toFixed(2)} %`
+        }
+        const fastUpdateInfoContainer2 = document.getElementById(`${prefixId}-fast-update-info-span-2`);
+        if (fastUpdateInfoContainer2) {
+          // statusがvideoのときだけ、videoの再生位置を表示
+          if (context.status.type === "video") {
+            const videoElement = context.elements.menu.video;
+            if (videoElement) {
+              const currentTime = videoElement.currentTime;
+              const duration = videoElement.duration;
+              const playbackQuality = videoElement.getVideoPlaybackQuality();
+              // FPS更新（1秒が経過したら）
+              const playbackQualityCreationTime = playbackQuality.creationTime;
+              if (playbackQualityCreationTime - context.debug.video.fpsLastUpdateTime >= 1000) {
+                const diffTime = playbackQualityCreationTime - context.debug.video.fpsLastUpdateTime;
+                const frameCount = playbackQuality.totalVideoFrames;
+                const frameCountDiff = frameCount - context.debug.video.fpsLastUpdateFrameCount;
+                context.debug.video.fps = (frameCountDiff / (diffTime / 1000));
+                context.debug.video.fpsLastUpdateTime = playbackQualityCreationTime;
+                context.debug.video.fpsLastUpdateFrameCount = frameCount;
+              }
+              // HTML描画
+              fastUpdateInfoContainer2.textContent = `Video Current Time: ${currentTime.toFixed(2)} s\n` +
+                                                     `Video Duration: ${duration.toFixed(2)} s\n` +
+                                                     `Video Playback Rate: ${videoElement.playbackRate.toFixed(2)}x\n` +
+                                                     `Video Frame: ${playbackQuality.totalVideoFrames}\n` +
+                                                     `Video FPS: ${context.debug.video.fps.toFixed(2)}`
+            }
+          }
         }
       }
 
@@ -179,8 +208,7 @@ let checkAndRecoverCanvas = null;
   }
 
   function getContext(canvas) {
-    //return canvas.getContext('2d');
-    return canvas.getContext('2d', { willReadFrequently: true });
+    return canvas.getContext('2d');
   }
 
   // 新しいストリームとCanvasを作成する関数

@@ -104,8 +104,9 @@ if (debugMode) {
   function addTextElement(name, text, pos = 'left bottom', index) {
     const spanId = `${prefixId}-${name}-debug-span`;
     // 要素が存在しない場合は追加
-    if (!document.getElementById(spanId)) {
-      const span = document.createElement('span');
+    let span = document.getElementById(spanId);
+    if (!span) {
+      span = document.createElement('span');
       span.id = spanId;
       span.style.fontSize = '20px';
       span.style.fontFamily = fontFamily;
@@ -120,51 +121,85 @@ if (debugMode) {
       addContainer(pos, index, span);
       console.debug(`Text element created: ${spanId}`);
     }
-    const span = document.getElementById(spanId);
-    if (!span) return; // 要素がない場合は終了
     // テキストを更新
     span.textContent = text;
   }
 
   // ステータスを表示
   if (debug_viewStatus) {
-    addEventListener(window, "debug-ステータス更新時にステータスをコンテナに描画", statusChangedEventName, (event) => {
+    // PIPステータスの表示
+    function drawPipStatus(status) {
+      console.debug("Drawing PIP status:", status);
+      const name = 'debug-2-1';
+      const text = `PiP: ${status}`;
+      addTextElement(name, text, 'left bottom', 0);
+    }
+    // PIPステータス更新イベントはこのコードより先に発生するので、ここで明示的に初期描画する
+    drawPipStatus(context.pip.status || 'unknown');
+    addEventListener(window, "debug-PIPステータス更新時にステータスをコンテナに描画", pipStatusChangedEventName, (event) => {
+      drawPipStatus(event.detail.status);
+    });
+    // 再生ステータスの表示
+    addEventListener(window, "debug-再生ステータス更新時にステータスをコンテナに描画", statusChangedEventName, (event) => {
       const { detail } = event;
       const status = detail.status;
       const prev = detail.prevStatus;
-      const name = 'debug-2';
+      const name = 'debug-2-2';
       const text = `Current Status: ${status.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${status.type || 'Unknown'}, Details: ${status.details || 'None'}\n` +
                    `Prev Status: ${prev.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${prev.type || 'Unknown'}, Details: ${prev.details || 'None'}`;
-      addTextElement(name, text, 'left bottom', 0);
+      addTextElement(name, text, 'left bottom', 1);
     });
   }
 
   // 再生時間の表示
   if (debug_viewTime) {
     // 再生フレーム数とページ時間の表示
+    // コンテナ（その1）を作成
     const fastUpdateInfoContainer = document.createElement('div');
-    fastUpdateInfoContainer.id = `${prefixId}-fast-update-info`;
+    fastUpdateInfoContainer.id = `${prefixId}-fast-update-info-1`;
     fastUpdateInfoContainer.style.fontSize = '20px';
     fastUpdateInfoContainer.style.fontFamily = fontFamily;
     fastUpdateInfoContainer.style.color = 'white';
     fastUpdateInfoContainer.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
     fastUpdateInfoContainer.style.margin = '10px 0'; // 上下 左右
-    // span要素を作成
-    const span = document.createElement('span');
-    span.id = `${prefixId}-fast-update-info-span`;
-    span.style.fontSize = '20px';
-    span.style.fontFamily = fontFamily;
-    span.style.color = 'white';
-    span.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
-    span.style.margin = '10px 0'; // 上下 左右
+    // span要素（その1）を作成
+    const span1 = document.createElement('span');
+    span1.id = `${prefixId}-fast-update-info-span-1`;
+    span1.style.fontSize = '20px';
+    span1.style.fontFamily = fontFamily;
+    span1.style.color = 'white';
+    span1.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
+    span1.style.margin = '10px 0'; // 上下 左右
     // 文字を縁取り
-    span.style.webkitTextStroke = '3px black';
-    span.style.textStroke = '3px black';
-    span.style.paintOrder = 'stroke';
-    fastUpdateInfoContainer.appendChild(span);
+    span1.style.webkitTextStroke = '3px black';
+    span1.style.textStroke = '3px black';
+    span1.style.paintOrder = 'stroke';
+    fastUpdateInfoContainer.appendChild(span1);
     addContainer('right bottom', 0, fastUpdateInfoContainer);
+    // コンテナ（その2）を作成
+    const fastUpdateInfoContainer2 = document.createElement('div');
+    fastUpdateInfoContainer2.id = `${prefixId}-fast-update-info-2`;
+    fastUpdateInfoContainer2.style.fontSize = '20px';
+    fastUpdateInfoContainer2.style.fontFamily = fontFamily;
+    fastUpdateInfoContainer2.style.color = 'white';
+    fastUpdateInfoContainer2.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
+    fastUpdateInfoContainer2.style.margin = '10px 0'; // 上下 左右
+    // span要素（その2）を作成
+    const span2 = document.createElement('span');
+    span2.id = `${prefixId}-fast-update-info-span-2`;
+    span2.style.fontSize = '20px';
+    span2.style.fontFamily = fontFamily;
+    span2.style.color = 'white';
+    span2.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
+    span2.style.margin = '10px 0'; // 上下 左右
+    // 文字を縁取り
+    span2.style.webkitTextStroke = '3px black';
+    span2.style.textStroke = '3px black';
+    span2.style.paintOrder = 'stroke';
+    fastUpdateInfoContainer2.appendChild(span2);
+    addContainer('right bottom', 1, fastUpdateInfoContainer2);
 
     addEventListener(window, "debug-再生時間更新時に再生時間をコンテナに描画", videoTimeChangedEventName, (event) => {
       const { detail } = event;
@@ -185,7 +220,7 @@ if (debugMode) {
                   `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
                   `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
                   `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
-      addTextElement(name, text, 'right bottom', 1);
+      addTextElement(name, text, 'right bottom', 2);
     });
   }
 
@@ -237,7 +272,7 @@ if (debugMode) {
       //buttonContainer.style.marginBottom = '10px';
       buttonContainer.style.margin = '10px 0'; // 上下 左右
       // コンテナに追加
-      addContainer('right bottom', 2, buttonContainer);
+      addContainer('right bottom', 3, buttonContainer);
       // 再生ボタン
       const playButton = createButton('Play', () => {
         if (playerController_play) {
@@ -370,7 +405,7 @@ if (debugMode) {
       wrapper.style.height = '180px';
       wrapper.style.margin = '10px 0'; // 上下 左右
       // コンテナに追加
-      addContainer('left bottom', 1, wrapper);
+      addContainer('left bottom', 2, wrapper);
       console.debug("PIP video element inserted into left bottom container.");
     }
   });
@@ -957,17 +992,20 @@ function toggleDraggableResizablePiP(isAdd) {
   function updateSeekBarAndTime() {
     const seekBarCurrentTime = getSeekBarCurrentTime();
     const seekBarDuration = getSeekBarDuration();
+    // 値をセット（シーク時に取得する）
     seekBar.max = seekBarDuration || 1;
     seekBar.value = seekBarCurrentTime || 0;
+    // 値をパーセントに変換して青バーを更新
     const percent = Math.max(0, Math.min(1, seekBarDuration ? seekBarCurrentTime / seekBarDuration : 0));
     seekBar.style.background = `linear-gradient(to right, ${BAR_BLUE} 0%, ${BAR_BLUE} ${percent*100}%, #bbb ${percent*100}%, #bbb 100%)`;
+    // 時間表示を更新
     currentTimeLabel.textContent = formatTime(seekBarCurrentTime);
     durationLabel.textContent = formatTime(seekBarDuration);
   }
-
+  // 初回更新とイベントリスナー登録
   window.addEventListener(videoTimeChangedEventName, updateSeekBarAndTime);
   updateSeekBarAndTime();
-
+  // シークバー操作
   seekBar.addEventListener('input', () => {
     if (typeof playerController_seek === 'function') {
       playerController_seek(Number(seekBar.value));
@@ -1209,7 +1247,7 @@ function toggleDraggableResizablePiP(isAdd) {
   wrapper.appendChild(videoContainer);
   wrapper.appendChild(controls);
 
-  addContainer('left bottom', 1, wrapper);
+  addContainer('left bottom', 2, wrapper);
 
   // 追加時も念のため画面内に補正
   setTimeout(ensurePiPInView, 0);

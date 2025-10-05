@@ -62,10 +62,10 @@ const selector_player_nextVideo_progress =
 const selector_player_nextVideo_link = selector_player_nextVideo + ' a[data-anchor-page="watch"]';
 // 次の動画のサムネイル
 const selector_player_nextVideo_thumbnail = selector_player_nextVideo_link + ' img';
-// 次の動画の広告枠（次の動画のリンク配下）
-const selector_player_nextVideo_adBox_suffix = ' > div[class="pos_relative"] > img';
+// 次の動画の広告枠（次の動画紹介のセレクタ配下）
+const selector_player_nextVideo_adBox_suffix = ' > div[data-group="true"][data-anchor="1"][data-anchor-page="watch"][data-anchor-area="player"][data-anchor-href][data-decoration-video-id] > div[class="pos_relative"] > img';
 // 次の動画の広告枠
-const selector_player_nextVideo_adBox = selector_player_nextVideo_link + selector_player_nextVideo_adBox_suffix;
+const selector_player_nextVideo_adBox = selector_player_nextVideo + selector_player_nextVideo_adBox_suffix;
 // キャンセルボタン
 //const selector_player_nextVideo_cancelButton =
 //  selector_player_nextVideo + ' button[data-element-page="watch"][data-element-area="player"][data-element-name="next_video_confirmation_cancel"]';

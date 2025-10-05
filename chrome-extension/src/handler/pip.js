@@ -58,26 +58,34 @@ let endPip = null;   // PIPを終了する関数
     if (videoPipElement.readyState >= 1) {
       console.debug("Video metadata already loaded.");
       videoPipElement.requestPictureInPicture().then(() => {
+        updatePipStatus();
+        console.debug("PIP started.");
       }).catch(error => {
+        updatePipStatus();
         console.debug("Failed to enter Picture-in-Picture mode:", error);
       });
-      console.debug("PIP started.");
     } else {
       console.debug("Video metadata not loaded. Waiting for metadata loaded.");
       videoPipElement.addEventListener('loadedmetadata', () => {
         console.debug("Video metadata loaded.");
         videoPipElement.requestPictureInPicture().then(() => {
+          updatePipStatus();
+          console.debug("PIP started.");
         }).catch(error => {
+          updatePipStatus();
           console.debug("Failed to enter Picture-in-Picture mode:", error);
         });
-        console.debug("PIP started.");
       });
     }
   }
 
   // PIPを終了する関数
   endPip = function() {
-    window.document.exitPictureInPicture().catch(error => {
+    window.document.exitPictureInPicture().then(() => {
+      updatePipStatus();
+      console.debug("PIP ended.");
+    }).catch(error => {
+      updatePipStatus();
       console.debug("Failed to exit Picture-in-Picture mode:", error);
     });
   }
@@ -100,7 +108,7 @@ let endPip = null;   // PIPを終了する関数
     const pipStatus = getPipStatus();
     // PIPのステータスが変わった場合のみ更新
     if (context.pip.status !== pipStatus) {
-      context.pip.status = pipStatus;
+      updatePipStatusContext(pipStatus); // コンテキストを更新
       setVisibility(context.pip.status === "enabled"); // 表示を切り替える
       console.debug("PIP status updated:", pipStatus);
     } else {
@@ -130,15 +138,23 @@ let endPip = null;   // PIPを終了する関数
     updatePipStatus();
   });
 
-  addEventListener(window, "PIP終了時に割り込み処理", "leavepictureinpicture", (event) => {
-    console.debug("Exited Picture-in-Picture mode.");
-    // PIPの描画を停止する
-    requestStreamPause();
-    // PIPのステータスを更新
-    updatePipStatus();
-    // PIPを終了
-    endPip();
+  // PIP動画要素が変更されるたびにイベント登録
+  addEventListener(window, "PIP動画要素変更時に「PIP終了時に割り込み処理」イベント登録", pipVideoElementChangedEventName, () => {
+    const pipElement = context.pip.videoElement;
+    if (pipElement) {
+      addEventListener(pipElement, "PIP終了時に割り込み処理", "leavepictureinpicture", () => {
+        console.debug("Exited Picture-in-Picture mode.");
+        // PIPの描画を停止する
+        requestStreamPause();
+        // PIPのステータスを更新
+        updatePipStatus();
+        // PIPを終了
+        endPip();
+      });
+    }
   });
+  // 初期化のためにイベントを呼び出し
+  window.dispatchEvent(new Event(pipVideoElementChangedEventName));
 
   // 全画面表示を開始したときにPIPを終了
   addEventListener(window, "全画面表示時にPIPを終了", "fullscreenchange", () => {

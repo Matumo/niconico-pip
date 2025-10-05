@@ -18,3 +18,7 @@ const videoInfoChangedEventName = `${eventNamePrefix}-videoInfoChanged`;
 const videoTimeChangedEventName = `${eventNamePrefix}-videoTimeChanged`;
 // Stream変更時のイベント名
 const streamChangedEventName = `${eventNamePrefix}-streamChanged`;
+// PIPステータス変更イベント名
+const pipStatusChangedEventName = `${eventNamePrefix}-pipStatusChanged`;
+// PIP動画要素変更イベント名
+const pipVideoElementChangedEventName = `${eventNamePrefix}-pipVideoElementChanged`;

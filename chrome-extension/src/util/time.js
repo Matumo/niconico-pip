@@ -10,6 +10,9 @@ let getSeekBarDuration = null;      // シークバーの総再生時間を取�
 let getContentCurrentTime = null;   // コンテンツの現在の再生時間を取得する関数
 let getContentDuration = null;      // コンテンツの総再生時間を取得する関数
 let updateTimeCaches = null;        // 各種時間のキャッシュを更新する関数
+
+// キャッシュなしで直接取得する関数
+let getSeekBarCurrentRatioValue = null; // シークバーの現在の値（割合）を取得する関数
 // -----------------------------------------------------------------------------
 
 {
@@ -223,5 +226,26 @@ let updateTimeCaches = null;        // 各種時間のキャッシュを更新�
     getPlayerDuration_cacheUpdate();
     getContentCurrentTime_cacheUpdate(); // playerCurrentとplayerDurationに依存する
     getContentDuration_cacheUpdate();    // playerDurationとplayerDurationに依存する
+  }
+
+
+  // キャッシュなしで直接取得する関数
+  // シークバーの現在の値（割合）を取得する関数
+  getSeekBarCurrentRatioValue = function() {
+    const status = context.status;
+    if (!status || !status.type) return -1;
+    // 現在の再生時間要素を取得
+    const currentTimeElement = getCurrentTimeElement();
+    if (!currentTimeElement) return -1;
+    // aria-valuenow 属性から現在の再生時間を取得（テキスト）
+    const currentTimeText = currentTimeElement.getAttribute('aria-valuenow');
+    if (!currentTimeText) return -1;
+    const currentTime = parseFloat(currentTimeText);
+    if (isNaN(currentTime)) return -1;
+    const durationTimeText = currentTimeElement.getAttribute('aria-valuemax');
+    if (!durationTimeText) return -1;
+    const duration = parseFloat(durationTimeText);
+    if (isNaN(duration) || duration <= 0) return -1;
+    return currentTime / duration;
   }
 }
