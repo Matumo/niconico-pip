@@ -42,6 +42,10 @@ let context = {
     current: null,  // 現在の再生時間（テキスト）
     duration: null, // 動画の総再生時間（テキスト）
   },
+  pip: {
+    status: null, // "enabled", "disabled", "otherElementEnabled"
+    videoElement: null // PIP動画要素
+  },
   // TODO: setterを作る
   image: {
     thumbnail: {

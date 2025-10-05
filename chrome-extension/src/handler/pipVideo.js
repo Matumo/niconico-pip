@@ -27,8 +27,8 @@
     videoPipElement.srcObject = dummyStream;
   }
 
-  // TODO: setterを作る
-  context.pip.videoElement = videoPipElement;
+  // PIP動画要素のコンテキスト更新
+  updatePipVideoElementContext(videoPipElement);
 
   // PIP動画を挿入するイベントリスナー
   addEventListener(window, "コンテンツ要素の変更時にPIP動画を挿入",

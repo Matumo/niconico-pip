@@ -12,6 +12,8 @@ let updateStatusContext = null;
 let clearTimeContext = null;
 let updateTimeContext = null;
 let incCheckAdSkipVideoId = null;
+let updatePipStatusContext = null;
+let updatePipVideoElementContext = null;
 // -----------------------------------------------------------------------------
 
 {
@@ -197,6 +199,42 @@ let incCheckAdSkipVideoId = null;
         category: category,
         name: name,
         element: element
+      }
+    }));
+  }
+
+  updatePipStatusContext = function (_status) {
+    const status = _status;
+    // 変更がない場合は何もしない（status, videoElementを比較）
+    if (context.pip.status === status) {
+      //console.debug("PIP status is unchanged. Skip update.");
+      return;
+    }
+    // PIPステータスを更新
+    context.pip.status = status;
+    // イベントを発火
+    console.debug("{Event} PIP status changed:", status);
+    window.dispatchEvent(new CustomEvent(pipStatusChangedEventName, {
+      detail: {
+        status: status
+      }
+    }));
+  }
+
+  updatePipVideoElementContext = function (_videoElement) {
+    const videoElement = _videoElement;
+    // 変更がない場合は何もしない（videoElementを比較）
+    if (context.pip.videoElement === videoElement) {
+      //console.debug("PIP video element is unchanged. Skip update.");
+      return;
+    }
+    // PIP動画要素を更新
+    context.pip.videoElement = videoElement;
+    // イベントを発火
+    console.debug("{Event} PIP video element changed:", videoElement ? "set" : "cleared");
+    window.dispatchEvent(new CustomEvent(pipVideoElementChangedEventName, {
+      detail: {
+        videoElement: videoElement
       }
     }));
   }

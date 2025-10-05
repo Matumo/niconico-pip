@@ -100,7 +100,7 @@ let endPip = null;   // PIPを終了する関数
     const pipStatus = getPipStatus();
     // PIPのステータスが変わった場合のみ更新
     if (context.pip.status !== pipStatus) {
-      context.pip.status = pipStatus;
+      updatePipStatusContext(pipStatus); // コンテキストを更新
       setVisibility(context.pip.status === "enabled"); // 表示を切り替える
       console.debug("PIP status updated:", pipStatus);
     } else {
