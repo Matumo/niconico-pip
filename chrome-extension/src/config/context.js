@@ -57,24 +57,20 @@ let context = {
       data: null
     }
   },
-  // TODO: setterを作る
-  pip: {
-    status: null, // "enabled", "disabled", "otherElementEnabled"
-    videoElement: null, // PIP動画要素
-    animation: {
-      frameCount: 0, // アニメーションフレームのカウント
-      //lastTime: 0,   // 最後に実行した時間
-      fps: 0,        // FPS
+  debug: {
+    pip: {
+      frameCount: 0,              // アニメーションフレームのカウント
+      fps: 0,                     // FPS
       fpsLastUpdateTime: 0,       // FPSの更新時間
       fpsLastUpdateFrameCount: 0, // FPSの更新フレーム数
     },
-    // draw: {
-    //   frameCount: 0, // 描画フレーム数
-    //   lastTime: 0,   // 最後に描画した時間
-    //   fps: 0,        // FPS
-    //   fpsLastUpdateTime: 0,       // FPSの更新時間
-    //   fpsLastUpdateFrameCount: 0, // FPSの更新フレーム数
-    // }
+    video: {
+      // frameCount: 0, // 描画フレーム数
+      // videoElement.getVideoPlaybackQuality().totalVideoFramesで取得可能
+      fps: 0,                     // FPS
+      fpsLastUpdateTime: 0,       // FPSの更新時間
+      fpsLastUpdateFrameCount: 0  // FPS更新時のフレーム数
+    }
   }
 }
 // -----------------------------------------------------------------------------
