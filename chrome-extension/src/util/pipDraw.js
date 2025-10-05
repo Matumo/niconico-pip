@@ -304,8 +304,8 @@ let drawPip = null;
         // 描画
         ctx.drawImage(thumbnailData, thumbnailX, thumbnailY);
         // 広告枠が存在する場合は、サムネイル画像に広告枠を描画
-        //const adBox = context.elements.nextVideo.nextVideoAdBox;
-        const adBox = link.querySelector(':scope' + selector_player_nextVideo_adBox_suffix);
+        const nextVideo = context.elements.nextVideo.nextVideo;
+        const adBox = nextVideo?.querySelector(':scope' + selector_player_nextVideo_adBox_suffix);
         if (adBox) {
           const diff = -12;
           ctx.drawImage(adBox, thumbnailX + diff, thumbnailY + diff, 150, 150);
