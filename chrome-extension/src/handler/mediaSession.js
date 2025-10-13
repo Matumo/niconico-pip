@@ -29,6 +29,24 @@ if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler('stop', function() {
     playerController_stop();
   });
+  // 自動PiP
+  try {
+    navigator.mediaSession.setActionHandler("enterpictureinpicture", function() {
+      if (!context.pip || !context.pip.videoElement) {
+        console.debug("Auto PiP: No video element for PiP.");
+        return;
+      }
+      console.debug("Auto PiP: Entering Picture-in-Picture mode.");
+      context.pip.videoElement.requestPictureInPicture().catch((error) => {
+        console.debug("Auto PiP: Failed to enter Picture-in-Picture mode.", error);
+      }).then(() => {
+        console.debug("Auto PiP: Successfully entered Picture-in-Picture mode.");
+      });
+    });
+    console.debug("Auto PiP: setActionHandler for enterpictureinpicture succeeded.");
+  } catch (error) {
+    console.debug("Auto PiP: setActionHandler for enterpictureinpicture failed.", error);
+  }
 
   // 動画情報の反映
   addEventListener(window, "動画情報更新時にmediaSession情報を更新",
