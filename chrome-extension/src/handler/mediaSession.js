@@ -115,9 +115,11 @@ if ("mediaSession" in navigator) {
       duration: duration,
       playbackRate: playbackRate,
       position: position,
-    }
+    };
     navigator.mediaSession.setPositionState(positionState);
-    //console.debug("MediaSession positionState updated:", positionState);
+    // console.debug("MediaSession positionState updated:", positionState,
+    //               "MediaSession playbackState:", navigator.mediaSession.playbackState,
+    //               "Status:", status);
   }
   // ステータスが変化したときにpositionStateを更新
   addEventListener(window, "ステータス更新時にpositionStateを更新",
