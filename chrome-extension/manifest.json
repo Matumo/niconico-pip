@@ -45,6 +45,7 @@
         "src/handler/mediaSession.js",
         "src/handler/ad.js",
         "src/handler/pip.js",
+        "src/handler/avoidNicoBugs.js",
 
         "src/observer/page.js",
         "src/observer/elements.js",
