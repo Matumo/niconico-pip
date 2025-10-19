@@ -5,44 +5,6 @@ const exec_debug_js = async function() {
   console.log("Debug mode is " + (debugMode ? "enabled" : "disabled") + ".");
   if (!debugMode) return;
 
-  // animationFrameのFPS計測
-  function measureFps(durationMs, callback) {
-    let frameCount = 0;
-    let startTime = performance.now();
-    function countFrames() {
-      frameCount++;
-      const currentTime = performance.now();
-      if (currentTime - startTime >= durationMs) {
-        const fps = frameCount / (durationMs / 1000);
-        callback(fps);
-      } else {
-        requestAnimationFrame(countFrames);
-      }
-    }
-    requestAnimationFrame(countFrames);
-  }
-
-  // // FPSを計測してコンソールに出力
-  // if (debugMode) {
-  //   let count = 0;
-  //   let results = [];
-  //   const func = () => {
-  //     measureFps(1000, (fps) => {
-  //       console.debug(`[FPS] ${fps.toFixed(2)} fps`);
-  //       results.push(fps);
-  //       count++;
-  //       if (count < 10) func();
-  //       else {
-  //         // 中央値を出力
-  //         results.sort((a, b) => a - b);
-  //         const median = results[Math.floor(results.length / 2)];
-  //         console.debug(`[FPS] Median: ${median.toFixed(2)} fps`);
-  //       }
-  //     });
-  //   };
-  //   func();
-  // }
-
   // コンテナ作成
   const { leftBottomContainerList, rightBottomContainerList } = (() => {
     // createDebugContainers(`${prefixId}-left-bottom-debug`, 'left bottom');
@@ -111,11 +73,12 @@ const exec_debug_js = async function() {
     if (!span) {
       span = document.createElement('span');
       span.id = spanId;
+      span.style.display = 'inline-block';
       span.style.fontSize = '20px';
       span.style.fontFamily = fontFamily;
       span.style.color = 'white';
       span.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
-      span.style.margin = '10px 0'; // 上下 左右
+      span.style.margin = '5px 0'; // 上下 左右
       // 文字を縁取り
       span.style.webkitTextStroke = '3px black';
       span.style.textStroke = '3px black';
@@ -153,6 +116,19 @@ const exec_debug_js = async function() {
                    `Prev Status: ${prev.playing ? 'Playing' : 'Paused'}, ` +
                    `Type: ${prev.type || 'Unknown'}, Details: ${prev.details || 'None'}`;
       addTextElement(name, text, 'left bottom', 1);
+    });
+  }
+
+  // Observerの表示
+  if (debug_viewObserverCallbackCount) {
+    addEventListener(window, "debug-監視コールバック呼び出し時に監視回数をコンテナに描画", observerCallbackEventName, (event) => {
+      const countMap = context.debug.observer;
+      const name = 'debug-3-observer-calls';
+      let text = `Observer Call Counts:\n`;
+      for (const [observerName, callCount] of Object.entries(countMap)) {
+        text += `[Observer] ${observerName}: ${callCount}\n`;
+      }
+      addTextElement(name, text, 'left bottom', 3);
     });
   }
 
@@ -217,12 +193,12 @@ const exec_debug_js = async function() {
       // 時間を表示
       const name = 'debug-3';
       const text = `Player Text Current Time: ${currentTime}, Duration: ${duration}\n` +
-                  `Player Current Time: ${playerCurrentTime < 0 ? 'N/A' : playerCurrentTime}, ` +
-                  `Duration: ${playerDuration < 0 ? 'N/A' : playerDuration}\n` +
-                  `SeekBar Current Time: ${seekBarCurrentTime < 0 ? 'N/A' : seekBarCurrentTime}, ` +
-                  `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
-                  `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
-                  `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
+                   `Player Current Time: ${playerCurrentTime < 0 ? 'N/A' : playerCurrentTime}, ` +
+                   `Duration: ${playerDuration < 0 ? 'N/A' : playerDuration}\n` +
+                   `SeekBar Current Time: ${seekBarCurrentTime < 0 ? 'N/A' : seekBarCurrentTime}, ` +
+                   `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
+                   `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
+                   `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
       addTextElement(name, text, 'right bottom', 2);
     });
   }
@@ -428,7 +404,8 @@ const exec_debug_js = async function() {
   });
 
 
-// context.elements.player.playerが描画範囲外になったらshowDraggableResizablePiP()を呼ぶIntersectionObserverを設定
+  // context.elements.player.playerが描画範囲外になったら
+  // showDraggableResizablePiP()を呼ぶIntersectionObserverを設定
   addEventListener(window, "debug-要素が描画範囲外になったらPIP動画を表示",
                    elementChangedEventName, function(event) {
     const details = event.detail;

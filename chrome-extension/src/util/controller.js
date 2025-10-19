@@ -217,28 +217,6 @@ const exec_util_controller_js = async function() {
   // 前のトラックへ
   playerController_previousTrack = function () {
     const status = context.status;
-
-    // // videoかつ2秒未満かつ前のページが動画再生ページであればページ遷移
-    // if (status.type === 'video') {
-    //   const time = getPlayerCurrentTime();
-    //   if (time < 2) {
-    //     const previousUrl = document.referrer;
-    //     console.debug("Referrer URL:", previousUrl);
-    //     if (previousUrl) {
-    //       const isWatchPage = nicoVideoPageUrlPatternRegExp.test(previousUrl);
-    //       if (isWatchPage) {
-    //         window.location.href = previousUrl;
-    //         console.debug("Switched to previous track (video type, referrer is watch page).");
-    //         return;
-    //       } else {
-    //         console.debug("Referrer is not a watch page, seeking to start.");
-    //       }
-    //     }
-    //   } else {
-    //     console.debug("Current time is greater than 2 seconds, seeking to start. time=", time);
-    //   }
-    // }
-
     // シークで対応
     playerController_seek(0);
     console.debug("Switched to previous track. (Seek to start)");
