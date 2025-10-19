@@ -37,14 +37,13 @@ const exec_observer_page_js = async function() {
   // URLの監視を開始
   initChangeUrlObserver = function () {
     console.debug("Initializing URL change observer.");
-    // 初回イベント実行
-    checkUrlChange();
     // DOM変更を監視
     const urlChangeObserver = new MutationObserver(checkUrlChange);
     urlChangeObserver.observe(document.head, {
       childList: true,
       attributes: true,
     });
+    checkUrlChange(); // 初回イベント実行
     console.debug("URL change observer initialized.");
   }
 }
