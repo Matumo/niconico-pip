@@ -62,7 +62,13 @@ const exec_util_observer_js = async function() {
 
     // callbackがfalseを返したら監視を終了するラッパー関数を作成
     const wrappedCallback = function (...args) {
+      // デバッグ用カウントアップ
+      if (debugMode && debug_viewObserverCallbackCount) {
+        context.debug.observer[name] = (context.debug.observer[name] || 0) + 1;
+      }
+      // callbackの実行
       const isContinue = callback(...args);
+      // 継続不要なら監視を停止
       if (!isContinue) stopObserver(name);
     };
     // 新しい監視を設定
@@ -79,6 +85,14 @@ const exec_util_observer_js = async function() {
       childList: true,
       ...observeOptions
     });
+
+    // もう一度初回実行して継続不要であれば終了
+    if (!callback()) {
+      console.debug(`Initial callback for ${name} returned false after observer started. Stopping observer.`);
+      stopObserver(name);
+      return;
+    }
+
     console.debug("Current observerList:", getObserverListNames());
   }
 

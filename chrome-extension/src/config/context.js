@@ -70,6 +70,8 @@ let context = {
       fps: 0,                     // FPS
       fpsLastUpdateTime: 0,       // FPSの更新時間
       fpsLastUpdateFrameCount: 0  // FPS更新時のフレーム数
+    },
+    observer: { // key=Observer名, value=callback呼び出し回数
     }
   }
 }

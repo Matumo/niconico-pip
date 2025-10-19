@@ -157,6 +157,19 @@ const exec_debug_js = async function() {
     });
   }
 
+  // Observerの表示
+  if (debug_viewObserverCallbackCount) {
+    addEventListener(window, "debug-監視コールバック呼び出し時に監視回数をコンテナに描画", observerCallbackEventName, (event) => {
+      const countMap = context.debug.observer;
+      const name = 'debug-3-observer-calls';
+      let text = `Observer Call Counts:\n`;
+      for (const [observerName, callCount] of Object.entries(countMap)) {
+        text += `[Observer] ${observerName}: ${callCount}\n`;
+      }
+      addTextElement(name, text, 'left bottom', 3);
+    });
+  }
+
   // 再生時間の表示
   if (debug_viewTime) {
     // 再生フレーム数とページ時間の表示
