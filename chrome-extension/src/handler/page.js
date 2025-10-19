@@ -1,7 +1,7 @@
 "use strict";
 
 // ページ読み込み時の初期化処理
-{
+const exec_handler_page_js = async function() {
   // pageUrlChangedEventNameのイベントハンドラ
   addEventListener(window, "ページURL変更時に初期化", pageUrlChangedEventName, function (event) {
     console.info("-------------    New Page     -------------");

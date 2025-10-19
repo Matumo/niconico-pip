@@ -1,7 +1,7 @@
 "use strict";
 
 // デバッグモード
-const debugMode = true;
+let debugMode = true;
 
 // デバッグログの出力
 const debug_log = true;
@@ -21,3 +21,8 @@ const debug_pipAlwaysDraw = true;
 const debug_pipViewOutside = true;
 // プレイヤー外に表示するPIPをPIP風のレイアウトにする
 const debug_pipViewOutsideLayout = true;
+
+const exec_config_debug_js = async function() {
+  // ストレージの設定を使って上書き
+  debugMode = storageConfig[STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED];
+}

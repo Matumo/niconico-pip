@@ -11,7 +11,7 @@ const clickAdSkipButtonRequestMessageName = 'CLICK_AD_SKIP_BUTTON_REQUEST';
 // 広告のスキップボタンのクリック結果のメッセージ名
 const clickAdSkipButtonResponseMessageName = 'CLICK_AD_SKIP_BUTTON_RESPONSE';
 
-{
+const exec_ad_message_js = async function() {
   // 実行環境を判定する関数
   function getExecutionContext() {
     if (typeof self !== "undefined" && self.registration) {

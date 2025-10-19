@@ -1,7 +1,10 @@
 "use strict";
 
 // デバッグ用
-if (debugMode) {
+const exec_debug_js = async function() {
+  console.log("Debug mode is " + (debugMode ? "enabled" : "disabled") + ".");
+  if (!debugMode) return;
+
   // animationFrameのFPS計測
   function measureFps(durationMs, callback) {
     let frameCount = 0;

@@ -1,13 +1,13 @@
 "use strict";
 
-// カスタムロガー
+// カスタムロガー (v20251018)
 
 // --- variable ----------------------------------------------------------------
 const originalConsole = window.console;
 let console = Object.create(originalConsole);
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_logger_js = async function() {
   // ログレベル
   const logLevels = {
     "error": 4,

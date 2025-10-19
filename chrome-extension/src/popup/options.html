@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>-</title>
+  <link rel="stylesheet" href="options.css">
+  <script src="../config/storage.js" defer></script>
+  <script src="options.js" defer></script>
+</head>
+<body>
+  <!-- ヘッダ -->
+  <div class="header">
+    <img src="../../icons/icon48.png" alt="Icon" width="32" height="32">
+    <h1 id="title">-</h1>
+  </div>
+
+  <!-- 設定項目 -->
+  <!-- 拡張機能の有効化 -->
+  <div id="config-enabled-container" class="animated-toggle">
+    <div class="modern-setting">
+      <div class="label-and-switch">
+        <span id="config-enabled-label" class="label-name"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="config-enabled-input">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <span class="setting-description" id="config-enabled-description"></span>
+    </div>
+  </div>
+  <!-- デバッグモードの有効化 -->
+  <div id="config-debug-mode-enabled-container" class="animated-toggle">
+    <div class="modern-setting">
+      <div class="label-and-switch">
+        <span id="config-debug-mode-enabled-label" class="label-name"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="config-debug-mode-enabled-input">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <span class="setting-description" id="config-debug-mode-enabled-description"></span>
+    </div>
+  </div>
+  <!-- デバッグログの有効化 -->
+  <div id="config-debug-log-enabled-container" class="animated-toggle">
+    <div class="modern-setting">
+      <div class="label-and-switch">
+        <span id="config-debug-log-enabled-label" class="label-name"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="config-debug-log-enabled-input">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <span class="setting-description" id="config-debug-log-enabled-description"></span>
+    </div>
+  </div>
+  <!-- 広告の自動スキップ -->
+  <div id="config-ad-auto-skip-enabled-container" class="animated-toggle">
+    <div class="modern-setting">
+      <div class="label-and-switch">
+        <span id="config-ad-auto-skip-enabled-label" class="label-name"></span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="config-ad-auto-skip-enabled-input">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <span class="setting-description" id="config-ad-auto-skip-enabled-description"></span>
+    </div>
+  </div>
+
+  <!-- メッセージ表示エリア -->
+  <div id="message"></div>
+</body>
+</html>

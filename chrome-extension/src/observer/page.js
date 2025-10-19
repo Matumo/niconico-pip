@@ -6,7 +6,7 @@
 let initChangeUrlObserver = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_observer_page_js = async function() {
   // サイトURLの変更イベント発火
   function checkUrlChange() {
     try {

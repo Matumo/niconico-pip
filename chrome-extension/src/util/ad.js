@@ -5,7 +5,7 @@ let clickAdSkipButton = null;
 // -----------------------------------------------------------------------------
 
 // 広告スキップに関する処理
-{
+const exec_util_ad_js = async function() {
   // 広告スキップボタンのクリック
   clickAdSkipButton = () => {
     const status = context.status;

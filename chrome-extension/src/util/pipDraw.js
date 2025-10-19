@@ -6,7 +6,7 @@
 let drawPip = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_pipDraw_js = async function() {
   // 描画リセット
   function clear(ctx) {
     // 黒に塗りつぶす

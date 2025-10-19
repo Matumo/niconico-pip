@@ -10,7 +10,7 @@ let requestStreamResume = null;
 let checkAndRecoverCanvas = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_pipStream_js = async function() {
   let currentStream = null;     // 現在のストリーム
   let drawFunction = null;      // 描画関数（描画再開用）
   let locked = false;           // ストリームがロックされているかどうか

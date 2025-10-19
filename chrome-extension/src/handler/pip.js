@@ -7,7 +7,7 @@ let startPip = null; // PIPを開始する関数
 let endPip = null;   // PIPを終了する関数
 // -----------------------------------------------------------------------------
 
-{
+const exec_handler_pip_js = async function() {
   // 既存のコンテンツを表示または非表示にするための関数
   function setVisibility(pipVisible) {
     // PIP動画を確認用にプレイヤー外に表示する場合、表示と非表示は切り替えない

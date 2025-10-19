@@ -1,7 +1,7 @@
 "use strict";
 
 // ステータスの更新処理
-{
+const exec_pre_handler_status_js = async function() {
   // タイマーが更新されるときにステータスを更新する
   addEventListener(window, "タイマー更新時にステータス変化をチェック",
                    videoTimeChangedEventName, () => {
