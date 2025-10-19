@@ -33,25 +33,4 @@ const exec_pre_handler_status_js = async function() {
     console.log(`Status changed: ${playing ? 'Playing' : 'Paused'},`,
                 `Type: ${type || 'Unknown'}, Details: ${details || 'None'}`);
   });
-
-  // バグ対策: ステータスが変更されたときにコントローラーをクリック
-  let avoidStatusBugId = 0;
-  let avoidStatusBugLastTime = 0;
-  const avoidStatusBugTimeout = 1000; // 1000ms以内に連続実行しないように制御
-  addEventListener(window, "ステータス変更時にコントローラーをクリックしてバグ回避",
-                  statusChangedEventName, (event) => {
-    // 広告が2本連続で再生されるとき、2本目でシークバーが動作しないバグがある
-    // コントローラーをクリックすることで再度アクティブになるので、クリックイベントを発火させる
-    // または、1秒ごとにステータスチェックを呼び出す
-
-    // typeが同じ場合はスキップ
-    const { detail } = event;
-    const status = detail.status;
-    const prevStatus = detail.prevStatus;
-
-    // ステータスがadではない場合はスキップ
-    if (!status.type?.includes("ad-")) return;
-
-    // TODO: ここに実装
-  });
 }
