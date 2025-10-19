@@ -2,32 +2,49 @@
 
 // MediaSessionの処理
 const exec_handler_mediaSession_js = async function() {
+  // 動画再生ページであるかどうかを確認
+  function checkWatchPage() {
+    const isWatchPage = context.page.isWatchPage;
+    if (!isWatchPage) {
+      console.debug("MediaSession action ignored: not a watch page.");
+    }
+    return isWatchPage;
+  }
+
   // MediaSession APIがサポートされていない場合は何もしない
   if ("mediaSession" in navigator) {
     // MediaSessionのアクションハンドラを設定
     navigator.mediaSession.setActionHandler('play', function() {
+      if (!checkWatchPage()) return;
       playerController_play();
     });
     navigator.mediaSession.setActionHandler('pause', function() {
+      if (!checkWatchPage()) return;
       playerController_pause();
     });
     navigator.mediaSession.setActionHandler('seekto', function(details) {
+      if (!checkWatchPage()) return;
       const seekTime = details.seekTime;
       playerController_seek(seekTime);
     });
     navigator.mediaSession.setActionHandler('seekbackward', function() {
+      if (!checkWatchPage()) return;
       playerController_seekBackward();
     });
     navigator.mediaSession.setActionHandler('seekforward', function() {
+      if (!checkWatchPage()) return;
       playerController_seekForward();
     });
     navigator.mediaSession.setActionHandler('previoustrack', function() {
+      if (!checkWatchPage()) return;
       playerController_previousTrack();
     });
     navigator.mediaSession.setActionHandler('nexttrack', function() {
+      if (!checkWatchPage()) return;
       playerController_nextTrack();
     });
     navigator.mediaSession.setActionHandler('stop', function() {
+      if (!checkWatchPage()) return;
       playerController_stop();
     });
 
