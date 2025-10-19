@@ -111,11 +111,12 @@ const exec_debug_js = async function() {
     if (!span) {
       span = document.createElement('span');
       span.id = spanId;
+      span.style.display = 'inline-block';
       span.style.fontSize = '20px';
       span.style.fontFamily = fontFamily;
       span.style.color = 'white';
       span.style.whiteSpace = 'pre-line'; // \nで改行を有効にする
-      span.style.margin = '10px 0'; // 上下 左右
+      span.style.margin = '5px 0'; // 上下 左右
       // 文字を縁取り
       span.style.webkitTextStroke = '3px black';
       span.style.textStroke = '3px black';
