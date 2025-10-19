@@ -16,7 +16,7 @@ let updatePipStatusContext = null;
 let updatePipVideoElementContext = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_context_js = async function() {
   incCheckAdSkipVideoId = function () {
     // checkAdSkipVideoIdをインクリメント
     context.checkAdSkipVideoId++;

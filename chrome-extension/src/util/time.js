@@ -15,7 +15,7 @@ let updateTimeCaches = null;        // 各種時間のキャッシュを更新�
 let getSeekBarCurrentRatioValue = null; // シークバーの現在の値（割合）を取得する関数
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_time_js = async function() {
   // 時間テキスト（:区切り）を秒数に変換する関数
   function parseTimeTextToSeconds(timeText) {
     if (typeof timeText !== 'string') return -1; // 無効値

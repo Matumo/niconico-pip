@@ -6,7 +6,7 @@
 let getNicoSupporterLogo = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_supporterLogo_js = async function() {
   // キャッシュキー
   const CACHE_KEY_SUPPORTER_LOGO = "supporter_logo_image";
 

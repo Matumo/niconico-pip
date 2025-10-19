@@ -1,7 +1,7 @@
 "use strict";
 
 // PIPボタンの処理
-{
+const exec_handler_pipButton_js = async function() {
   // PIPボタンのコールバック
   function pipButtonClickCallback() {
     console.debug("PIP button clicked.");

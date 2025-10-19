@@ -22,3 +22,6 @@ const streamChangedEventName = `${eventNamePrefix}-streamChanged`;
 const pipStatusChangedEventName = `${eventNamePrefix}-pipStatusChanged`;
 // PIP動画要素変更イベント名
 const pipVideoElementChangedEventName = `${eventNamePrefix}-pipVideoElementChanged`;
+
+const exec_config_event_js = async function() {
+}

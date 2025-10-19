@@ -13,7 +13,7 @@ let playerController_previousTrack = null;
 let playerController_nextTrack = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_controller_js = async function() {
   // playボタンの状態判定
   function isPlay(playBtn) {
     // [aria-label="一時停止する"] or [aria-label="再生する"]

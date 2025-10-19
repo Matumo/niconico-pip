@@ -4,5 +4,35 @@
   },
   "extensionDescription": {
     "message": "Add a Picture-in-Picture (PiP) Feature with Comments to Niconico Video."
+  },
+  "savedMessage": {
+    "message": "Saved. Refresh the page to see the changes."
+  },
+  "saveButton": {
+    "message": "Save"
+  },
+  "configEnabledLabel": {
+    "message": "Extension Enabled"
+  },
+  "configEnabledDescription": {
+    "message": ""
+  },
+  "configDebugModeEnabledLabel": {
+    "message": "Debug Mode"
+  },
+  "configDebugModeEnabledDescription": {
+    "message": "This is a test feature for development purposes. (Not guaranteed to work)"
+  },
+  "configDebugLogEnabledLabel": {
+    "message": "> Debug Log"
+  },
+  "configDebugLogEnabledDescription": {
+    "message": ""
+  },
+  "configAdAutoSkipEnabledLabel": {
+    "message": "> Ad Auto Skip"
+  },
+  "configAdAutoSkipEnabledDescription": {
+    "message": ""
   }
 }

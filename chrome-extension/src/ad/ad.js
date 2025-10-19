@@ -1,7 +1,7 @@
 "use strict";
 
 // 広告のスキップに関する処理
-{
+const exec_ad_ad_js = async function() {
   console.log("Loading ad skip script.", "URL:", window.location.href);
 
   // iframe内も含めてセレクタで要素を検索する関数

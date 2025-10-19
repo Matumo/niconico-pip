@@ -126,3 +126,6 @@ const selectorList = {
     //adSkipButton: selector_player_ad_skipButton
   }
 };
+
+const exec_config_selector_js = async function() {
+}

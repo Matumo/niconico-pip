@@ -4,5 +4,35 @@
   },
   "extensionDescription": {
     "message": "ニコニコ動画にコメント付きのピクチャー・イン・ピクチャー（PiP）機能を追加します。"
+  },
+  "savedMessage": {
+    "message": "保存しました。ページ更新で反映されます。"
+  },
+  "saveButton": {
+    "message": "保存"
+  },
+  "configEnabledLabel": {
+    "message": "拡張機能を有効化"
+  },
+  "configEnabledDescription": {
+    "message": ""
+  },
+  "configDebugModeEnabledLabel": {
+    "message": "デバッグモード"
+  },
+  "configDebugModeEnabledDescription": {
+    "message": "開発用のテスト機能です。(動作保証外)"
+  },
+  "configDebugLogEnabledLabel": {
+    "message": "> デバッグログ"
+  },
+  "configDebugLogEnabledDescription": {
+    "message": ""
+  },
+  "configAdAutoSkipEnabledLabel": {
+    "message": "> 広告自動スキップ"
+  },
+  "configAdAutoSkipEnabledDescription": {
+    "message": ""
   }
 }

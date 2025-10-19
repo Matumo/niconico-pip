@@ -1,7 +1,7 @@
 "use strict";
 
 // video要素の描画を行う処理の管理
-{
+const exec_handler_pipVideo_js = async function() {
   const videoPipElement = document.createElement('video');
   {
     // video要素の属性を設定

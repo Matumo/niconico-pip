@@ -1,7 +1,7 @@
 "use strict";
 
 // ニコニコ動画のバグ回避ワークアラウンド
-{
+const exec_handler_avoidNicoBugs_js = async function() {
   // 動画終了時の再生ステータスに差異があるバグの回避
   // https://github.com/Matumo/niconico-pip/issues/33
   // https://github.com/Matumo/niconico-pip/issues/34

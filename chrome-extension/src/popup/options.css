@@ -1,0 +1,166 @@
+/* 全体のスタイル */
+body {
+  width: 230px;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0.5em 1em;
+  background-color: #f9f9f9;
+  user-select: none;
+}
+
+/* 見出しのスタイル */
+h1 {
+  font-size: 1em;
+  margin-bottom: 0.8em;
+  padding: 0;
+  text-align: center;
+  color: #333;
+}
+
+/* ヘッダのスタイル */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.8em;
+}
+
+/* 要素の表示・非表示アニメーション*/
+.animated-toggle {
+  opacity: 1;
+  overflow: hidden;
+  /* max-heightはJSで設定 */
+  transition:
+    opacity 0.2s ease,
+    max-height 0.2s ease,
+    margin 0.2s ease,
+    padding 0.2s ease;
+}
+.animated-toggle.hide {
+  opacity: 0;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
+.animated-toggle.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 設定項目のスタイル */
+.modern-setting {
+  display: flex;
+  flex-direction: column; /* 縦並び */
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0.7em 1em;
+  margin-bottom: 0.8em;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1px solid #e0e0e0;
+}
+.modern-setting input[type="checkbox"] {
+  accent-color: #007BFF;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-block;
+  margin-left: auto;
+}
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 44px;
+  height: 24px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider {
+  background: #007BFF;
+}
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+.toggle-switch .toggle-label {
+  display: none;
+}
+.toggle-switch input[type="checkbox"]:not(:checked) ~ .toggle-label {
+  color: #888;
+}
+
+/* ラベルとスイッチのコンテナ */
+.label-and-switch {
+  /* 横並び */
+  display: flex;
+  flex-direction: row;
+  /* 高さを揃える */
+  align-items: center;
+  /* 文字サイズ */
+  font-size: 1.1em;
+  /* 色 */
+  color: #222;
+}
+
+/* 設定説明文を下に小さく表示 */
+.setting-description {
+  display: block;
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* ボタン */
+button#save {
+  width: 100%;
+  margin-top: 0.5em;
+  padding: 0.6em;
+  font-size: 1em;
+  font-weight: bold;
+  color: #fff;
+  background-color: #007BFF;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button#save:hover {
+  background-color: #0056b3;
+}
+
+/* メッセージのスタイル */
+#message {
+  margin-top: 1em;
+  font-size: 0.9em;
+  color: #007BFF;
+  text-align: center;
+}

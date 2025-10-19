@@ -7,7 +7,7 @@ let startInfoObserver = null;
 let stopInfoObserver = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_observer_info_js = async function() {
   const observerName = "videoInfo";
 
   // 動画情報を取得する関数

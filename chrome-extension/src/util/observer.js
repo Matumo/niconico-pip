@@ -8,7 +8,7 @@ let stopObserver = null;
 let fireObserverCallback = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_observer_js = async function() {
   // 監視リスト
   // name: { observer, targetElement }
   let observerList = {};

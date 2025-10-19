@@ -9,7 +9,7 @@ let getNicoVideoThumbnailImage = null;
 // meta[property="og:image"] から取得する
 // "https://img.cdn.nimg.jp/s/nicovideo/thumbnails/" で始まるものに限定する
 
-{
+const exec_util_thumbnail_js = async function() {
   // キャッシュキー生成
   const CACHE_KEY_NICO_VIDEO_THUMBNAIL_BASE = "nico_video_thumbnail_image";
   function buildThumbnailCacheKey(pageUrl) {

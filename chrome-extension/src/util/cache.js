@@ -12,7 +12,7 @@ let cache_delete = null;
 let cache_canRetry = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_cache_js = async function() {
   const cacheStore = Object.create(null);
   const DEFAULT_RETRY_INTERVAL = 5 * 1000; // ms
   const MAX_RETRY_COUNT = 3; // 最大リトライ回数

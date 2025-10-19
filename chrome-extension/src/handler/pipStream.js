@@ -1,7 +1,7 @@
 "use strict";
 
 // ストリームのステータスチェック処理
-{
+const exec_handler_pipStream_js = async function() {
   // プレイヤーのステータス変更時に毎回ストリームを新しく開始する
   // 予約フラグ変数
   let restartRegistered = false;

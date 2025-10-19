@@ -6,7 +6,7 @@
 let checkStatus = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_status_js = async function() {
   function checkAdSkipAvailableResponseHandler(response) {
     if (response.type === checkAdSkipAvailableResponseMessageName) {
       console.debug("Ad skip button check response:", response,

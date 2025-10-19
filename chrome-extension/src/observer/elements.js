@@ -7,7 +7,7 @@ let startElementObserver = null;
 let stopElementObserver = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_observer_elements_js = async function() {
   // 監視リスト
   const observerNameList = {
     playerElement: "phase1-playerElement",

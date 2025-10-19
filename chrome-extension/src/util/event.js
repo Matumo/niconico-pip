@@ -7,7 +7,7 @@ let addEventListener = null;
 let removeEventListener = null;
 // -----------------------------------------------------------------------------
 
-{
+const exec_util_event_js = async function() {
   // イベントリスナーの一覧
   // イベント名ごとに情報を格納する
   const eventList = {};

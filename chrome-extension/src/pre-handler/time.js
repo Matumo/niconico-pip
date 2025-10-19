@@ -1,7 +1,7 @@
 "use strict";
 
 // 再生時間のキャッシュ更新処理
-{
+const exec_pre_handler_time_js = async function() {
   // タイマーが更新されるときに動画時間のキャッシュを更新する
   addEventListener(window, "再生時間の変更時に動画時間のキャッシュを更新", videoTimeChangedEventName, () => {
     updateTimeCaches();

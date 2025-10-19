@@ -1,7 +1,7 @@
 "use strict";
 
 // タイマーの監視機能
-{
+const exec_observer_timer_js = async function() {
   const observerName = "timer";
 
   // タイマーを永続的に監視する関数

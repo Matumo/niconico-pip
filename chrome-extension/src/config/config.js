@@ -21,8 +21,14 @@ const pipButtonOnMouseOutColor = '#cccccc';
 
 // ログ設定
 const logPrefix = '[niconico-pip]';
-const logLevel = (debugMode && debug_log) ? 'debug' : 'log'; // ログレベル: 'error', 'warn', 'info', 'log', 'debug'
-const logSufixType = (debugMode && debug_log) ? 'long' : 'none'; // ログのサフィックスタイプ: 'none', 'short', 'long'
+let logLevel = 'log'; // ログレベル: 'error', 'warn', 'info', 'log', 'debug'
+let logSufixType = 'none'; // ログのサフィックスタイプ: 'none', 'short', 'long'
 
 // フォント設定
 const fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+
+const exec_config_config_js = async function() {
+  // ストレージの設定を使って上書き
+  logLevel = (debugMode && debug_log) ? 'debug' : 'log';
+  logSufixType = (debugMode && debug_log) ? 'long' : 'none';
+}

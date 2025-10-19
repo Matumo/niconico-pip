@@ -1,7 +1,7 @@
 "use strict";
 
 // 広告スキップに関する処理
-{
+const exec_handler_ad_js = async function() {
   // ステータスの変化を検出
   addEventListener(window, "ステータス更新時に広告スキップボタンを描画またはクリック",
                    statusChangedEventName, (event) => {

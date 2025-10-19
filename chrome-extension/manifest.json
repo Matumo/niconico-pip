@@ -3,6 +3,17 @@
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
   "version": "2.0.0",
+  "permissions": ["storage"],
+  "options_page": "src/popup/options.html",
+  "action": {
+    "default_popup": "src/popup/options.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -13,15 +24,18 @@
     {
       "matches": ["https://www.nicovideo.jp/*"],
       "js": [
+        "src/config/storage.js",
+
         "src/config/debug.js",
         "src/config/config.js",
+        "src/util/logger.js",
+
         "src/config/event.js",
         "src/config/selector.js",
         "src/ad/message.js",
 
         "src/config/context.js",
 
-        "src/util/logger.js",
         "src/util/event.js",
         "src/util/context.js",
         "src/util/observer.js",
@@ -62,10 +76,15 @@
         "https://dc-cdn.ads.nicovideo.jp/*"
       ],
       "js": [
+        "src/config/storage.js",
+
         "src/ad/config.js",
-        "src/ad/message.js",
         "src/util/logger.js",
-        "src/ad/ad.js"
+
+        "src/ad/message.js",
+        "src/ad/ad.js",
+
+        "src/ad-main.js"
       ],
       "all_frames": true
     }
