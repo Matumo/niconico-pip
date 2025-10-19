@@ -9,6 +9,9 @@ const debug_log = true;
 // 広告の自動スキップ
 const debug_adAutoSkip = true;
 
+// Observer軽量化モード
+const debug_observerLightMode = true;
+
 // ステータスの表示
 const debug_viewStatus = true;
 // 再生時間の表示
