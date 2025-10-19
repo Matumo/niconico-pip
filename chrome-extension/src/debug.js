@@ -217,12 +217,12 @@ const exec_debug_js = async function() {
       // 時間を表示
       const name = 'debug-3';
       const text = `Player Text Current Time: ${currentTime}, Duration: ${duration}\n` +
-                  `Player Current Time: ${playerCurrentTime < 0 ? 'N/A' : playerCurrentTime}, ` +
-                  `Duration: ${playerDuration < 0 ? 'N/A' : playerDuration}\n` +
-                  `SeekBar Current Time: ${seekBarCurrentTime < 0 ? 'N/A' : seekBarCurrentTime}, ` +
-                  `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
-                  `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
-                  `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
+                   `Player Current Time: ${playerCurrentTime < 0 ? 'N/A' : playerCurrentTime}, ` +
+                   `Duration: ${playerDuration < 0 ? 'N/A' : playerDuration}\n` +
+                   `SeekBar Current Time: ${seekBarCurrentTime < 0 ? 'N/A' : seekBarCurrentTime}, ` +
+                   `Duration: ${seekBarDuration < 0 ? 'N/A' : seekBarDuration}\n` +
+                   `Content Current Time: ${contentCurrentTime < 0 ? 'N/A' : contentCurrentTime}, ` +
+                   `Duration: ${contentDuration < 0 ? 'N/A' : contentDuration}`;
       addTextElement(name, text, 'right bottom', 2);
     });
   }
@@ -428,7 +428,8 @@ const exec_debug_js = async function() {
   });
 
 
-// context.elements.player.playerが描画範囲外になったらshowDraggableResizablePiP()を呼ぶIntersectionObserverを設定
+  // context.elements.player.playerが描画範囲外になったら
+  // showDraggableResizablePiP()を呼ぶIntersectionObserverを設定
   addEventListener(window, "debug-要素が描画範囲外になったらPIP動画を表示",
                    elementChangedEventName, function(event) {
     const details = event.detail;
