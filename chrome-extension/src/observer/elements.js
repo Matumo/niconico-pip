@@ -118,20 +118,6 @@ const exec_observer_elements_js = async function() {
     }
   });
 
-  // // DEBUG: ステータスの更新時に要素を再取得
-  // addEventListener(window, "ステータス更新時に要素を再取得",
-  //                  statusChangedEventName, (event) => {
-  //   const { detail } = event;
-  //   const status = detail.status;
-  //   const prevStatus = detail.prevStatus;
-  //   // ステータスが変化したときに要素を再取得
-  //   getAndSetElements("player", selectorList.player);
-  //   getAndSetElements("controller", selectorList.controller);
-  //   getAndSetElements("menu", selectorList.menu);
-  //   getAndSetElements("nextVideo", selectorList.nextVideo);
-  //   getAndSetElements("ad", selectorList.ad);
-  // });
-
   // ---------------------------------------------------------------------------
 
 
