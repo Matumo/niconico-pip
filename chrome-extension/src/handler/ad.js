@@ -19,6 +19,7 @@ const exec_handler_ad_js = async function() {
       }
       // PIPにスキップボタンを表示
       if ("mediaSession" in navigator && debugMode && debug_adSkipButton) {
+        console.debug("MediaSession API available, setting skipad action handler.");
         navigator.mediaSession.setActionHandler('skipad', () => {
           console.debug("Ad skip button clicked.");
           // スキップボタンをクリック

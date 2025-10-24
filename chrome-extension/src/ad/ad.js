@@ -56,6 +56,8 @@ const exec_ad_ad_js = async function() {
   // background.js からのメッセージ受信対応
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     try {
+      console.debug("Received message:", message);
+      // スキップ可能かどうかのチェック要求
       if (message.type === checkAdSkipAvailableRequestMessageName) {
         const skipAvailable = isSkipButtonVisible();
         sendResponse({
@@ -65,6 +67,7 @@ const exec_ad_ad_js = async function() {
         });
         return true; // 非同期応答
       }
+      // スキップボタンのクリック要求
       if (message.type === clickAdSkipButtonRequestMessageName) {
         const pattern1_SkipContainer = document.querySelector('.videoAdUiSkipContainer > button');
         const pattern2_SkipButton = document.querySelector('button[aria-label="Skip Ad"]');

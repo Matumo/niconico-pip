@@ -50,6 +50,13 @@ const exec_util_status_js = async function() {
     }
   }
   function checkAdSkipAvailable() {
+    // デバッグモードが無効化されているまたは広告スキップ機能が無効化されていればスキップ
+    if (!debugMode || !debug_adSkip) {
+      console.debug('Ad skip feature is disabled. Skipping ad skip availability check.');
+      return;
+    }
+    console.debug("Checking ad skip button availability for videoId:", context.checkAdSkipVideoId);
+    // メッセージを送信して非同期でチェックする
     try {
       chrome.runtime.sendMessage(
         {
