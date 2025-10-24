@@ -16,35 +16,43 @@ const exec_handler_mediaSession_js = async function() {
     // MediaSessionのアクションハンドラを設定
     navigator.mediaSession.setActionHandler('play', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: play");
       playerController_play();
     });
     navigator.mediaSession.setActionHandler('pause', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: pause");
       playerController_pause();
     });
     navigator.mediaSession.setActionHandler('seekto', function(details) {
       if (!checkWatchPage()) return;
       const seekTime = details.seekTime;
+      console.debug("MediaSession action: seekto", seekTime);
       playerController_seek(seekTime);
     });
     navigator.mediaSession.setActionHandler('seekbackward', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: seekbackward");
       playerController_seekBackward();
     });
     navigator.mediaSession.setActionHandler('seekforward', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: seekforward");
       playerController_seekForward();
     });
     navigator.mediaSession.setActionHandler('previoustrack', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: previoustrack");
       playerController_previousTrack();
     });
     navigator.mediaSession.setActionHandler('nexttrack', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: nexttrack");
       playerController_nextTrack();
     });
     navigator.mediaSession.setActionHandler('stop', function() {
       if (!checkWatchPage()) return;
+      console.debug("MediaSession action: stop");
       playerController_stop();
     });
 
