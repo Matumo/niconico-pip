@@ -10,13 +10,27 @@ const STORAGE_CONFIG_KEY_ENABLED = `${STORAGE_CONFIG_KEY_PREFIX}Enabled`;
 const STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED = `${STORAGE_CONFIG_KEY_PREFIX}DebugModeEnabled`;
 // デバッグログ有効化設定キー
 const STORAGE_CONFIG_KEY_DEBUG_LOG_ENABLED = `${STORAGE_CONFIG_KEY_PREFIX}DebugLogEnabled`;
+// 広告スキップボタン有効化設定キー
+const STORAGE_CONFIG_KEY_AD_SKIP_BUTTON_ENABLED = `${STORAGE_CONFIG_KEY_PREFIX}AdSkipButtonEnabled`;
 // 広告自動スキップ有効化設定キー
 const STORAGE_CONFIG_KEY_AD_AUTO_SKIP_ENABLED = `${STORAGE_CONFIG_KEY_PREFIX}AdAutoSkipEnabled`;
+// Observer軽量化モード無効化設定キー
+const STORAGE_CONFIG_KEY_DEBUG_OBSERVER_LIGHT_MODE_DISABLED = `${STORAGE_CONFIG_KEY_PREFIX}DebugObserverLightModeDisabled`;
+
+// ストレージの設定値
 const storageConfig = {
+  // 拡張機能の有効化設定
   [STORAGE_CONFIG_KEY_ENABLED]: true,
+  // デバッグモード有効化設定
   [STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED]: false,
+  // デバッグログ有効化設定
   [STORAGE_CONFIG_KEY_DEBUG_LOG_ENABLED]: false,
+  // 広告スキップボタン有効化設定
+  [STORAGE_CONFIG_KEY_AD_SKIP_BUTTON_ENABLED]: false,
+  // 広告自動スキップ有効化設定
   [STORAGE_CONFIG_KEY_AD_AUTO_SKIP_ENABLED]: false,
+  // Observer軽量化モード無効化設定
+  [STORAGE_CONFIG_KEY_DEBUG_OBSERVER_LIGHT_MODE_DISABLED]: false,
 };
 // -----------------------------------------------------------------------------
 

@@ -29,10 +29,22 @@
   "configDebugLogEnabledDescription": {
     "message": ""
   },
+  "configAdSkipButtonEnabledLabel": {
+    "message": "> 広告スキップボタン"
+  },
+  "configAdSkipButtonEnabledDescription": {
+    "message": ""
+  },
   "configAdAutoSkipEnabledLabel": {
     "message": "> 広告自動スキップ"
   },
   "configAdAutoSkipEnabledDescription": {
+    "message": ""
+  },
+  "configDebugObserverLightModeDisabledLabel": {
+    "message": "> 監視軽量化試験無効化"
+  },
+  "configDebugObserverLightModeDisabledDescription": {
     "message": ""
   }
 }

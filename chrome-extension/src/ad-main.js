@@ -13,8 +13,14 @@
   console.log("Main: Logger initialized.");
 
   // 拡張機能が無効化されていれば処理を中断
-  if (!storageConfig[STORAGE_CONFIG_KEY_ENABLED]) {
+  if (!extensionEnabled) {
     console.log('Extension is disabled. Exiting.');
+    return;
+  }
+
+  // デバッグモードが無効化されているまたは広告スキップ関連の機能が無効化されていれば処理を中断
+  if (!debugMode || !debug_adSkip) {
+    console.log('Ad skip feature is disabled. Exiting.');
     return;
   }
 

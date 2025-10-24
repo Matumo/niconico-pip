@@ -8,6 +8,12 @@ let clickAdSkipButton = null;
 const exec_util_ad_js = async function() {
   // 広告スキップボタンのクリック
   clickAdSkipButton = () => {
+    // デバッグモードではないまたは広告スキップ機能が無効な場合は何もしない
+    if (!debugMode || !debug_adSkip) {
+      console.debug("Ad skip is disabled or not in debug mode.");
+      return;
+    }
+    // ステータスを取得
     const status = context.status;
     // いきなり動画紹介の場合
     if (status.type === 'ad-nico') {

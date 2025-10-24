@@ -29,10 +29,22 @@
   "configDebugLogEnabledDescription": {
     "message": ""
   },
+  "configAdSkipButtonEnabledLabel": {
+    "message": "> Ad Skip Button"
+  },
+  "configAdSkipButtonEnabledDescription": {
+    "message": ""
+  },
   "configAdAutoSkipEnabledLabel": {
     "message": "> Ad Auto Skip"
   },
   "configAdAutoSkipEnabledDescription": {
+    "message": ""
+  },
+  "configDebugObserverLightModeDisabledLabel": {
+    "message": "> Disable Observer Light Mode Test"
+  },
+  "configDebugObserverLightModeDisabledDescription": {
     "message": ""
   }
 }

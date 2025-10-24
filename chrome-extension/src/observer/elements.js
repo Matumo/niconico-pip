@@ -13,7 +13,8 @@ const exec_observer_elements_js = async function() {
     playerElement: "phase1-playerElement",
       controllerElements: "phase1.1-controllerElements",
         observePlayerForever: "phase1.1.1-observePlayerForever",
-        playbackStatusForever: debug_observerLightMode ? "phase1.1.2-playbackStatusForever" : undefined,
+        // DEBUG: Observer軽量化モード無効化フラグが無効の場合のみ有効化
+        playbackStatusForever: debug_observerLightModeDisabled ? undefined : "phase1.1.2-playbackStatusForever"
   };
 
   // --- ユーティリティ関数 -------------------------------------------------------
@@ -79,7 +80,7 @@ const exec_observer_elements_js = async function() {
 
   // 再生ボタン要素の状態変化を監視を永続的に行う関数
   function observePlaybackStatusForever() {
-    if (!debug_observerLightMode) return; // DEBUG: Observer軽量化モードが無効の場合は処理をスキップ
+    if (debug_observerLightModeDisabled) return; // DEBUG: Observer軽量化モード無効化フラグが有効の場合は処理をスキップ
     const observerName = observerNameList.playbackStatusForever;
     const playerButtonElement = context.elements.controller.playBtn;
     if (!playerButtonElement) {
@@ -105,7 +106,7 @@ const exec_observer_elements_js = async function() {
   // 再生ボタン要素の永続的な監視を開始するイベントリスナー
   addEventListener(window, "コントローラー要素の変更時に再生ボタン要素の永続的な監視を開始",
                    elementChangedEventName, (event) => {
-    if (!debug_observerLightMode) return; // DEBUG: Observer軽量化モードが無効の場合は処理をスキップ
+    if (debug_observerLightModeDisabled) return; // DEBUG: Observer軽量化モード無効化フラグが有効の場合は処理をスキップ
     const { detail } = event;
     const category = detail.category;
     const name = detail.name;
@@ -146,7 +147,7 @@ const exec_observer_elements_js = async function() {
     // 監視の開始
     startObserver(observerName, playerElement, callback, {
       childList: true,
-      subtree: !debug_observerLightMode // DEBUG: Observer軽量化モードが有効の場合はsubtreeを無効化
+      subtree: debug_observerLightModeDisabled // DEBUG: Observer軽量化モード無効化フラグが有効の場合はsubtreeを有効化
     });
     console.debug(`Started observing for ${observerName}.`);
   }
@@ -187,16 +188,16 @@ const exec_observer_elements_js = async function() {
       // 要素の取得と設定
       const res = getAndSetElements("controller", selectorList.controller);
       if (!res) return true; // 監視を継続する
-      // DEBUG: Observer軽量化モードが無効の場合は永続的な監視を開始
-      if (!debug_observerLightMode) observePlayerForever(); // プレイヤー要素の永続的な監視を開始
-      if (!debug_observerLightMode) observePlaybackStatusForever(); // 再生ボタン要素の永続的な監視を開始
+      // DEBUG: Observer軽量化モード無効化フラグが有効の場合は永続的な監視を開始
+      if (debug_observerLightModeDisabled) observePlayerForever(); // プレイヤー要素の永続的な監視を開始
+      if (debug_observerLightModeDisabled) observePlaybackStatusForever(); // 再生ボタン要素の永続的な監視を開始
       return false; // 監視を継続しない
     };
 
     // 監視の開始
     startObserver(observerName, playerElement, callback, {
       childList: true,
-      subtree: !debug_observerLightMode // DEBUG: Observer軽量化モードが有効の場合はsubtreeを無効化
+      subtree: debug_observerLightModeDisabled // DEBUG: Observer軽量化モード無効化フラグが有効の場合はsubtreeを有効化
     });
     console.debug(`Started observing for ${observerName}.`);
   }
@@ -250,8 +251,8 @@ const exec_observer_elements_js = async function() {
       console.debug(`Element found: ${observerName}`);
       // コンテキストを更新
       updateElementContext("player", "player", playerElement);
-      // DEBUG: Observer軽量化モードが無効の場合はコントローラー要素の監視を開始
-      if (!debug_observerLightMode) setControllerElements(); // コントローラー要素の監視を開始
+      // DEBUG: Observer軽量化モード無効化フラグが有効の場合はコントローラー要素の監視を開始
+      if (debug_observerLightModeDisabled) setControllerElements(); // コントローラー要素の監視を開始
       return false; // 監視を継続しない
     };
 

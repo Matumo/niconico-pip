@@ -2,15 +2,16 @@
 
 // デバッグモード
 let debugMode = true;
-
 // デバッグログの出力
-const debug_log = true;
-
+let debug_log = true;
+// 広告スキップボタンの表示
+let debug_adSkipButton = false;
 // 広告の自動スキップ
-const debug_adAutoSkip = true;
-
-// Observer軽量化モード
-const debug_observerLightMode = true;
+let debug_adAutoSkip = false;
+// 広告スキップ機能の有効化（ボタン表示か自動スキップのいずれかが有効なら必要）
+let debug_adSkip = debug_adSkipButton || debug_adAutoSkip;
+// Observer軽量化モード無効化フラグ
+let debug_observerLightModeDisabled = false;
 
 // ステータスの表示
 const debug_viewStatus = true;
@@ -30,4 +31,9 @@ const debug_viewObserverCallbackCount = true;
 const exec_config_debug_js = async function() {
   // ストレージの設定を使って上書き
   debugMode = storageConfig[STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED];
-}
+  debug_log = storageConfig[STORAGE_CONFIG_KEY_DEBUG_LOG_ENABLED];
+  debug_adSkipButton = storageConfig[STORAGE_CONFIG_KEY_AD_SKIP_BUTTON_ENABLED];
+  debug_adAutoSkip = storageConfig[STORAGE_CONFIG_KEY_AD_AUTO_SKIP_ENABLED];
+  debug_adSkip = debug_adSkipButton || debug_adAutoSkip;
+  debug_observerLightModeDisabled = storageConfig[STORAGE_CONFIG_KEY_DEBUG_OBSERVER_LIGHT_MODE_DISABLED];
+};

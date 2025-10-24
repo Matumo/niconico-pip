@@ -19,16 +19,20 @@ const videoPipCanvasWidth = 1280;
 const pipButtonOnMouseOverColor = '#ffffff';
 const pipButtonOnMouseOutColor = '#cccccc';
 
+// フォント設定
+const fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+
 // ログ設定
 const logPrefix = '[niconico-pip]';
 let logLevel = 'log'; // ログレベル: 'error', 'warn', 'info', 'log', 'debug'
 let logSufixType = 'none'; // ログのサフィックスタイプ: 'none', 'short', 'long'
 
-// フォント設定
-const fontFamily = '"Segoe UI", "Helvetica Neue", Arial, sans-serif';
+// 拡張機能の有効化設定
+let extensionEnabled = true;
 
 const exec_config_config_js = async function() {
   // ストレージの設定を使って上書き
   logLevel = (debugMode && debug_log) ? 'debug' : 'log';
   logSufixType = (debugMode && debug_log) ? 'long' : 'none';
+  extensionEnabled = storageConfig[STORAGE_CONFIG_KEY_ENABLED];
 }

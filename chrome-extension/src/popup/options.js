@@ -88,6 +88,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.style.maxHeight = isVisible ? container.scrollHeight + 'px' : '0px';
   }
 
+  // 広告スキップボタン有効化設定
+  function renderConfigAdSkipButtonEnabled(config) {
+    const input = document.getElementById('config-ad-skip-button-enabled-input');
+    const label = document.getElementById('config-ad-skip-button-enabled-label');
+    const description = document.getElementById('config-ad-skip-button-enabled-description');
+    label.textContent = chrome.i18n.getMessage("configAdSkipButtonEnabledLabel") || "";
+    description.textContent = chrome.i18n.getMessage("configAdSkipButtonEnabledDescription") || "";
+    input.checked = config[STORAGE_CONFIG_KEY_AD_SKIP_BUTTON_ENABLED];
+    input.onchange = () => {
+      setConfig(STORAGE_CONFIG_KEY_AD_SKIP_BUTTON_ENABLED, input.checked);
+    };
+  }
+  function updateVisibilityOfAdSkipButtonEnabled(config) {
+    const container = document.getElementById('config-ad-skip-button-enabled-container');
+    const isVisible = config[STORAGE_CONFIG_KEY_ENABLED] && config[STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED];
+    container.classList.remove(isVisible ? 'hide' : 'show');
+    container.classList.add(isVisible ? 'show' : 'hide');
+    container.style.maxHeight = isVisible ? container.scrollHeight + 'px' : '0px';
+  }
+
   // 広告自動スキップ有効化設定
   function renderConfigAdAutoSkipEnabled(config) {
     const input = document.getElementById('config-ad-auto-skip-enabled-input');
@@ -108,19 +128,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.style.maxHeight = isVisible ? container.scrollHeight + 'px' : '0px';
   }
 
+  // Observer軽量化モード無効化設定
+  function renderConfigDebugObserverLightModeDisabled(config) {
+    const input = document.getElementById('config-debug-observer-light-mode-disabled-input');
+    const label = document.getElementById('config-debug-observer-light-mode-disabled-label');
+    const description = document.getElementById('config-debug-observer-light-mode-disabled-description');
+    label.textContent = chrome.i18n.getMessage("configDebugObserverLightModeDisabledLabel") || "";
+    description.textContent = chrome.i18n.getMessage("configDebugObserverLightModeDisabledDescription") || "";
+    input.checked = config[STORAGE_CONFIG_KEY_DEBUG_OBSERVER_LIGHT_MODE_DISABLED];
+    input.onchange = () => {
+      setConfig(STORAGE_CONFIG_KEY_DEBUG_OBSERVER_LIGHT_MODE_DISABLED, input.checked);
+    };
+  }
+  function updateVisibilityOfDebugObserverLightModeDisabled(config) {
+    const container = document.getElementById('config-debug-observer-light-mode-disabled-container');
+    const isVisible = config[STORAGE_CONFIG_KEY_ENABLED] && config[STORAGE_CONFIG_KEY_DEBUG_MODE_ENABLED];
+    container.classList.remove(isVisible ? 'hide' : 'show');
+    container.classList.add(isVisible ? 'show' : 'hide');
+    container.style.maxHeight = isVisible ? container.scrollHeight + 'px' : '0px';
+  }
+
   // 全設定描画
   function renderAllConfigs(config) {
     renderConfigEnabled(config);
     renderConfigDebugModeEnabled(config);
     renderConfigDebugLogEnabled(config);
+    renderConfigAdSkipButtonEnabled(config);
     renderConfigAdAutoSkipEnabled(config);
+    renderConfigDebugObserverLightModeDisabled(config);
   }
   // 全設定の描画状態更新
   function updateAllConfigsVisibility(config) {
     updateVisibilityOfEnabled(config);
     updateVisibilityOfDebugModeEnabled(config);
     updateVisibilityOfDebugLogEnabled(config);
+    updateVisibilityOfAdSkipButtonEnabled(config);
     updateVisibilityOfAdAutoSkipEnabled(config);
+    updateVisibilityOfDebugObserverLightModeDisabled(config);
   }
   // 初期化
   renderAllConfigs(storageConfig);

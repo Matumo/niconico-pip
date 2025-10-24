@@ -14,14 +14,18 @@ const exec_handler_ad_js = async function() {
       if (debugMode && debug_adAutoSkip) {
         console.debug("Debug mode: Auto skipping ad.");
         clickAdSkipButton();
+      } else {
+        console.debug("Ad skip button available, but auto skip is disabled.");
       }
       // PIPにスキップボタンを表示
-      if ("mediaSession" in navigator) {
+      if ("mediaSession" in navigator && debugMode && debug_adSkipButton) {
         navigator.mediaSession.setActionHandler('skipad', () => {
           console.debug("Ad skip button clicked.");
           // スキップボタンをクリック
           clickAdSkipButton();
         });
+      } else {
+        console.debug("MediaSession API not available or debug ad skip button disabled.");
       }
     } else {
       console.debug("Ad skip button not available or not in ad status.");
