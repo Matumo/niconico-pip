@@ -10,7 +10,7 @@ const pipButtonOnMouseOverColor = '#ffffff';
 const pipButtonOnMouseOutColor = '#cccccc';
 
 // PIPボタンの後ろに位置する要素（コメント非表示ボタン）のセレクタ
-const tooltipButtonElementSelector = '[id="tooltip::rb::trigger"], [id="tooltip:«rb»:trigger"], ' +
+const tooltipButtonElementSelector =
   'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを非表示にする"], ' +
   'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを表示する"]'
 // PIP用のvideo要素を入れる要素のセレクタ
