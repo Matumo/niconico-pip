@@ -50,17 +50,7 @@ const videoPipElement = document.createElement('video');
   videoPipElement.muted = true;
   videoPipElement.autoplay = true;
   videoPipElement.loop = true;
-  videoPipElement.style.pointerEvents = 'none';
-  videoPipElement.style.objectFit = 'contain';
-  videoPipElement.style.width = '100%';
-  videoPipElement.style.height = '100%';
-  videoPipElement.style.aspectRatio = '16 / 9';
-  videoPipElement.style.position = 'absolute';
-  videoPipElement.style.transform = 'none';
-  videoPipElement.style.top = '0px';
-  videoPipElement.style.left = '0px';
-  videoPipElement.style.zIndex = '0';
-  videoPipElement.style.opacity = '100';
+  videoPipElement.hidden = true;
 
   // ダミーの動画を設定
   const dummyCanvas = document.createElement('canvas');
