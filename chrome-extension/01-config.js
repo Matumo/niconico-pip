@@ -14,11 +14,10 @@ const tooltipButtonElementSelector =
   'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを非表示にする"], ' +
   'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを表示する"]'
 // PIP用のvideo要素を入れる要素のセレクタ
-const r3ElementSelector = '[data-styling-id=":r3:"], [data-styling-id="«r3»"], ' +
-  'div.grid-area_\\[player\\] > div > div > div[data-styling-id]';
+const r3ElementSelector =
+  'div.grid-area_\\[player\\] > div.PlayerPresenter > div > div:has([data-scope="menu"])';
 // 既存video要素とコメントキャンバスが入っているコンテナ要素のセレクタ（動画が変わるとこの要素が変わる）
-const r5ElementSelector = '[id="menu::r5::ctx-trigger"], [id="menu:«r5»:ctx-trigger"], ' +
- 'div.grid-area_\\[player\\] > div > div > div[data-styling-id] > div[data-scope="menu"][data-part="context-trigger"]';
+const r5ElementSelector = 'div.grid-area_\\[player\\] div[data-scope="menu"]'; // r4
 // 既存video要素のセレクタ
 const nicoVideoElementSelector = '[data-name="content"] > video';
 // コメントキャンバスのセレクタ
