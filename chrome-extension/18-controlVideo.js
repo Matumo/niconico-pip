@@ -63,21 +63,6 @@ let registerSyncPlaybackStateEvent = null;
     }
   }
 
-  // ニコニコ動画のバグ対策
-  function avoidSeekBug() {
-    // 動画の最後（コメントが塊で流れるタイミング）でシークバーを使わず動画をシークすると、
-    // 動画だけがシークされて、コメントやシークバーはシークされないバグがある
-    // 暫定対処として、シークバーの線をクリックすることで動画冒頭に戻ると制御をリセットする
-    const currentTimeElem = document.querySelector('div[aria-label="video - currentTime"]');
-    const prevElem = currentTimeElem && currentTimeElem.previousElementSibling;
-    if (prevElem) {
-      console.debug("Avoiding seek bug by clicking on the previous element.");
-      prevElem.click();
-    } else {
-      console.warn("Failed to avoid seek bug, previous element not found.");
-    }
-  }
-
   // シーク時間の正規化
   function normalizeSeekTime(_seekTime, _duration) {
     const seekTime = _seekTime;
@@ -127,10 +112,8 @@ let registerSyncPlaybackStateEvent = null;
     const duration = nicoVideoElement.duration;
     // シーク時間を正規化
     const normalizedSeekTime = normalizeSeekTime(seekTime, duration);
-    // シークバグを回避
-    avoidSeekBug();
     // 動画をシーク
-    nicoVideoElement.currentTime = normalizedSeekTime;
+    playerController_seek(normalizedSeekTime);
     // ステータスを同期
     syncPlaybackState(nicoVideoElement, videoPipElement);
   }
@@ -147,6 +130,92 @@ let registerSyncPlaybackStateEvent = null;
     const seekTime = nicoVideoElement.currentTime + offset;
     // シーク
     controlVideoSeek(nicoVideoElement, videoPipElement, seekTime);
+  }
+
+  // 動画のシーク
+  const playerController_seek = function (_seconds) {
+    //const duration = parseDurationToSeconds(context.time.duration);
+    const currentTimeElement = document.querySelector('div[aria-label="video - currentTime"]');
+    if (!currentTimeElement) {
+      console.debug("Current time element not found.");
+      return;
+    }
+    // aria-valuemax 属性から総再生時間を取得（数値）
+    const duration_text = currentTimeElement.getAttribute('aria-valuemax');
+    if (!duration_text) {
+      console.debug("Duration text not found in current time element.");
+      return;
+    }
+    // 総再生時間を数字に変換
+    const duration = parseFloat(duration_text);
+    if (isNaN(duration)) {
+      console.debug("Invalid duration format:", duration_text);
+      return;
+    }
+    if (duration < 0) {
+      console.debug("Invalid duration format:", context.time.duration);
+      return;
+    }
+    if (isNaN(_seconds)) {
+      console.debug("Invalid seconds input:", _seconds);
+      return;
+    }
+    const seconds = Math.max(0, Math.min(_seconds, duration)); // 範囲を0〜durationに制限
+    // 秒数からパーセンテージを計算
+    const percent = getPercentFromSeconds(seconds, duration);
+    if (isNaN(percent)) {
+      console.debug("Invalid percent calculated from seconds:", seconds, "Duration:", duration);
+      return;
+    }
+    // シーク
+    console.debug(`Seeking to ${seconds} seconds (${percent * 100}%)...`);
+    seekTo(percent);
+  }
+
+  // 再生時間と総再生時間から再生割合を計算する関数
+  function getPercentFromSeconds(seconds, duration) {
+    if (seconds < 0 || duration <= 0) return -1; // 無効値
+    if (seconds > duration) return -1; // 無効値
+    return seconds / duration;
+  }
+
+  // シークバーのクリックイベントを発火する関数
+  function seekTo(_percent) {
+    // パーセンテージを0〜1の範囲に制限
+    const percent = Math.min(Math.max(_percent, 0), 1);
+    const currentTimeElement = document.querySelector('div[aria-label="video - currentTime"]');
+    if (!currentTimeElement) {
+      console.debug("Current time element not found.");
+      return;
+    }
+    // シークバー全体（3階層上が典型的）
+    let seekbarRoot = currentTimeElement;
+    if (!seekbarRoot.parentElement) {
+      console.debug("Seekbar root not found.");
+      return;
+    }
+    for (let i = 0; i < 3; i++) {
+      if (seekbarRoot.parentElement) seekbarRoot = seekbarRoot.parentElement;
+    }
+    // シークバーのヒットエリアを取得
+    const hitArea = seekbarRoot.querySelector('.cursor_pointer');
+    if (!hitArea) {
+      console.debug("Hit area not found.");
+      return;
+    }
+    // シークバーの位置を計算
+    const rect = hitArea.getBoundingClientRect();
+    const x = rect.left + rect.width * percent;
+    const y = rect.top + rect.height / 2;
+    // ヒットエリアの指定位置にクリックイベントを発火
+    const evt = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+      view: window
+    });
+    hitArea.dispatchEvent(evt);
   }
 
   // 動画ステータスの同期イベント登録
