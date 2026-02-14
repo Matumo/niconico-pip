@@ -31,6 +31,96 @@ const videoPipElement = document.createElement('video');
     currentStream = null;
   }
 
+  // 親要素のサイズに合わせてvideo要素を整数pxで更新
+  function updatePipVideoElementSize() {
+    // サイズ計算の基準となる親要素を取得
+    const parentElement = videoPipElement.parentElement;
+    if (!parentElement) return; // 親要素がない場合はスキップ
+
+    // レイアウト後の実サイズを取得し、1px以上の整数値に正規化
+    const rect = parentElement.getBoundingClientRect();
+    const parentWidth = Math.max(1, Math.floor(rect.width));
+    const parentHeight = Math.max(1, Math.floor(rect.height));
+
+    // 16:9を厳密に維持したサイズで調整する方法
+    // const scale = Math.floor(Math.min(parentWidth / 16, parentHeight / 9));
+    // let width = scale > 0 ? 16 * scale : parentWidth;
+    // let height = scale > 0 ? 9 * scale : parentHeight;
+
+    // 親要素の縦横比を誤差なく計算したサイズで調整する方法
+    // const gcd = (a, b) => {
+    //   let x = a;
+    //   let y = b;
+    //   while (y !== 0) {
+    //     const t = x % y;
+    //     x = y;
+    //     y = t;
+    //   }
+    //   return x;
+    // };
+    // const ratioGcd = gcd(parentWidth, parentHeight);
+    // const ratioW = parentWidth / ratioGcd;
+    // const ratioH = parentHeight / ratioGcd;
+    // const scale = Math.min(
+    //   Math.floor(parentWidth / ratioW),
+    //   Math.floor(parentHeight / ratioH)
+    // );
+    // let width = ratioW * scale;
+    // let height = ratioH * scale;
+
+    // 親要素に収めながら、キャンバスサイズの縦横比を誤差なく計算したサイズで調整する方法
+    const canvasWidth = videoPipCanvasWidth;
+    const canvasHeight = videoPipCanvasHeight;
+    let width;
+    let height;
+    if (parentWidth * canvasHeight <= parentHeight * canvasWidth) {
+      width = parentWidth;
+      height = Math.floor((parentWidth * canvasHeight) / canvasWidth);
+    } else {
+      height = parentHeight;
+      width = Math.floor((parentHeight * canvasWidth) / canvasHeight);
+    }
+
+    // サイズが偶数になるように調整
+    if (width % 2 !== 0) width += 1;
+    if (height % 2 !== 0) height += 1;
+    if (width > parentWidth) width = Math.max(1, width - 2);
+    if (height > parentHeight) height = Math.max(1, height - 2);
+
+    // サイズ変更
+    videoPipElement.style.width = `${width}px`;
+    videoPipElement.style.height = `${height}px`;
+    console.debug(
+      `PiP video size updated: ${width}x${height} ` +
+      `(parent: ${parentWidth}x${parentHeight}, ` +
+      `canvas: ${canvasWidth}x${canvasHeight})`
+    );
+  }
+
+  // 親要素サイズの変更監視
+  let pipVideoSizeObserver = null;
+  function observePipVideoElementSize() {
+    if (pipVideoSizeObserver) {
+      pipVideoSizeObserver.disconnect();
+      pipVideoSizeObserver = null;
+    }
+    const parentElement = videoPipElement.parentElement;
+    if (!parentElement || !window.ResizeObserver) return;
+
+    pipVideoSizeObserver = new ResizeObserver(() => {
+      updatePipVideoElementSize();
+    });
+    pipVideoSizeObserver.observe(parentElement);
+  }
+
+  // ウィンドウサイズの変更監視
+  let isWindowResizeListenerAttached = false;
+  function observePipVideoElementSizeByWindow() {
+    if (isWindowResizeListenerAttached) return;
+    window.addEventListener('resize', updatePipVideoElementSize);
+    isWindowResizeListenerAttached = true;
+  }
+
   // video要素のソース設定
   function setPipVideoSrc(type, value) {
     clearPipVideoElement();
@@ -305,6 +395,9 @@ const videoPipElement = document.createElement('video');
       return;
     }
     r3Element.insertBefore(videoPipElement, r3Element.firstChild);
+    updatePipVideoElementSize();  // PiP用のvideo要素のサイズを調整
+    observePipVideoElementSize(); // 動画要素のサイズ変更を検知して随時PiP用のvideo要素を調整
+    //observePipVideoElementSizeByWindow();
     console.debug("Video element for PIP added.");
   }
 
