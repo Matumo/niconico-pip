@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "ニコニコ動画 ピクチャー・イン・ピクチャー コメ付き"
+  },
+  "extensionDescription": {
+    "message": "ニコニコ動画にコメント付きのピクチャー・イン・ピクチャー（PiP）機能を追加します。"
+  },
+  "popupTitle": {
+    "message": "ニコニコ動画 ピクチャー・イン・ピクチャー コメ付き"
+  },
+  "popupDescription": {
+    "message": "Phase 0 の土台が有効です。"
+  }
+}
