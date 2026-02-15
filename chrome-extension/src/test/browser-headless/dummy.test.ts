@@ -1,5 +1,9 @@
+/**
+ * browser-headlessダミーテスト
+ */
 import { expect, test } from "@playwright/test";
 
-test("dummy headless browser test", async () => {
+// ダミーテスト
+test("ダミーテスト", async () => {
   expect(true).toBe(true);
 });

@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const title = chrome.i18n.getMessage("popupTitle") || "Niconico Video Picture-in-Picture with Comments";
-  const description = chrome.i18n.getMessage("popupDescription") || "Phase 0 scaffold is active.";
+  const description = chrome.i18n.getMessage("popupDescription") || "Phase 1 core platform framework is active.";
 
   document.title = title;
 

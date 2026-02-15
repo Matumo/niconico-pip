@@ -39,6 +39,7 @@
     "@vitest/utils": "^4.0.18",
     "esbuild": "^0.27.3",
     "eslint": "^10.0.0",
+    "eslint-plugin-import": "^2.32.0",
     "globals": "^17.3.0",
     "jiti": "^2.6.1",
     "pngjs": "^7.0.0",
@@ -50,6 +51,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@matumo/ts-simple-logger": "^1.0.0"
+    "@matumo/ts-simple-logger": "^1.0.0",
+    "ky": "^1.14.3"
   }
 }

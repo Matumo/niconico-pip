@@ -1,5 +1,9 @@
+/**
+ * browser-xvfbダミーテスト
+ */
 import { expect, test } from "@playwright/test";
 
-test("dummy xvfb browser test", async () => {
+// ダミーテスト
+test("ダミーテスト", async () => {
   expect(true).toBe(true);
 });

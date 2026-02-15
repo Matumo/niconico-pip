@@ -19,12 +19,12 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary", "json", "lcov"],
       include: ["chrome-extension/src/main/**/*.{ts,tsx}"],
-      // TODO(Phase1): restore thresholds to 100%
+      exclude: ["chrome-extension/src/main/types/**/*.ts"],
       thresholds: {
-        lines: 0,
-        functions: 0,
-        branches: 0,
-        statements: 0
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100
       }
     }
   }
