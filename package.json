@@ -4,8 +4,9 @@
     "node": "25.x"
   },
   "scripts": {
-    "clean": "pnpm run clean:dist && pnpm run clean:test",
+    "clean": "pnpm run clean:dist && pnpm run clean:dist-test && pnpm run clean:test",
     "clean:dist": "rimraf dist",
+    "clean:dist-test": "rimraf dist-test",
     "clean:test": "rimraf test-results coverage",
     "check": "pnpm run lint && pnpm run check:type",
     "check:type": "pnpm run check:type:src && pnpm run check:type:test",
@@ -17,13 +18,15 @@
     "lint:fix": "eslint --config ./chrome-extension/eslint.config.mts ./chrome-extension --max-warnings=0 --fix",
     "build": "pnpm run build:clean && pnpm run build:bundle",
     "build:clean": "pnpm run clean:dist",
+    "build:clean:browser-headless-test": "pnpm run clean:dist-test",
     "build:bundle": "vite build --config ./chrome-extension/vite.config.ts",
+    "build:bundle:browser-headless-test": "vite build --mode browser-headless-test --config ./chrome-extension/vite.config.ts",
     "test": "pnpm run test:unit:coverage && pnpm run test:browser",
     "test:install": "playwright install --with-deps",
     "test:unit": "vitest run --config ./chrome-extension/vitest.config.ts",
     "test:unit:coverage": "vitest run --config ./chrome-extension/vitest.config.ts --coverage",
     "test:browser": "pnpm run test:browser:headless && pnpm run test:browser:xvfb",
-    "test:browser:headless": "pnpm run build && playwright test --config ./chrome-extension/playwright.config.ts --project browser-headless",
+    "test:browser:headless": "pnpm run build:clean:browser-headless-test && pnpm run build:bundle:browser-headless-test && playwright test --config ./chrome-extension/playwright.config.ts --project browser-headless",
     "test:browser:xvfb": "pnpm run build && xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' pnpm exec playwright test --config ./chrome-extension/playwright.config.ts --project browser-xvfb",
     "pack": "cd dist && find chrome-extension -print | xargs touch -m -t 198001010000.00 && find chrome-extension -type f ! -name '.DS_Store' -print | LC_ALL=C sort | zip -X -q -@ chrome-extension.zip && sha256sum chrome-extension.zip",
     "all": "pnpm run clean && pnpm run check && pnpm run build && pnpm run test && pnpm run pack"

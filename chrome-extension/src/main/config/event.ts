@@ -40,12 +40,12 @@ type AppEventNameMap = Record<AppEventKey, string>;
 
 // prefix付きイベント名マップを作成する関数
 const createAppEventNameMap = (prefixId: string): AppEventNameMap => ({
-  PageUrlChanged: `${prefixId}-page-url-changed`,
-  ElementsUpdated: `${prefixId}-elements-updated`,
-  StatusChanged: `${prefixId}-status-changed`,
-  VideoInfoChanged: `${prefixId}-video-info-changed`,
-  VideoTimeChanged: `${prefixId}-video-time-changed`,
-  PipStatusChanged: `${prefixId}-pip-status-changed`,
+  PageUrlChanged: `${prefixId}-event-page-url-changed`,
+  ElementsUpdated: `${prefixId}-event-elements-updated`,
+  StatusChanged: `${prefixId}-event-status-changed`,
+  VideoInfoChanged: `${prefixId}-event-video-info-changed`,
+  VideoTimeChanged: `${prefixId}-event-video-time-changed`,
+  PipStatusChanged: `${prefixId}-event-pip-status-changed`,
 });
 
 // エクスポート

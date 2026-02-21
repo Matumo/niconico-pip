@@ -26,4 +26,5 @@ const createMockAppLoggers = (overrides: Partial<AppLoggers> = {}): AppLoggers =
   ...overrides,
 });
 
+// エクスポート
 export { createMockLogger, createMockAppLoggers };

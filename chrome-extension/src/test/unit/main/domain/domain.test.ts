@@ -11,6 +11,7 @@ import { createPipDomain } from "@main/domain/pip";
 import { createStatusDomain } from "@main/domain/status";
 import { createTimeDomain } from "@main/domain/time";
 import { createDomainModule } from "@main/domain/create-domain-module";
+import { createAppConfig } from "@main/config/config";
 import { createMockAppLoggers, createMockLogger } from "@test/unit/main/helpers/logger";
 import { createForbiddenHttpClient } from "@test/unit/main/helpers/http-client";
 import type {
@@ -37,12 +38,7 @@ const createDomainTestContext = (): AppContext => {
   };
 
   return {
-    config: {
-      appName: "niconico-pip",
-      prefixId: "com-matumo-dev-niconico-pip",
-      watchPageUrlPattern: /^https:\/\/www\.nicovideo\.jp\/watch\/.+$/,
-      shouldUseDebugLog: false,
-    },
+    config: createAppConfig(),
     loggers: createMockAppLoggers({
       domain: createMockLogger("test-domain"),
     }),

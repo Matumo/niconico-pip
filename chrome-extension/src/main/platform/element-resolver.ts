@@ -44,8 +44,8 @@ const createElementResolver = (options: CreateElementResolverOptions): AppElemen
       entry.generation === currentGeneration &&
       // DOMツリーに接続された要素のみ許可
       entry.element.isConnected &&
-      // セレクタキーに対応する型ガードを通過した要素のみ許可
-      definition.guard(entry.element)
+      // セレクタキーに対応する型と期待する要素であること判定する処理を通過した要素のみ許可
+      definition.guard(entry.element) && definition.validate(entry.element)
     );
   };
 
@@ -58,11 +58,19 @@ const createElementResolver = (options: CreateElementResolverOptions): AppElemen
       const candidate = options.root.querySelector(selector);
       if (!candidate) continue; // 見つからなければ次のselectorへ
 
-      // guardを通過した要素だけを返す
-      if (definition.guard(candidate)) return candidate;
+      // guardを通過しない要素は除外
+      if (!definition.guard(candidate)) {
+        log.warn(`Selector guard rejected element for key=${key}`, { selector });
+        continue;
+      }
 
-      // selectorは一致したが期待型ではない場合のみ警告する
-      log.warn(`Selector guard rejected element for key=${key}`, { selector });
+      // 型一致でも意味的検証に失敗した要素は除外
+      if (!definition.validate(candidate)) {
+        log.warn(`Selector validate rejected element for key=${key}`, { selector });
+        continue;
+      }
+
+      return candidate;
     }
 
     return null;

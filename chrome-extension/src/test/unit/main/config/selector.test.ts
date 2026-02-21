@@ -13,11 +13,30 @@ type FakeElement = {
 const fakeElement = (tagName: string): Element => ({
   tagName,
 } as unknown as Element);
+// 文字列をアルファベット順に比較する関数
+const compareAlphabetically = (left: string, right: string): number => left.localeCompare(right);
 
 describe("セレクタ定義", () => {
-  test("v1基準のprimaryセレクタを含むこと", () => {
-    expect(selectorDefinitions.video.primary).toContain('[data-name="content"] > video');
-    expect(selectorDefinitions.commentsCanvas.primary).toContain('div[data-name="comment"] > canvas');
+  test("必須キー分の定義を持つこと", () => {
+    expect(Object.keys(selectorDefinitions).sort(compareAlphabetically)).toEqual([
+      "commentsCanvas",
+      "playerContainer",
+      "playerMenu",
+      "tooltipButton",
+      "video",
+    ]);
+  });
+
+  test("各定義が有効なselector文字列を持つこと", () => {
+    for (const definition of Object.values(selectorDefinitions)) {
+      expect(typeof definition.primary).toBe("string");
+      expect(definition.primary.trim()).not.toBe("");
+      expect(Array.isArray(definition.fallbacks)).toBe(true);
+      for (const fallback of definition.fallbacks) {
+        expect(typeof fallback).toBe("string");
+        expect(fallback.trim()).not.toBe("");
+      }
+    }
   });
 
   test("guardがタグ名で厳密判定すること", () => {
@@ -33,8 +52,9 @@ describe("セレクタ定義", () => {
     expect(selectorDefinitions.commentsCanvas.guard(canvas)).toBe(true);
   });
 
-  test("fallbackが定義されていること", () => {
-    expect(selectorDefinitions.tooltipButton.fallbacks.length).toBeGreaterThan(0);
+  test("validateが定義されbooleanを返すこと", () => {
+    const button = fakeElement("BUTTON") as HTMLButtonElement;
+    expect(selectorDefinitions.tooltipButton.validate(button)).toBe(true);
   });
 
   test("テスト用要素ヘルパーが利用できること", () => {

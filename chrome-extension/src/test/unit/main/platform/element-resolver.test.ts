@@ -3,6 +3,7 @@
  */
 import { describe, expect, test } from "vitest";
 import { createElementResolver, type QueryRoot } from "@main/platform/element-resolver";
+import { selectorDefinitions } from "@main/config/selector";
 import { createMockLogger } from "@test/unit/main/helpers/logger";
 
 // テスト用要素型
@@ -21,12 +22,13 @@ const createFakeElement = (tagName: string): FakeElement =>
 describe("要素リゾルバー", () => {
   test("primaryで解決してキャッシュを利用すること", () => {
     const video = createFakeElement("VIDEO");
+    const videoPrimarySelector = selectorDefinitions.video.primary;
     let queryCount = 0;
 
     const root: QueryRoot = {
       querySelector: (selector: string): Element | null => {
         queryCount += 1;
-        if (selector === '[data-name="content"] > video') {
+        if (selector === videoPrimarySelector) {
           return video;
         }
         return null;
@@ -54,17 +56,10 @@ describe("要素リゾルバー", () => {
     expect(queryCount).toBe(2);
   });
 
-  test("fallbackを評価してguard不一致を除外すること", () => {
+  test("全セレクタでguard不一致を除外すること", () => {
+    const alwaysMismatchedTagName = "TEST_GUARD_MISMATCH";
     const root: QueryRoot = {
-      querySelector: (selector: string): Element | null => {
-        if (selector === 'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを非表示にする"]') {
-          return createFakeElement("DIV");
-        }
-        if (selector === 'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを表示する"]') {
-          return createFakeElement("BUTTON");
-        }
-        return null;
-      },
+      querySelector: (): Element | null => createFakeElement(alwaysMismatchedTagName),
     };
 
     const logger = createMockLogger("test-resolver");
@@ -75,10 +70,51 @@ describe("要素リゾルバー", () => {
       getPageGeneration: () => 1,
     });
 
-    const resolved = resolver.resolve("tooltipButton");
+    const selectorKeys = Object.keys(selectorDefinitions) as Array<keyof typeof selectorDefinitions>;
+    for (const key of selectorKeys) {
+      expect(resolver.resolve(key)).toBeNull();
+      expect(logger.warn).toHaveBeenCalledWith(`Selector guard rejected element for key=${key}`, {
+        selector: expect.any(String),
+      });
+    }
 
-    expect(resolved?.tagName).toBe("BUTTON");
-    expect(logger.warn).toHaveBeenCalledTimes(1);
+    const expectedWarnCount = selectorKeys.reduce(
+      (count, key) => count + 1 + selectorDefinitions[key].fallbacks.length,
+      0,
+    );
+    expect(logger.warn).toHaveBeenCalledTimes(expectedWarnCount);
+  });
+
+  test("validate不一致を除外し、キャッシュ時にも再検証すること", () => {
+    const video = createFakeElement("VIDEO");
+    const logger = createMockLogger("test-resolver");
+    let isValid = false;
+
+    const resolver = createElementResolver({
+      root: {
+        querySelector: () => video,
+      },
+      logger,
+      getPageGeneration: () => 1,
+      definitions: {
+        ...selectorDefinitions,
+        video: {
+          ...selectorDefinitions.video,
+          validate: () => isValid,
+        },
+      },
+    });
+
+    expect(resolver.resolve("video")).toBeNull();
+    expect(logger.warn).toHaveBeenCalledWith("Selector validate rejected element for key=video", {
+      selector: selectorDefinitions.video.primary,
+    });
+
+    isValid = true;
+    expect(resolver.resolve("video")).toBe(video);
+
+    isValid = false;
+    expect(resolver.peek("video")).toBeNull();
   });
 
   test("invalidateでキャッシュを破棄できること", () => {

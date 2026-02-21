@@ -242,6 +242,7 @@ $RECYCLE.BIN/
 
 # Build output
 dist/
+dist-test/
 
 # debug
 runner/

@@ -6,6 +6,7 @@ type SelectorDefinition<TElement extends Element> = {
   primary: string;     // 要素取得の第一候補セレクタ
   fallbacks: string[]; // primary不一致時に順に試す代替セレクタ
   guard: (elem: Element) => elem is TElement; // 型ガード
+  validate: (elem: TElement) => boolean; // 期待する要素かどうか判定
 };
 
 // 要素キーとDOM型の対応定義
@@ -39,32 +40,44 @@ const isVideoElement = (elem: Element): elem is HTMLVideoElement => hasTagName(e
 // canvas要素か判定する関数
 const isCanvasElement = (elem: Element): elem is HTMLCanvasElement => hasTagName(elem, "canvas");
 
+// tooltipボタン用の共通セレクタ前方
+const tooltipButtonSelectorPrefix = `button[data-scope="tooltip"][data-part="trigger"]`;
+// プレイヤー領域用の共通セレクタ前方
+const playerAreaSelectorPrefix = String.raw`div.grid-area_\[player\]`;
+// selectorだけで判定可能な要素は追加検証を行わない
+const validateNoop = <TElement extends Element>(_: TElement): boolean => true;
+
 // 要素取得に利用するセレクタ定義
 const selectorDefinitions: SelectorDefinitions = {
   tooltipButton: {
-    primary: 'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを非表示にする"]',
-    fallbacks: ['button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを表示する"]'],
+    primary: `${tooltipButtonSelectorPrefix}[aria-label="コメントを非表示にする"], ${tooltipButtonSelectorPrefix}[aria-label="コメントを表示する"]`,
+    fallbacks: [],
     guard: isButtonElement,
+    validate: validateNoop,
   },
   playerContainer: {
-    primary: String.raw`div.grid-area_\[player\] > div.PlayerPresenter > div > div:has([data-scope="menu"])`,
+    primary: `${playerAreaSelectorPrefix} > div.PlayerPresenter > div > div:has([data-scope="menu"])`,
     fallbacks: [],
     guard: isDivElement,
+    validate: validateNoop,
   },
   playerMenu: {
-    primary: String.raw`div.grid-area_\[player\] div[data-scope="menu"]`,
+    primary: `${playerAreaSelectorPrefix} div[data-scope="menu"]`,
     fallbacks: [],
     guard: isDivElement,
+    validate: validateNoop,
   },
   video: {
-    primary: '[data-name="content"] > video',
+    primary: `[data-name="content"] > video`,
     fallbacks: [],
     guard: isVideoElement,
+    validate: validateNoop,
   },
   commentsCanvas: {
-    primary: 'div[data-name="comment"] > canvas',
+    primary: `div[data-name="comment"] > canvas`,
     fallbacks: [],
     guard: isCanvasElement,
+    validate: validateNoop,
   },
 };
 
