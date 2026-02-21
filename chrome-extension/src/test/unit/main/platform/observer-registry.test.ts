@@ -3,6 +3,7 @@
  */
 import { describe, expect, test } from "vitest";
 import { createObserverRegistry } from "@main/platform/observer-registry";
+import { captureGlobalDescriptors, restoreGlobalDescriptors } from "@test/unit/main/shared/global-property";
 
 // テスト用MutationObserver
 class FakeMutationObserver {
@@ -25,7 +26,7 @@ class FakeMutationObserver {
 
 describe("オブザーバーレジストリ", () => {
   test("createObserver注入時はMutationObserver未定義でも動作すること", () => {
-    const originalMutationObserver = globalThis.MutationObserver;
+    const globalDescriptors = captureGlobalDescriptors(["MutationObserver"] as const);
     Reflect.deleteProperty(globalThis, "MutationObserver");
 
     try {
@@ -50,22 +51,21 @@ describe("オブザーバーレジストリ", () => {
       expect(observerRegistry.size()).toBe(1);
       expect(observerRegistry.disconnect("noop")).toBe(true);
     } finally {
-      if (originalMutationObserver) {
-        globalThis.MutationObserver = originalMutationObserver;
-      }
+      restoreGlobalDescriptors(globalDescriptors);
     }
   });
 
   test("MutationObserver定義時にグローバル実装を利用すること", () => {
-    const originalMutationObserver = globalThis.MutationObserver;
+    const globalDescriptors = captureGlobalDescriptors(["MutationObserver"] as const);
     const observeCalls: MutationObserverInit[] = [];
 
     class GlobalMutationObserverMock {
-      public constructor(_: MutationCallback) {}
       public observe(_target: Node, options: MutationObserverInit): void {
         observeCalls.push(options);
       }
-      public disconnect(): void {}
+      public disconnect(): void {
+        return undefined;
+      }
       public takeRecords(): MutationRecord[] {
         return [];
       }
@@ -84,11 +84,7 @@ describe("オブザーバーレジストリ", () => {
 
       expect(observeCalls).toEqual([{ attributes: true }]);
     } finally {
-      if (originalMutationObserver) {
-        globalThis.MutationObserver = originalMutationObserver;
-      } else {
-        Reflect.deleteProperty(globalThis, "MutationObserver");
-      }
+      restoreGlobalDescriptors(globalDescriptors);
     }
   });
 

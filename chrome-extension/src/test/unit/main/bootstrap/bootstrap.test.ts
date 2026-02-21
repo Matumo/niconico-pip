@@ -4,8 +4,8 @@
 import { describe, expect, test, vi } from "vitest";
 import { bootstrap } from "@main/bootstrap/bootstrap";
 import { createAppConfig } from "@main/config/config";
-import { createMockAppLoggers } from "@test/unit/main/helpers/logger";
-import { createForbiddenHttpClient } from "@test/unit/main/helpers/http-client";
+import { createMockAppLoggers } from "@test/unit/main/shared/logger";
+import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
 import type {
   AppContext,
   AppObserverRegistry,

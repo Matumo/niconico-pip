@@ -2,7 +2,7 @@
  * mainテスト
  */
 import { describe, expect, test, vi } from "vitest";
-import { createMockLogger } from "@test/unit/main/helpers/logger";
+import { createMockLogger } from "@test/unit/main/shared/logger";
 
 describe("mainエントリー", () => {
   test("bootstrapを呼び出すこと", async () => {

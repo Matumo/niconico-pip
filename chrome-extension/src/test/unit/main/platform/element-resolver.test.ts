@@ -4,7 +4,7 @@
 import { describe, expect, test } from "vitest";
 import { createElementResolver, type QueryRoot } from "@main/platform/element-resolver";
 import { selectorDefinitions } from "@main/config/selector";
-import { createMockLogger } from "@test/unit/main/helpers/logger";
+import { createMockLogger } from "@test/unit/main/shared/logger";
 
 // テスト用要素型
 type FakeElement = Element & {

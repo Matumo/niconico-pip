@@ -3,7 +3,7 @@
  */
 import { describe, expect, test } from "vitest";
 import { createSafeRunner } from "@main/platform/safe-runner";
-import { createMockLogger } from "@test/unit/main/helpers/logger";
+import { createMockLogger } from "@test/unit/main/shared/logger";
 
 describe("safe-runner", () => {
   test("成功時にok結果を返すこと", async () => {

@@ -3,6 +3,12 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { getLogger, setDefaultConfig, setLoggerConfig } from "@matumo/ts-simple-logger";
+import {
+  captureGlobalDescriptors,
+  restoreGlobalDescriptors,
+  setGlobalProperty,
+  type GlobalDescriptorMap,
+} from "@test/unit/main/shared/global-property";
 
 vi.mock("@matumo/ts-simple-logger", () => ({
   getLogger: vi.fn((name: string) => ({
@@ -22,10 +28,11 @@ const setDefaultConfigMock = vi.mocked(setDefaultConfig);
 const setLoggerConfigMock = vi.mocked(setLoggerConfig);
 
 describe("ロガー", () => {
-  const originalAddEventListener = (globalThis as { addEventListener?: unknown }).addEventListener;
-  const originalProcess = (globalThis as { process?: unknown }).process;
+  const globalPropertyKeys = ["addEventListener", "process"] as const;
+  let globalDescriptors: GlobalDescriptorMap<(typeof globalPropertyKeys)[number]>;
 
   beforeEach(() => {
+    globalDescriptors = captureGlobalDescriptors(globalPropertyKeys);
     vi.resetModules();
     getLoggerMock.mockClear();
     setDefaultConfigMock.mockClear();
@@ -34,25 +41,14 @@ describe("ロガー", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-
-    if (typeof originalAddEventListener === "undefined") {
-      Reflect.deleteProperty(globalThis, "addEventListener");
-    } else {
-      (globalThis as { addEventListener?: unknown }).addEventListener = originalAddEventListener;
-    }
-
-    if (typeof originalProcess === "undefined") {
-      Reflect.deleteProperty(globalThis, "process");
-    } else {
-      (globalThis as { process?: unknown }).process = originalProcess;
-    }
+    restoreGlobalDescriptors(globalDescriptors);
   });
 
   test("初期化時に設定とロガー集合を作成し、例外ハンドラは一度だけ登録すること", async () => {
     const addEventListener = vi.fn();
     const processOn = vi.fn();
-    (globalThis as { addEventListener?: unknown }).addEventListener = addEventListener;
-    (globalThis as { process?: unknown }).process = { on: processOn };
+    setGlobalProperty("addEventListener", addEventListener);
+    setGlobalProperty("process", { on: processOn });
 
     const loggerModule = await import("@main/platform/logger");
     const loggers = loggerModule.initializeLoggers({
@@ -112,8 +108,8 @@ describe("ロガー", () => {
   });
 
   test("ブラウザもNodeも無い環境でも初期化できること", async () => {
-    (globalThis as { addEventListener?: unknown }).addEventListener = undefined;
-    (globalThis as { process?: unknown }).process = undefined;
+    setGlobalProperty("addEventListener", undefined);
+    setGlobalProperty("process", undefined);
     vi.spyOn(performance, "now").mockReturnValue(12.34);
 
     const loggerModule = await import("@main/platform/logger");
@@ -131,8 +127,8 @@ describe("ロガー", () => {
   });
 
   test("process.onを持たないオブジェクトはNode processとして扱わないこと", async () => {
-    (globalThis as { addEventListener?: unknown }).addEventListener = vi.fn();
-    (globalThis as { process?: unknown }).process = {};
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("process", {});
 
     const loggerModule = await import("@main/platform/logger");
     expect(() =>

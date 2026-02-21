@@ -4,6 +4,11 @@
 import { describe, expect, test, vi } from "vitest";
 import { createAppContext } from "@main/bootstrap/create-app-context";
 import { createAppStateContainer } from "@main/platform/state";
+import {
+  captureGlobalDescriptors,
+  restoreGlobalDescriptors,
+  setGlobalProperty,
+} from "@test/unit/main/shared/global-property";
 
 const createObserver = (): MutationObserver =>
   ({
@@ -58,10 +63,10 @@ describe("createAppContext", () => {
 
   test("ブラウザdocumentとHTTP上書き設定を利用できること", async () => {
     const stateContainer = createAppStateContainer();
-    const originalDocument = (globalThis as { document?: unknown }).document;
+    const globalDescriptors = captureGlobalDescriptors(["document"] as const);
     const fakeVideo = { tagName: "VIDEO", isConnected: true } as unknown as HTMLVideoElement;
     const querySelector = vi.fn(() => fakeVideo as unknown as Element);
-    (globalThis as { document?: unknown }).document = { querySelector };
+    setGlobalProperty("document", { querySelector });
 
     const fetchFn = vi.fn(async () =>
       new Response(JSON.stringify({ ok: true }), {
@@ -88,11 +93,7 @@ describe("createAppContext", () => {
       await context.httpClient.request("https://test.localhost/http-policy").json();
       expect(fetchFn).toHaveBeenCalledTimes(2);
     } finally {
-      if (typeof originalDocument === "undefined") {
-        Reflect.deleteProperty(globalThis, "document");
-      } else {
-        (globalThis as { document?: unknown }).document = originalDocument;
-      }
+      restoreGlobalDescriptors(globalDescriptors);
     }
   });
 

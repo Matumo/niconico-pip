@@ -5,7 +5,7 @@ import { describe, expect, test, vi } from "vitest";
 import { HTTPError, TimeoutError as KyTimeoutError } from "ky";
 import { mergeHttpPolicy } from "@main/config/http";
 import { createHttpClient } from "@main/platform/http/http-client";
-import { createMockLogger } from "@test/unit/main/helpers/logger";
+import { createMockLogger } from "@test/unit/main/shared/logger";
 
 describe("HTTPクライアント", () => {
   test("requestでjsonヘルパーを利用できること", async () => {
