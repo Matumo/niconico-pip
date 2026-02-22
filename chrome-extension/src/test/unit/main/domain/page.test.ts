@@ -264,11 +264,12 @@ describe("pageドメイン", () => {
     expect(createUrlChangeObserverMock).not.toHaveBeenCalled();
   });
 
-  test("stop後に遅延トリガーが来た場合は未初期化例外になること", async () => {
+  test("stop後に遅延トリガーが来た場合はwarnしてスキップすること", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
-    const { context, stateWriters } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
     const { emitTrigger } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     setGlobalProperty("location", { href: "https://www.nicovideo.jp/watch/sm10" });
     setGlobalProperty("dispatchEvent", vi.fn(() => true));
@@ -277,9 +278,11 @@ describe("pageドメイン", () => {
     await domain.start();
     await domain.stop();
 
-    // TODO: 本体側で未初期化時の回復動作を実装したら、この期待値を例外なしへ見直す
-    expect(() => emitTrigger("mutation-observer")).toThrowError(
-      "Page domain runtime is not initialized",
+    expect(() => emitTrigger("mutation-observer")).not.toThrow();
+    expect(pagePatch).not.toHaveBeenCalled();
+    expect(eventRegistryEmit).not.toHaveBeenCalled();
+    expect(domainLogger.warn).toHaveBeenCalledWith(
+      "page runtime is not initialized",
     );
   });
 });

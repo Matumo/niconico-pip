@@ -49,15 +49,15 @@ const createPageDomain = (): DomainModule => {
   let runtime: PageDomainRuntime | null = null;
 
   // pageドメイン実行時に必要な依存が揃っているか確認して返す関数
-  const resolveRuntime = (): PageDomainRuntime => {
-    // TODO: 遅延トリガー到達時の挙動を整理し、未初期化時は例外以外の回復動作へ置き換える
-    if (!runtime) throw new Error("Page domain runtime is not initialized");
+  const resolveRuntime = (): PageDomainRuntime | null => {
+    if (!runtime) log.warn("page runtime is not initialized");
     return runtime;
   };
 
   // 現在URLをstateへ反映し、必要時にイベントを発火する関数
   const syncPageUrl = (trigger: UrlCheckTrigger): void => {
     const runtime = resolveRuntime();
+    if (!runtime) return;
     const currentUrl = resolveCurrentUrl();
 
     // 非ブラウザ環境などでlocationが使えない場合は同期をスキップする
@@ -133,6 +133,7 @@ const createPageDomain = (): DomainModule => {
     start: async (): Promise<void> => {
       await baseDomain.start();
       const runtime = resolveRuntime();
+      if (!runtime) throw new Error("Page domain runtime is not initialized");
       runtime.urlChangeObserver.start();
       log.debug("page domain start completed");
     },
