@@ -257,6 +257,28 @@ describe("pageドメイン", () => {
     );
   });
 
+  test("init途中失敗でruntime未初期化のままstartするとエラーになること", async () => {
+    const initialUrl = "https://www.nicovideo.jp/watch/sm9";
+    const { context, stateWriters } = createPageDomainTestContext(initialUrl);
+    const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
+
+    createUrlChangeObserverMock.mockImplementationOnce(() => {
+      throw new Error("observer init failed");
+    });
+
+    await expect(domain.init(context, stateWriters)).rejects.toThrow("observer init failed");
+    await expect(domain.start()).rejects.toThrow("Page domain runtime is not initialized");
+    expect(domainLogger.warn).toHaveBeenCalledWith("page runtime is not initialized");
+  });
+
+  test("initせずstartするとエラーになること", async () => {
+    const domain = createPageDomain();
+
+    await expect(domain.start()).rejects.toThrow("Domain page must be initialized before start");
+    expect(createUrlChangeObserverMock).not.toHaveBeenCalled();
+  });
+
   test("init前のstopは何もせず完了すること", async () => {
     const domain = createPageDomain();
 
