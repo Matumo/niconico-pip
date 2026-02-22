@@ -1,10 +1,14 @@
 /**
  * 要素リゾルバーテスト
  */
-import { describe, expect, test } from "vitest";
-import { createElementResolver, type QueryRoot } from "@main/platform/element-resolver";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { selectorDefinitions } from "@main/config/selector";
-import { createMockLogger } from "@test/unit/main/shared/logger";
+import { createTsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+import type { QueryRoot } from "@main/platform/element-resolver";
+
+let createElementResolver: typeof import("@main/platform/element-resolver").createElementResolver;
+let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 // テスト用要素型
 type FakeElement = Element & {
@@ -20,6 +24,14 @@ const createFakeElement = (tagName: string): FakeElement =>
   } as unknown as FakeElement);
 
 describe("要素リゾルバー", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+    ({ createElementResolver } = await import("@main/platform/element-resolver"));
+    loggerMockHarness.clearLoggerCalls();
+  });
+
   test("primaryで解決してキャッシュを利用すること", () => {
     const video = createFakeElement("VIDEO");
     const videoPrimarySelector = selectorDefinitions.video.primary;
@@ -35,12 +47,9 @@ describe("要素リゾルバー", () => {
       },
     };
 
-    const logger = createMockLogger("test-resolver");
-
     let generation = 1;
     const resolver = createElementResolver({
       root,
-      logger,
       getPageGeneration: () => generation,
     });
 
@@ -62,18 +71,16 @@ describe("要素リゾルバー", () => {
       querySelector: (): Element | null => createFakeElement(alwaysMismatchedTagName),
     };
 
-    const logger = createMockLogger("test-resolver");
-
     const resolver = createElementResolver({
       root,
-      logger,
       getPageGeneration: () => 1,
     });
 
     const selectorKeys = Object.keys(selectorDefinitions) as Array<keyof typeof selectorDefinitions>;
+    const elementResolverLogger = loggerMockHarness.resolveMockLogger("element-resolver");
     for (const key of selectorKeys) {
       expect(resolver.resolve(key)).toBeNull();
-      expect(logger.warn).toHaveBeenCalledWith(`Selector guard rejected element for key=${key}`, {
+      expect(elementResolverLogger.warn).toHaveBeenCalledWith(`Selector guard rejected element for key=${key}`, {
         selector: expect.any(String),
       });
     }
@@ -82,19 +89,18 @@ describe("要素リゾルバー", () => {
       (count, key) => count + 1 + selectorDefinitions[key].fallbacks.length,
       0,
     );
-    expect(logger.warn).toHaveBeenCalledTimes(expectedWarnCount);
+    expect(elementResolverLogger.warn).toHaveBeenCalledTimes(expectedWarnCount);
   });
 
   test("validate不一致を除外し、キャッシュ時にも再検証すること", () => {
     const video = createFakeElement("VIDEO");
-    const logger = createMockLogger("test-resolver");
+    const elementResolverLogger = loggerMockHarness.resolveMockLogger("element-resolver");
     let isValid = false;
 
     const resolver = createElementResolver({
       root: {
         querySelector: () => video,
       },
-      logger,
       getPageGeneration: () => 1,
       definitions: {
         ...selectorDefinitions,
@@ -106,7 +112,7 @@ describe("要素リゾルバー", () => {
     });
 
     expect(resolver.resolve("video")).toBeNull();
-    expect(logger.warn).toHaveBeenCalledWith("Selector validate rejected element for key=video", {
+    expect(elementResolverLogger.warn).toHaveBeenCalledWith("Selector validate rejected element for key=video", {
       selector: selectorDefinitions.video.primary,
     });
 
@@ -126,7 +132,6 @@ describe("要素リゾルバー", () => {
 
     const resolver = createElementResolver({
       root,
-      logger: createMockLogger("test-resolver"),
       getPageGeneration: () => 1,
     });
 

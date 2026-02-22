@@ -1,11 +1,10 @@
 /**
  * bootstrapテスト
  */
-import { describe, expect, test, vi } from "vitest";
-import { bootstrap } from "@main/bootstrap/bootstrap";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createAppConfig } from "@main/config/config";
-import { createMockAppLoggers } from "@test/unit/main/shared/logger";
 import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
+import { createTsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 import type {
   AppContext,
   AppObserverRegistry,
@@ -13,6 +12,10 @@ import type {
   AppStateWriters,
 } from "@main/types/app-context";
 import type { DomainModule } from "@main/domain/create-domain-module";
+import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+
+let bootstrap: typeof import("@main/bootstrap/bootstrap").bootstrap;
+let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 // テスト用のno-op MutationObserverを返す関数
 const createObserver = (): MutationObserver =>
@@ -42,7 +45,6 @@ const createMockContext = (): AppContext => {
 
   return {
     config: createAppConfig(),
-    loggers: createMockAppLoggers(),
     eventRegistry,
     observerRegistry,
     state: {
@@ -103,6 +105,14 @@ const createDomain = (
 });
 
 describe("bootstrap", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+    ({ bootstrap } = await import("@main/bootstrap/bootstrap"));
+    loggerMockHarness.clearLoggerCalls();
+  });
+
   test("initとstartを順方向、stopを逆方向で実行すること", async () => {
     const record: string[] = [];
     const context = createMockContext();
@@ -158,8 +168,8 @@ describe("bootstrap", () => {
     expect(record).toContain("broken:init");
     expect(record).toContain("next:init");
     expect(record).toContain("next:start");
-    expect(context.loggers.safeRunner.error).toHaveBeenCalled();
-    expect(context.loggers.domain.error).not.toHaveBeenCalled();
+    expect(loggerMockHarness.resolveMockLogger("safe-runner").error).toHaveBeenCalledTimes(1);
+    expect(loggerMockHarness.resolveMockLogger("domain").error).not.toHaveBeenCalled();
   });
 
   test("context未指定でも既定ドメインで起動できること", async () => {
@@ -246,7 +256,9 @@ describe("bootstrap", () => {
 
     expect(firstRecord).toContain("broken-start:start");
     expect(firstRecord).toContain("next-start:start");
-    expect(firstContext.loggers.safeRunner.error).toHaveBeenCalledTimes(1);
+    const safeRunnerLogger = loggerMockHarness.resolveMockLogger("safe-runner");
+    expect(safeRunnerLogger.error).toHaveBeenCalledTimes(1);
+    safeRunnerLogger.error.mockClear();
 
     const secondRecord: string[] = [];
     const secondContext = createMockContext();
@@ -263,6 +275,6 @@ describe("bootstrap", () => {
 
     expect(secondRecord).toContain("first-start:start");
     expect(secondRecord).toContain("broken-start-2:start");
-    expect(secondContext.loggers.safeRunner.error).toHaveBeenCalledTimes(1);
+    expect(safeRunnerLogger.error).toHaveBeenCalledTimes(1);
   });
 });

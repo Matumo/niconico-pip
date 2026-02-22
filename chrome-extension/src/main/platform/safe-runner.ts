@@ -1,7 +1,8 @@
 /**
  * fail-soft実行ラッパー
  */
-import type { Logger } from "@matumo/ts-simple-logger";
+import { appLoggerNames } from "@main/platform/logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 
 // 安全実行の戻り値型
 type SafeResult<TValue> =
@@ -14,8 +15,10 @@ interface SafeRunner {
   runAsync<TValue>(label: string, task: () => Promise<TValue>): Promise<SafeResult<TValue>>;
 }
 
+const log = getLogger(appLoggerNames.safeRunner);
+
 // 例外を捕捉して結果型で返す実行器を作成する関数
-const createSafeRunner = (logger: Logger): SafeRunner => {
+const createSafeRunner = (): SafeRunner => {
   // 同期タスクを安全実行する関数
   const run = <TValue>(label: string, task: () => TValue): SafeResult<TValue> => {
     try {
@@ -24,7 +27,7 @@ const createSafeRunner = (logger: Logger): SafeRunner => {
         value: task(),
       };
     } catch (error) {
-      logger.error(`${label} failed`, error);
+      log.error(`${label} failed`, error);
       return {
         ok: false,
         error,
@@ -44,7 +47,7 @@ const createSafeRunner = (logger: Logger): SafeRunner => {
         value,
       };
     } catch (error) {
-      logger.error(`${label} failed`, error);
+      log.error(`${label} failed`, error);
       return {
         ok: false,
         error,

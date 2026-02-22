@@ -7,6 +7,8 @@ import {
   type UrlCheckTrigger,
 } from "@main/adapter/dom/url-change-observer";
 import { createDomainModule, type DomainModule } from "@main/domain/create-domain-module";
+import { appLoggerNames } from "@main/platform/logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
 
 // 実行環境へアクセスするための最小型
@@ -38,6 +40,8 @@ interface PageDomainRuntime {
   lastKnownUrl: string;
 }
 
+const log = getLogger(appLoggerNames.domain);
+
 // pageドメインを作成する関数
 const createPageDomain = (): DomainModule => {
   const baseDomain = createDomainModule("page", "urlWatch");
@@ -54,7 +58,6 @@ const createPageDomain = (): DomainModule => {
   // 現在URLをstateへ反映し、必要時にイベントを発火する関数
   const syncPageUrl = (trigger: UrlCheckTrigger): void => {
     const runtime = resolveRuntime();
-    const log = runtime.context.loggers.domain;
     const currentUrl = resolveCurrentUrl();
 
     // 非ブラウザ環境などでlocationが使えない場合は同期をスキップする
@@ -109,7 +112,6 @@ const createPageDomain = (): DomainModule => {
     // pageドメインを初期化する関数
     init: async (nextContext, nextStateWriters): Promise<void> => {
       await baseDomain.init(nextContext, nextStateWriters);
-      const log = nextContext.loggers.domain;
 
       // 監視オブジェクトはinitで構築し、startで開始する
       const urlChangeObserver = createUrlChangeObserver({
@@ -131,14 +133,12 @@ const createPageDomain = (): DomainModule => {
     start: async (): Promise<void> => {
       await baseDomain.start();
       const runtime = resolveRuntime();
-      const log = runtime.context.loggers.domain;
       runtime.urlChangeObserver.start();
       log.debug("page domain start completed");
     },
     // pageドメインを停止する関数
     stop: async (): Promise<void> => {
       if (runtime) {
-        const log = runtime.context.loggers.domain;
         log.debug("page domain stopping");
         // URL変更監視を停止
         runtime.urlChangeObserver.stop();

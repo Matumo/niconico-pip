@@ -1,13 +1,26 @@
 /**
  * HTTPクライアントテスト
  */
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { HTTPError, TimeoutError as KyTimeoutError } from "ky";
 import { mergeHttpPolicy } from "@main/config/http";
-import { createHttpClient } from "@main/platform/http/http-client";
-import { createMockLogger } from "@test/unit/main/shared/logger";
+import {
+  createTsSimpleLoggerMockHarness,
+  type TsSimpleLoggerMockHarness,
+} from "@test/unit/main/shared/logger";
+
+let createHttpClient: typeof import("@main/platform/http/http-client").createHttpClient;
+let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 describe("HTTPクライアント", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+    ({ createHttpClient } = await import("@main/platform/http/http-client"));
+    loggerMockHarness.clearLoggerCalls();
+  });
+
   test("requestでjsonヘルパーを利用できること", async () => {
     const fetchFn = vi.fn(async () =>
       new Response(JSON.stringify({ ok: true }), {
@@ -17,7 +30,6 @@ describe("HTTPクライアント", () => {
 
     const client = createHttpClient({
       policy: mergeHttpPolicy(),
-      logger: createMockLogger("test-http"),
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
@@ -43,7 +55,6 @@ describe("HTTPクライアント", () => {
 
     const client = createHttpClient({
       policy: mergeHttpPolicy(),
-      logger: createMockLogger("test-http"),
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
@@ -70,7 +81,6 @@ describe("HTTPクライアント", () => {
     try {
       const client = createHttpClient({
         policy: mergeHttpPolicy(),
-        logger: createMockLogger("test-http"),
       });
 
       const result = await client.request("https://test.localhost/global").json<{ ok: boolean }>();
@@ -91,8 +101,6 @@ describe("HTTPクライアント", () => {
           status: 200,
         }),
       );
-    const logger = createMockLogger("test-http");
-
     const client = createHttpClient({
       policy: mergeHttpPolicy({
         retry: {
@@ -102,16 +110,16 @@ describe("HTTPクライアント", () => {
           jitterRatio: 0,
         },
       }),
-      logger,
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
 
     const result = await client.request("https://test.localhost/retry").json<{ ok: boolean }>();
+    const httpLogger = loggerMockHarness.resolveMockLogger("http");
 
     expect(result.ok).toBe(true);
     expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(httpLogger.warn).toHaveBeenCalledTimes(1);
   });
 
   test("retryOnStatusesに含まれるステータスではリトライすること", async () => {
@@ -128,8 +136,6 @@ describe("HTTPクライアント", () => {
           status: 200,
         }),
       );
-    const logger = createMockLogger("test-http");
-
     const client = createHttpClient({
       policy: mergeHttpPolicy({
         retry: {
@@ -140,16 +146,16 @@ describe("HTTPクライアント", () => {
           jitterRatio: 0,
         },
       }),
-      logger,
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
 
     const result = await client.request("https://test.localhost/retry-on-status").json<{ ok: boolean }>();
+    const httpLogger = loggerMockHarness.resolveMockLogger("http");
 
     expect(result.ok).toBe(true);
     expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(httpLogger.warn).toHaveBeenCalledTimes(1);
   });
 
   test("retryOnStatusesに含まれないステータスではリトライしないこと", async () => {
@@ -167,7 +173,6 @@ describe("HTTPクライアント", () => {
           retryOnStatuses: [500],
         },
       }),
-      logger: createMockLogger("test-http"),
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
@@ -202,7 +207,6 @@ describe("HTTPクライアント", () => {
             jitterRatio: 0,
           },
         }),
-        logger: createMockLogger("test-http"),
         fetchFn: fetchFn as unknown as typeof fetch,
         randomFn: () => 0,
       });
@@ -233,7 +237,6 @@ describe("HTTPクライアント", () => {
       policy: mergeHttpPolicy({
         retry: { maxAttempts: 1 },
       }),
-      logger: createMockLogger("test-http"),
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
@@ -263,7 +266,6 @@ describe("HTTPクライアント", () => {
         timeoutMs: 1,
         retry: { maxAttempts: 1 },
       }),
-      logger: createMockLogger("test-http"),
       fetchFn: fetchFn as unknown as typeof fetch,
       randomFn: () => 0,
     });
@@ -276,7 +278,6 @@ describe("HTTPクライアント", () => {
   test("clear系メソッドがno-opであること", () => {
     const client = createHttpClient({
       policy: mergeHttpPolicy(),
-      logger: createMockLogger("test-http"),
       fetchFn: (async () =>
         new Response(JSON.stringify({ ok: true }), {
           status: 200,

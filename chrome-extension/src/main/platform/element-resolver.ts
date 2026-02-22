@@ -3,8 +3,9 @@
  */
 import type { SelectorDefinitions, SelectorElementMap, SelectorKey } from "@main/config/selector";
 import { selectorDefinitions } from "@main/config/selector";
+import { appLoggerNames } from "@main/platform/logger";
 import type { AppElementResolver } from "@main/types/app-context";
-import type { Logger } from "@matumo/ts-simple-logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 
 // querySelectorを持つルート型
 interface QueryRoot {
@@ -14,10 +15,11 @@ interface QueryRoot {
 // createElementResolverの入力型
 interface CreateElementResolverOptions {
   root: QueryRoot;
-  logger: Logger;
   getPageGeneration: () => number;
   definitions?: SelectorDefinitions;
 }
+
+const log = getLogger(appLoggerNames.elementResolver);
 
 // キャッシュエントリー型
 type CacheEntry = {
@@ -28,7 +30,6 @@ type CacheEntry = {
 // セレクタ定義に従って要素を解決する関数
 const createElementResolver = (options: CreateElementResolverOptions): AppElementResolver => {
   const definitions = options.definitions ?? selectorDefinitions;
-  const log = options.logger;
   const cache = new Map<SelectorKey, CacheEntry>();
 
   // キャッシュエントリーの有効性を判定する関数

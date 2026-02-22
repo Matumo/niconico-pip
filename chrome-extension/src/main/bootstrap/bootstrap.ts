@@ -2,6 +2,7 @@
  * 起動シーケンス
  */
 import { createAppContext, type CreateAppContextOptions } from "@main/bootstrap/create-app-context";
+import { createAppConfig } from "@main/config/config";
 import { createAdDomain } from "@main/domain/ad";
 import { createControllerDomain } from "@main/domain/controller";
 import type { DomainModule, DomainPhase } from "@main/domain/create-domain-module";
@@ -11,6 +12,7 @@ import { createPageDomain } from "@main/domain/page";
 import { createPipDomain } from "@main/domain/pip";
 import { createStatusDomain } from "@main/domain/status";
 import { createTimeDomain } from "@main/domain/time";
+import { initializeLoggers } from "@main/platform/logger";
 import { createSafeRunner } from "@main/platform/safe-runner";
 import { createAppStateContainer } from "@main/platform/state";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
@@ -63,18 +65,32 @@ const bootstrap = async (options: BootstrapOptions = {}): Promise<BootstrapRunti
   let context: AppContext;
   let stateWriters: AppStateWriters;
 
+  // config構築
+  const config = options.context?.config ?? createAppConfig();
+  // ロガー初期化
+  initializeLoggers({
+    appName: config.appName,
+    useDebugLog: config.shouldUseDebugLog,
+  });
+
   // コンテキスト未注入時だけstate公開値とwriterを生成する
   if (options.context) {
     context = options.context;
     stateWriters = options.stateWriters;
   } else {
     const stateContainer = createAppStateContainer();
-    context = createAppContext(stateContainer.state, options);
+    context = createAppContext(
+      stateContainer.state,
+      {
+        config,
+      },
+      options,
+    );
     stateWriters = stateContainer.writers;
   }
 
   // 実行順を初期化
-  const safeRunner = createSafeRunner(context.loggers.safeRunner);
+  const safeRunner = createSafeRunner();
   const orderedDomains = sortDomainModules(options.domainModules ?? createDefaultDomainModules());
 
   // initを順方向に実行

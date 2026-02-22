@@ -1,14 +1,24 @@
 /**
  * safe-runnerテスト
  */
-import { describe, expect, test } from "vitest";
-import { createSafeRunner } from "@main/platform/safe-runner";
-import { createMockLogger } from "@test/unit/main/shared/logger";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { createTsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+
+let createSafeRunner: typeof import("@main/platform/safe-runner").createSafeRunner;
+let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 describe("safe-runner", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+    ({ createSafeRunner } = await import("@main/platform/safe-runner"));
+    loggerMockHarness.clearLoggerCalls();
+  });
+
   test("成功時にok結果を返すこと", async () => {
-    const logger = createMockLogger("test-safe-runner");
-    const safeRunner = createSafeRunner(logger);
+    const safeRunner = createSafeRunner();
 
     const sync = safeRunner.run("sync", () => 123);
     const asyncResult = await safeRunner.runAsync("async", async () => 456);
@@ -18,8 +28,7 @@ describe("safe-runner", () => {
   });
 
   test("失敗時に例外を投げずエラー結果を返すこと", async () => {
-    const logger = createMockLogger("test-safe-runner");
-    const safeRunner = createSafeRunner(logger);
+    const safeRunner = createSafeRunner();
 
     const sync = safeRunner.run("sync", () => {
       throw new Error("sync-fail");
@@ -28,9 +37,10 @@ describe("safe-runner", () => {
     const asyncResult = await safeRunner.runAsync("async", async () => {
       throw new Error("async-fail");
     });
+    const safeRunnerLogger = loggerMockHarness.resolveMockLogger("safe-runner");
 
     expect(sync.ok).toBe(false);
     expect(asyncResult.ok).toBe(false);
-    expect(logger.error).toHaveBeenCalledTimes(2);
+    expect(safeRunnerLogger.error).toHaveBeenCalledTimes(2);
   });
 });

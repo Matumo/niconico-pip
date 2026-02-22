@@ -3,7 +3,6 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createAppConfig } from "@main/config/config";
-import { createPageDomain } from "@main/domain/page";
 import type {
   CreateUrlChangeObserverOptions,
   UrlCheckTrigger,
@@ -11,21 +10,18 @@ import type {
 } from "@main/adapter/dom/url-change-observer";
 import type { AppContext, AppObserverRegistry, AppStateWriters } from "@main/types/app-context";
 import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
-import { createMockAppLoggers, createMockLogger } from "@test/unit/main/shared/logger";
+import { createTsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 import {
   captureGlobalDescriptors,
   restoreGlobalDescriptors,
   setGlobalProperty,
   type GlobalDescriptorMap,
 } from "@test/unit/main/shared/global-property";
+import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 
-const { createUrlChangeObserverMock } = vi.hoisted(() => ({
-  createUrlChangeObserverMock: vi.fn(),
-}));
-
-vi.mock("@main/adapter/dom/url-change-observer", async () => ({
-  createUrlChangeObserver: createUrlChangeObserverMock,
-}));
+const createUrlChangeObserverMock = vi.fn();
+let createPageDomain: typeof import("@main/domain/page").createPageDomain;
+let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 // テストで差し替えるglobalThisプロパティの一覧
 const globalPropertyKeys = ["location", "dispatchEvent"] as const;
@@ -40,7 +36,6 @@ const createPageDomainTestContext = (initialUrl: string) => {
   const pagePatch = vi.fn((partial: Partial<typeof pageState>) => {
     Object.assign(pageState, partial);
   });
-  const domainLogger = createMockLogger("test-page-domain");
   const observerRegistry = {
     observe: vi.fn(() => ({ disconnect: vi.fn() }) as unknown as MutationObserver),
     disconnect: vi.fn(() => false),
@@ -51,9 +46,6 @@ const createPageDomainTestContext = (initialUrl: string) => {
 
   const context: AppContext = {
     config: createAppConfig(),
-    loggers: createMockAppLoggers({
-      domain: domainLogger,
-    }),
     eventRegistry: {
       on: vi.fn(() => () => undefined),
       emit: eventRegistryEmit,
@@ -94,7 +86,6 @@ const createPageDomainTestContext = (initialUrl: string) => {
     pagePatch,
     eventRegistryEmit,
     observerRegistry,
-    domainLogger,
   };
 };
 
@@ -126,7 +117,16 @@ const prepareUrlChangeObserverMock = () => {
 describe("pageドメイン", () => {
   let globalDescriptors: GlobalDescriptorMap<(typeof globalPropertyKeys)[number]>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@main/adapter/dom/url-change-observer", async () => ({
+      createUrlChangeObserver: createUrlChangeObserverMock,
+    }));
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+    ({ createPageDomain } = await import("@main/domain/page"));
+
+    loggerMockHarness.clearLoggerCalls();
     globalDescriptors = captureGlobalDescriptors(globalPropertyKeys);
     createUrlChangeObserverMock.mockReset();
   });
@@ -138,9 +138,10 @@ describe("pageドメイン", () => {
 
   test("init/start/stopでURL監視オブジェクトを正しく呼び出すこと", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
-    const { context, stateWriters, observerRegistry, domainLogger } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, observerRegistry } = createPageDomainTestContext(initialUrl);
     const { start, stop } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     await domain.init(context, stateWriters);
     await domain.start();
@@ -160,9 +161,10 @@ describe("pageドメイン", () => {
   test("URL変更時にstate更新とPageUrlChangedイベント通知を行うこと", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
     const changedUrl = "https://www.nicovideo.jp/watch/sm10";
-    const { context, stateWriters, pagePatch, eventRegistryEmit, domainLogger } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
     const { emitTrigger } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     setGlobalProperty("location", { href: changedUrl });
     setGlobalProperty("dispatchEvent", vi.fn(() => true));
@@ -191,9 +193,10 @@ describe("pageドメイン", () => {
 
   test("同一URLの場合はstate更新とイベント通知をスキップすること", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
-    const { context, stateWriters, pagePatch, eventRegistryEmit, domainLogger } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
     const { emitTrigger } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     setGlobalProperty("location", { href: initialUrl });
     setGlobalProperty("dispatchEvent", vi.fn(() => true));
@@ -209,9 +212,10 @@ describe("pageドメイン", () => {
 
   test("location.hrefが使えない場合はwarnしてスキップすること", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
-    const { context, stateWriters, pagePatch, eventRegistryEmit, domainLogger } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
     const { emitTrigger } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     setGlobalProperty("location", undefined);
     setGlobalProperty("dispatchEvent", vi.fn(() => true));
@@ -230,9 +234,10 @@ describe("pageドメイン", () => {
   test("event targetが利用できない場合はstate更新後にwarnすること", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
     const changedUrl = "https://www.nicovideo.jp/watch/sm10";
-    const { context, stateWriters, pagePatch, eventRegistryEmit, domainLogger } = createPageDomainTestContext(initialUrl);
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
     const { emitTrigger } = prepareUrlChangeObserverMock();
     const domain = createPageDomain();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
 
     setGlobalProperty("location", { href: changedUrl });
     setGlobalProperty("dispatchEvent", undefined);

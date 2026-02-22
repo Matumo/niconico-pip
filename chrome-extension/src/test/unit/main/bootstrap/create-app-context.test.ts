@@ -3,6 +3,7 @@
  */
 import { describe, expect, test, vi } from "vitest";
 import { createAppContext } from "@main/bootstrap/create-app-context";
+import { createAppConfig } from "@main/config/config";
 import { createAppStateContainer } from "@main/platform/state";
 import {
   captureGlobalDescriptors,
@@ -17,6 +18,11 @@ const createObserver = (): MutationObserver =>
     takeRecords: () => [],
   }) as MutationObserver;
 
+// createAppContextへ注入する依存を作成する関数
+const createDependencies = () => ({
+  config: createAppConfig(),
+});
+
 describe("createAppContext", () => {
   test("注入依存でコンテキストを作成できること", async () => {
     const stateContainer = createAppStateContainer();
@@ -30,12 +36,16 @@ describe("createAppContext", () => {
       }),
     );
 
-    const context = createAppContext(stateContainer.state, {
-      root,
-      fetchFn: fetchFn as unknown as typeof fetch,
-      randomFn: () => 0,
-      createObserver,
-    });
+    const context = createAppContext(
+      stateContainer.state,
+      createDependencies(),
+      {
+        root,
+        fetchFn: fetchFn as unknown as typeof fetch,
+        randomFn: () => 0,
+        createObserver,
+      },
+    );
 
     expect(context.config.appName).toBe("niconico-pip");
     expect(context.state.page.get().generation).toBe(0);
@@ -50,13 +60,17 @@ describe("createAppContext", () => {
 
   test("非ブラウザ環境でroot未注入でも動作すること", () => {
     const stateContainer = createAppStateContainer();
-    const context = createAppContext(stateContainer.state, {
-      fetchFn: (async () =>
-        new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-        })) as unknown as typeof fetch,
-      createObserver,
-    });
+    const context = createAppContext(
+      stateContainer.state,
+      createDependencies(),
+      {
+        fetchFn: (async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+          })) as unknown as typeof fetch,
+        createObserver,
+      },
+    );
 
     expect(context.elementResolver.resolve("video")).toBeNull();
   });
@@ -75,14 +89,18 @@ describe("createAppContext", () => {
     );
 
     try {
-      const context = createAppContext(stateContainer.state, {
-        fetchFn: fetchFn as unknown as typeof fetch,
-        httpPolicy: {
-          timeoutMs: 1234,
-          cache: { enabled: false },
+      const context = createAppContext(
+        stateContainer.state,
+        createDependencies(),
+        {
+          fetchFn: fetchFn as unknown as typeof fetch,
+          httpPolicy: {
+            timeoutMs: 1234,
+            cache: { enabled: false },
+          },
+          createObserver,
         },
-        createObserver,
-      });
+      );
 
       const resolved = context.elementResolver.resolve("video");
       expect(resolved).toBe(fakeVideo);
@@ -99,13 +117,17 @@ describe("createAppContext", () => {
 
   test("stateを注入した場合は注入値を利用すること", () => {
     const stateContainer = createAppStateContainer();
-    const context = createAppContext(stateContainer.state, {
-      fetchFn: (async () =>
-        new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-        })) as unknown as typeof fetch,
-      createObserver,
-    });
+    const context = createAppContext(
+      stateContainer.state,
+      createDependencies(),
+      {
+        fetchFn: (async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+          })) as unknown as typeof fetch,
+        createObserver,
+      },
+    );
 
     stateContainer.writers.page.patch({ generation: 3 });
 

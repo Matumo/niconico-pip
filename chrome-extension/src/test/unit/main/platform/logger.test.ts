@@ -64,12 +64,13 @@ describe("ロガー", () => {
 
     expect(config.prefixFormat).toContain("%loggerName");
     expect(config.placeholders["%time"]()).toBe("1.0");
-    for (const loggerName of ["main", "bootstrap", "domain", "element-resolver", "http", "safe-runner"]) {
+    for (const loggerName of ["logger", "main", "bootstrap", "domain", "element-resolver", "http", "safe-runner"]) {
       expect(setLoggerConfigMock).toHaveBeenCalledWith(loggerName, { level: "debug" });
       expect(getLoggerMock).toHaveBeenCalledWith(loggerName);
     }
     expect(addEventListener).toHaveBeenCalledTimes(2);
     expect(processOn).toHaveBeenCalledTimes(2);
+    expect(loggers.logger.name).toBe("logger");
     expect(loggers.main.name).toBe("main");
     expect(loggers.bootstrap.name).toBe("bootstrap");
     expect(loggers.safeRunner.name).toBe("safe-runner");
@@ -94,7 +95,8 @@ describe("ロガー", () => {
     const nodeRejectionHandler = processOn.mock.calls[1][1] as (reason: unknown) => void;
     nodeErrorHandler(new Error("node-error"));
     nodeRejectionHandler(new Error("node-rejection"));
-    expect(loggers.main.error).toHaveBeenCalledTimes(5);
+    const handlerLogger = getLoggerMock.mock.results[0]?.value as ReturnType<typeof getLogger>;
+    expect(handlerLogger.error).toHaveBeenCalledTimes(5);
 
     loggerModule.initializeLoggers({
       appName: "niconico-pip",
@@ -102,7 +104,7 @@ describe("ロガー", () => {
       now: () => 2,
     });
     expect(setDefaultConfigMock).toHaveBeenCalledTimes(1);
-    expect(setLoggerConfigMock).toHaveBeenCalledTimes(6);
+    expect(setLoggerConfigMock).toHaveBeenCalledTimes(7);
     expect(addEventListener).toHaveBeenCalledTimes(2);
     expect(processOn).toHaveBeenCalledTimes(2);
   });

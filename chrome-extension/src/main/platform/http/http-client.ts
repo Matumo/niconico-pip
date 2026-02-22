@@ -2,17 +2,19 @@
  * HTTPクライアント
  */
 import type { HttpPolicy, RetryPolicy } from "@main/config/http";
+import { appLoggerNames } from "@main/platform/logger";
 import type { AppHttpClient } from "@main/types/app-context";
-import type { Logger } from "@matumo/ts-simple-logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 import ky, { type Input, type Options, type ResponsePromise, type RetryOptions } from "ky";
 
 // createHttpClientの入力型
 interface CreateHttpClientOptions {
   policy: HttpPolicy;      // HTTPの実行ポリシー（timeout/retryなど）
-  logger: Logger;          // 実行ログで利用するロガー
   fetchFn?: typeof fetch;  // fetch実装（オプション）
   randomFn?: () => number; // バックオフジッター計算に使う乱数関数（オプション）
 }
+
+const log = getLogger(appLoggerNames.http);
 
 // リトライ待機時間を計算する関数
 const computeBackoffMs = (
@@ -41,7 +43,6 @@ const createKyRetryOptions = (
 // kyベースのHTTPクライアントを作成する関数
 const createHttpClient = (options: CreateHttpClientOptions): AppHttpClient => {
   // 依存を初期化
-  const log = options.logger;
   const fetchFn = options.fetchFn ?? fetch;
   const randomFn = options.randomFn ?? Math.random;
   const retryOptions = createKyRetryOptions(options.policy.retry, randomFn);

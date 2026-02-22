@@ -12,7 +12,6 @@ import { createStatusDomain } from "@main/domain/status";
 import { createTimeDomain } from "@main/domain/time";
 import { createDomainModule } from "@main/domain/create-domain-module";
 import { createAppConfig } from "@main/config/config";
-import { createMockAppLoggers, createMockLogger } from "@test/unit/main/shared/logger";
 import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
 import type {
   AppContext,
@@ -39,9 +38,6 @@ const createDomainTestContext = (): AppContext => {
 
   return {
     config: createAppConfig(),
-    loggers: createMockAppLoggers({
-      domain: createMockLogger("test-domain"),
-    }),
     eventRegistry,
     observerRegistry,
     state: {

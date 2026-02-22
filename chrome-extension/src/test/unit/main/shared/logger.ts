@@ -1,30 +1,89 @@
 /**
  * テスト用ロガーヘルパー
  */
-import type { AppLoggers } from "@main/types/app-context";
-import type { Logger } from "@matumo/ts-simple-logger";
 import { vi } from "vitest";
 
+// ロガーテストダブル型
+interface LoggerDouble {
+  name: string;
+  trace: ReturnType<typeof vi.fn>;
+  debug: ReturnType<typeof vi.fn>;
+  info: ReturnType<typeof vi.fn>;
+  warn: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+}
+
+// ts-simple-loggerモックハーネスインターフェース型
+interface TsSimpleLoggerMockHarness {
+  createModuleFactory: () => {
+    getLogger: (name: string) => LoggerDouble;
+    setDefaultConfig: ReturnType<typeof vi.fn>;
+    setLoggerConfig: ReturnType<typeof vi.fn>;
+  };
+  clearLoggerCalls: () => void;
+  resolveMockLogger: (name: string) => LoggerDouble;
+}
+
 // 単体テスト向けロガーを作成する関数
-const createMockLogger = (name = "test"): Logger => ({
+const createMockLogger = (name = "test"): LoggerDouble => ({
   name,
-  trace: vi.fn() as Logger["trace"],
-  debug: vi.fn() as Logger["debug"],
-  info: vi.fn() as Logger["info"],
-  warn: vi.fn() as Logger["warn"],
-  error: vi.fn() as Logger["error"],
+  trace: vi.fn(),
+  debug: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
 });
 
-// AppContext向けロガー集合を作成する関数
-const createMockAppLoggers = (overrides: Partial<AppLoggers> = {}): AppLoggers => ({
-  main: createMockLogger("test-main"),
-  bootstrap: createMockLogger("test-bootstrap"),
-  domain: createMockLogger("test-domain"),
-  elementResolver: createMockLogger("test-element-resolver"),
-  http: createMockLogger("test-http"),
-  safeRunner: createMockLogger("test-safe-runner"),
-  ...overrides,
-});
+// ts-simple-loggerの共通モックハーネスを作成する関数
+const createTsSimpleLoggerMockHarness = (): TsSimpleLoggerMockHarness => {
+  const loggerDoubleMap = new Map<string, LoggerDouble>();
+  const setDefaultConfig = vi.fn();
+  const setLoggerConfig = vi.fn();
+
+  // ロガー名からテストダブルを解決する関数
+  const resolveOrCreateMockLogger = (name: string): LoggerDouble => {
+    const existingLogger = loggerDoubleMap.get(name);
+    if (existingLogger) return existingLogger;
+
+    const nextLogger = createMockLogger(name);
+    loggerDoubleMap.set(name, nextLogger);
+    return nextLogger;
+  };
+
+  // モック済みロガーの呼び出し履歴をクリアする関数
+  const clearLoggerCalls = (): void => {
+    for (const logger of loggerDoubleMap.values()) {
+      logger.trace.mockClear();
+      logger.debug.mockClear();
+      logger.info.mockClear();
+      logger.warn.mockClear();
+      logger.error.mockClear();
+    }
+    setDefaultConfig.mockClear();
+    setLoggerConfig.mockClear();
+  };
+
+  // ロガー名で作成済みテストダブルを取得する関数
+  const resolveMockLogger = (name: string): LoggerDouble => {
+    const logger = loggerDoubleMap.get(name);
+    if (!logger) throw new Error(`logger not found: ${name}`);
+    return logger;
+  };
+
+  // vi.mockへ渡すfactoryを作成する関数
+  const createModuleFactory = () => ({
+    getLogger: resolveOrCreateMockLogger,
+    setDefaultConfig,
+    setLoggerConfig,
+  });
+
+  return {
+    createModuleFactory,
+    clearLoggerCalls,
+    resolveMockLogger,
+  };
+};
 
 // エクスポート
-export { createMockLogger, createMockAppLoggers };
+export { createMockLogger, createTsSimpleLoggerMockHarness };
+export type { LoggerDouble, TsSimpleLoggerMockHarness };

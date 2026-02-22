@@ -5,7 +5,6 @@ import type { AppConfig } from "@main/config/config";
 import type { AppEventKey, AppEventMap } from "@main/config/event";
 import type { SelectorElementMap, SelectorKey } from "@main/config/selector";
 import type { Input as HttpInput, KyInstance, Options as HttpOptions, ResponsePromise } from "ky";
-import type { Logger } from "@matumo/ts-simple-logger";
 
 // イベント解除関数型
 type Unsubscribe = () => void;
@@ -85,16 +84,6 @@ interface AppStateWriters {
   info: AppStateWriter<InfoState>;
 }
 
-// アプリで利用するロガー集合型
-interface AppLoggers {
-  main: Logger;
-  bootstrap: Logger;
-  domain: Logger;
-  elementResolver: Logger;
-  http: Logger;
-  safeRunner: Logger;
-}
-
 // イベントレジストリインターフェース型
 interface AppEventRegistry {
   on<K extends AppEventKey>(params: {
@@ -162,7 +151,6 @@ interface AppElementResolver {
 // 実行時依存を束ねるアプリコンテキスト型
 interface AppContext {
   config: AppConfig;
-  loggers: AppLoggers;
   eventRegistry: AppEventRegistry;
   observerRegistry: AppObserverRegistry;
   state: AppStateStore;
@@ -184,7 +172,6 @@ export type {
   AppStateWriter,
   AppStateStore,
   AppStateWriters,
-  AppLoggers,
   AppEventRegistry,
   AppObserverRegistry,
   AppHttpClient,

@@ -1,16 +1,20 @@
 /**
  * アプリコンテキスト生成
  */
-import { createAppConfig } from "@main/config/config";
 import { createAppEventNameMap } from "@main/config/event";
 import { mergeHttpPolicy, type HttpPolicyOverrides } from "@main/config/http";
 import { selectorDefinitions } from "@main/config/selector";
 import { createElementResolver, type QueryRoot } from "@main/platform/element-resolver";
 import { createEventRegistry } from "@main/platform/event-registry";
 import { createHttpClient } from "@main/platform/http/http-client";
-import { initializeLoggers } from "@main/platform/logger";
 import { createObserverRegistry, type CreateObserverRegistryOptions } from "@main/platform/observer-registry";
+import type { AppConfig } from "@main/config/config";
 import type { AppContext, AppStateStore } from "@main/types/app-context";
+
+// createAppContextで受け取る必須依存型
+interface CreateAppContextDependencies {
+  config: AppConfig;
+}
 
 // createAppContextの入力型
 interface CreateAppContextOptions {
@@ -40,13 +44,12 @@ const resolveQueryRoot = (rootOverride?: QueryRoot): QueryRoot => {
 };
 
 // 実行時依存を束ねたアプリコンテキストを作成する関数
-const createAppContext = (state: AppStateStore, options: CreateAppContextOptions = {}): AppContext => {
-  // 設定とロガーを初期化
-  const config = createAppConfig();
-  const loggers = initializeLoggers({
-    appName: config.appName,
-    useDebugLog: config.shouldUseDebugLog,
-  });
+const createAppContext = (
+  state: AppStateStore,
+  dependencies: CreateAppContextDependencies,
+  options: CreateAppContextOptions = {},
+): AppContext => {
+  const config = dependencies.config;
 
   // レジストリを初期化
   const eventRegistry = createEventRegistry(createAppEventNameMap(config.prefixId));
@@ -60,7 +63,6 @@ const createAppContext = (state: AppStateStore, options: CreateAppContextOptions
   // 要素リゾルバーを初期化
   const elementResolver = createElementResolver({
     root,
-    logger: loggers.elementResolver,
     getPageGeneration: () => state.page.get().generation,
     definitions: selectorDefinitions,
   });
@@ -69,14 +71,12 @@ const createAppContext = (state: AppStateStore, options: CreateAppContextOptions
   const httpPolicy = mergeHttpPolicy(options.httpPolicy);
   const httpClient = createHttpClient({
     policy: httpPolicy,
-    logger: loggers.http,
     fetchFn: options.fetchFn,
     randomFn: options.randomFn,
   });
 
   return {
     config,
-    loggers,
     eventRegistry,
     observerRegistry,
     state,
@@ -87,4 +87,4 @@ const createAppContext = (state: AppStateStore, options: CreateAppContextOptions
 
 // エクスポート
 export { createAppContext };
-export type { CreateAppContextOptions };
+export type { CreateAppContextDependencies, CreateAppContextOptions };

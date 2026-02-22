@@ -11,7 +11,7 @@ import {
 } from "@test/browser-headless/shared/runtime-test/headless-bridge-contract";
 
 const registrationFlagKey = "__niconico_pip_headless_bridge_registered__";
-const logger = getLogger("test");
+const log = getLogger("test");
 const currentWindowSource = globalThis as unknown as MessageEventSource;
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
@@ -58,7 +58,7 @@ const logResponse = (
   errorMessage?: string,
 ): void => {
   const errorLine = errorMessage ? `\n  error: ${errorMessage}` : "";
-  logger.info(`end ${path} ok=${response.ok}${errorLine}${formatDetailsLog(response.details)}`);
+  log.info(`end ${path} ok=${response.ok}${errorLine}${formatDetailsLog(response.details)}`);
 };
 
 const registerHeadlessBridge = (): void => {

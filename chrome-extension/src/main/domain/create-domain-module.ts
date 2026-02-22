@@ -1,6 +1,8 @@
 /**
  * ドメインモジュール共通定義
  */
+import { appLoggerNames } from "@main/platform/logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 import type { Lifecycle } from "@main/types/lifecycle";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
 
@@ -13,6 +15,8 @@ interface DomainModule extends Lifecycle {
   readonly phase: DomainPhase;
 }
 
+const log = getLogger(appLoggerNames.domain);
+
 // ドメインモジュールの骨格を作成する関数
 const createDomainModule = (name: string, phase: DomainPhase): DomainModule => {
   let initialized = false;
@@ -21,8 +25,7 @@ const createDomainModule = (name: string, phase: DomainPhase): DomainModule => {
     name,
     phase,
     // ドメインを初期化する関数
-    init: async (context: AppContext, _: AppStateWriters): Promise<void> => {
-      const log = context.loggers.domain;
+    init: async (_: AppContext, __: AppStateWriters): Promise<void> => {
       log.debug(`Domain init: ${name}`);
       initialized = true;
     },

@@ -5,13 +5,13 @@ import { getLogger } from "@matumo/ts-simple-logger";
 
 type TestLogDetails = Record<string, boolean>;
 
-const logger = getLogger("test");
+const log = getLogger("test");
 
 // ランタイムテスト失敗時の情報を出力する関数
 const logRuntimeTestFailure = (path: string, details: TestLogDetails): void => {
-  logger.error(`runtime test failed path=${path}`);
+  log.error(`runtime test failed path=${path}`);
   for (const [name, result] of Object.entries(details)) {
-    logger.error(`detail ${name}: ${result ? "OK" : "NG"}`);
+    log.error(`detail ${name}: ${result ? "OK" : "NG"}`);
   }
 };
 
