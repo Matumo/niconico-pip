@@ -10,6 +10,14 @@ const runtimeTestPathMap = {
       selectorTest: "main_config_selector_test",
       httpTest: "main_config_http_test",
     },
+    adapter: {
+      dom: {
+        urlChangeObserverTest: "main_adapter_dom_url_change_observer_test",
+      },
+    },
+    domain: {
+      pageTest: "main_domain_page_test",
+    },
   },
 };
 

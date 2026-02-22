@@ -3,12 +3,14 @@
  */
 
 type HeadlessBridgeDetails = Record<string, boolean>;
+type HeadlessBridgeRequestDetails = Record<string, unknown>;
 
 interface HeadlessBridgeRequest {
   channel: string;
   messageType: "request";
   requestId: string;
   path: string;
+  details?: HeadlessBridgeRequestDetails;
 }
 
 interface HeadlessBridgeResponse {
@@ -24,4 +26,9 @@ const headlessBridgeChannel = "niconico-pip-headless-bridge";
 
 // エクスポート
 export { headlessBridgeChannel };
-export type { HeadlessBridgeDetails, HeadlessBridgeRequest, HeadlessBridgeResponse };
+export type {
+  HeadlessBridgeDetails,
+  HeadlessBridgeRequest,
+  HeadlessBridgeRequestDetails,
+  HeadlessBridgeResponse,
+};

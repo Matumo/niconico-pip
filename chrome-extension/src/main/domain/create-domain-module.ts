@@ -5,7 +5,7 @@ import type { Lifecycle } from "@main/types/lifecycle";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
 
 // ドメインフェーズ型
-type DomainPhase = "coreDetection" | "control" | "presentation";
+type DomainPhase = "coreDetection" | "control" | "presentation" | "urlWatch";
 
 // ドメインモジュール型
 interface DomainModule extends Lifecycle {

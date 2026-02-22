@@ -39,6 +39,7 @@ const domainPhaseOrder = {
   coreDetection: 1,
   control: 2,
   presentation: 3,
+  urlWatch: 4,
 } as const satisfies Record<DomainPhase, number>;
 
 // 既定のドメイン一覧を作成する関数

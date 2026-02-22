@@ -4,6 +4,7 @@
 import { expect, test } from "@playwright/test";
 import {
   expectBrowserConsoleLogContaining,
+  expectNoBrowserConsoleWarnings,
   expectNoBrowserPageErrors,
 } from "@test/shared/browser/browser-log-assertions";
 import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/runtime-test-path";
@@ -42,6 +43,7 @@ test.describe("config", () => {
         runtimeTestPathMap.main.config.configTest,
       );
       expect(result.ok).toBe(true);
+      expectNoBrowserConsoleWarnings(session.logCollector);
       expectNoBrowserPageErrors(session.logCollector);
     } finally {
       await session.close();

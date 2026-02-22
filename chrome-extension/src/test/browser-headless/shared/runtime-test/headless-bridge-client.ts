@@ -5,12 +5,14 @@ import type { Page } from "@playwright/test";
 import {
   headlessBridgeChannel,
   type HeadlessBridgeDetails,
+  type HeadlessBridgeRequestDetails,
   type HeadlessBridgeResponse,
 } from "@test/browser-headless/shared/runtime-test/headless-bridge-contract";
 import { logRuntimeTestFailure } from "@test/shared/test-logger";
 
 interface ExecuteHeadlessRuntimeTestOptions {
   timeoutMs?: number;
+  details?: HeadlessBridgeRequestDetails;
 }
 
 interface ExecuteHeadlessRuntimeTestResult {
@@ -26,8 +28,9 @@ const executeHeadlessRuntimeTest = async (
   options: ExecuteHeadlessRuntimeTestOptions = {},
 ): Promise<ExecuteHeadlessRuntimeTestResult> => {
   const timeoutMs = options.timeoutMs ?? defaultRequestTimeoutMs;
+  const requestDetails = options.details;
 
-  const result = await page.evaluate(({ channel, requestPath, requestTimeoutMs }) =>
+  const result = await page.evaluate(({ channel, requestPath, requestTimeoutMs, details }) =>
       new Promise<ExecuteHeadlessRuntimeTestResult>((resolve, reject) => {
         const targetOrigin = globalThis.location.origin;
         const currentWindowSource = globalThis as unknown as MessageEventSource;
@@ -63,6 +66,7 @@ const executeHeadlessRuntimeTest = async (
             messageType: "request",
             requestId,
             path: requestPath,
+            details,
           },
           targetOrigin,
         );
@@ -71,6 +75,7 @@ const executeHeadlessRuntimeTest = async (
       channel: headlessBridgeChannel,
       requestPath: path,
       requestTimeoutMs: timeoutMs,
+      details: requestDetails,
     },
   );
 

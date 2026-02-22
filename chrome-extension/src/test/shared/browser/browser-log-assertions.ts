@@ -17,6 +17,14 @@ const expectBrowserConsoleLogContaining = async (
   await expect.poll(() => hasConsoleLogContaining(collector, text)).toBe(true);
 };
 
+// console warningを抽出し、1件も発生していないことを確認する関数
+const expectNoBrowserConsoleWarnings = (collector: BrowserLogCollector): void => {
+  const consoleWarnings = collector.entries.filter(
+    (entry) => entry.source === "console" && (entry.level === "warning" || entry.level === "warn"),
+  );
+  expect(consoleWarnings).toEqual([]);
+};
+
 // pageerrorのみを抽出し、1件も発生していないことを確認する関数
 const expectNoBrowserPageErrors = (collector: BrowserLogCollector): void => {
   const pageErrors = collector.entries.filter((entry) => entry.source === "pageerror");
@@ -24,4 +32,4 @@ const expectNoBrowserPageErrors = (collector: BrowserLogCollector): void => {
 };
 
 // エクスポート
-export { expectBrowserConsoleLogContaining, expectNoBrowserPageErrors };
+export { expectBrowserConsoleLogContaining, expectNoBrowserConsoleWarnings, expectNoBrowserPageErrors };

@@ -1,7 +1,7 @@
 /**
- * mainブラウザスモークテスト
+ * URL変更監視アダプターブラウザテスト
  */
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import {
   expectBrowserConsoleLogContaining,
   expectNoBrowserConsoleWarnings,
@@ -11,8 +11,10 @@ import {
   startExtensionFixtureEnvironment,
   type ExtensionFixtureEnvironment,
 } from "@test/browser-headless/shared/extension-fixture-environment";
+import { executeHeadlessRuntimeTest } from "@test/browser-headless/shared/runtime-test/headless-bridge-client";
+import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/runtime-test-path";
 
-test.describe("main", () => {
+test.describe("URL変更監視アダプター", () => {
   let environment: ExtensionFixtureEnvironment | null = null;
 
   test.beforeAll(async () => {
@@ -26,15 +28,21 @@ test.describe("main", () => {
     }
   });
 
-  test("fixtureページで拡張機能content scriptが起動完了すること", async () => {
+  test("ブラウザでURL監視が動作すること", async () => {
     if (!environment) {
       throw new Error("Extension fixture environment is not initialized");
     }
+
     const session = await environment.createSession();
 
     try {
       await session.goto("/");
       await expectBrowserConsoleLogContaining(session.logCollector, "bootstrap completed");
+      const result = await executeHeadlessRuntimeTest(
+        session.page,
+        runtimeTestPathMap.main.adapter.dom.urlChangeObserverTest,
+      );
+      expect(result.ok).toBe(true);
       expectNoBrowserConsoleWarnings(session.logCollector);
       expectNoBrowserPageErrors(session.logCollector);
     } finally {

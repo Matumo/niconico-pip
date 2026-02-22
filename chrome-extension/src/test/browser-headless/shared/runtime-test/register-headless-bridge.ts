@@ -19,10 +19,13 @@ const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isHeadlessBridgeRequest = (value: unknown): value is HeadlessBridgeRequest => {
   if (!isObjectRecord(value)) return false;
+  const details = value.details;
+  const isValidDetails = details === undefined || isObjectRecord(details);
   return value.channel === headlessBridgeChannel
     && value.messageType === "request"
     && typeof value.requestId === "string"
-    && typeof value.path === "string";
+    && typeof value.path === "string"
+    && isValidDetails;
 };
 
 const isBooleanRecord = (value: unknown): value is Record<string, boolean> => {
@@ -81,7 +84,7 @@ const registerHeadlessBridge = (): void => {
       return;
     }
 
-    void Promise.resolve(handler())
+    void Promise.resolve(handler(request))
       .then((details) => {
         const resolvedDetails = isBooleanRecord(details)
           ? details
