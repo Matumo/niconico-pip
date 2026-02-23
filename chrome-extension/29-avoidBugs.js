@@ -19,7 +19,7 @@
       return;
     }
     const currentUrl = globalThis.location.href;
-    history.replaceState({}, '', currentUrl);
+    history.replaceState(history.state, '', currentUrl);
     console.debug("バグ回避#69: SPAトリガー 実行", {reason});
   }
 
