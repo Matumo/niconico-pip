@@ -10,8 +10,7 @@
     "128": "icons/icon128.png"
   },
   "permissions": [
-    "windows",
-    "tabs"
+    "windows"
   ],
   "background": {
     "service_worker": "background.js"
