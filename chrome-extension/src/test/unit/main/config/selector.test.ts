@@ -20,9 +20,9 @@ describe("セレクタ定義", () => {
   test("必須キー分の定義を持つこと", () => {
     expect(Object.keys(selectorDefinitions).sort(compareAlphabetically)).toEqual([
       "commentsCanvas",
+      "commentToggleButton",
       "playerContainer",
       "playerMenu",
-      "tooltipButton",
       "video",
     ]);
   });
@@ -48,13 +48,13 @@ describe("セレクタ定義", () => {
     expect(selectorDefinitions.video.guard(video)).toBe(true);
     expect(selectorDefinitions.video.guard(div)).toBe(false);
     expect(selectorDefinitions.playerContainer.guard(div)).toBe(true);
-    expect(selectorDefinitions.tooltipButton.guard(button)).toBe(true);
+    expect(selectorDefinitions.commentToggleButton.guard(button)).toBe(true);
     expect(selectorDefinitions.commentsCanvas.guard(canvas)).toBe(true);
   });
 
   test("validateが定義されbooleanを返すこと", () => {
     const button = fakeElement("BUTTON") as HTMLButtonElement;
-    expect(selectorDefinitions.tooltipButton.validate(button)).toBe(true);
+    expect(selectorDefinitions.commentToggleButton.validate(button)).toBe(true);
   });
 
   test("テスト用要素ヘルパーが利用できること", () => {

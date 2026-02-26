@@ -11,7 +11,7 @@ type SelectorDefinition<TElement extends Element> = {
 
 // 要素キーとDOM型の対応定義
 interface SelectorElementMap {
-  tooltipButton: HTMLButtonElement;  // コメント表示切替トリガーのボタン要素
+  commentToggleButton: HTMLButtonElement;  // コメントトグルボタン要素
   playerContainer: HTMLDivElement;   // プレイヤー全体を包むコンテナ要素
   playerMenu: HTMLDivElement;        // プレイヤーのメニュー領域要素
   video: HTMLVideoElement;           // 再生対象のvideo要素
@@ -41,7 +41,7 @@ const isVideoElement = (elem: Element): elem is HTMLVideoElement => hasTagName(e
 const isCanvasElement = (elem: Element): elem is HTMLCanvasElement => hasTagName(elem, "canvas");
 
 // tooltipボタン用の共通セレクタ前方
-const tooltipButtonSelectorPrefix = `button[data-scope="tooltip"][data-part="trigger"]`;
+const commentToggleButtonSelectorPrefix = `button[data-scope="tooltip"][data-part="trigger"]`;
 // プレイヤー領域用の共通セレクタ前方
 const playerAreaSelectorPrefix = String.raw`div.grid-area_\[player\]`;
 // selectorだけで判定可能な要素は追加検証を行わない
@@ -49,8 +49,8 @@ const validateNoop = <TElement extends Element>(_: TElement): boolean => true;
 
 // 要素取得に利用するセレクタ定義
 const selectorDefinitions: SelectorDefinitions = {
-  tooltipButton: {
-    primary: `${tooltipButtonSelectorPrefix}[aria-label="コメントを非表示にする"], ${tooltipButtonSelectorPrefix}[aria-label="コメントを表示する"]`,
+  commentToggleButton: {
+    primary: `${commentToggleButtonSelectorPrefix}[aria-label="コメントを非表示にする"], ${commentToggleButtonSelectorPrefix}[aria-label="コメントを表示する"]`,
     fallbacks: [],
     guard: isButtonElement,
     validate: validateNoop,
