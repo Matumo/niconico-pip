@@ -19,14 +19,8 @@ import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/r
 import type { BrowserLogCollector } from "@test/shared/browser/browser-log-collector";
 
 const log = getLogger("test");
-const watchPageFixturePath = resolve(
-  process.cwd(),
-  "chrome-extension/src/test/browser-headless/fixtures/watch-page.html",
-);
-const nonWatchPageFixturePath = resolve(
-  process.cwd(),
-  "chrome-extension/src/test/browser-headless/fixtures/non-watch-page.html",
-);
+const watchPageFixturePath = resolve(__dirname, "../../fixtures/watch-page.html");
+const nonWatchPageFixturePath = resolve(__dirname, "../../fixtures/non-watch-page.html");
 
 const createPageUrlChangedLogText = (url: string): string =>
   `page url changed: ${url} (trigger=mutation-observer)`;

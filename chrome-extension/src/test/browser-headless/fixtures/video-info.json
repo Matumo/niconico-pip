@@ -1,0 +1,68 @@
+{
+  "@context": "http://schema.org",
+  "@type": "VideoObject",
+  "@id": "https://example.test/watch/sm9",
+  "name": "テスト用ダミー動画",
+  "description": "これはテスト用に作成されたダミー動画です。",
+  "caption": "テスト用キャプションです。",
+  "url": "https://example.test/watch/sm9",
+  "duration": "PT120S",
+  "uploadDate": "2026-01-01T00:00:00+09:00",
+  "embedUrl": "https://example.test/embed/watch/sm9?autoplay=1",
+  "interactionStatistic": [
+    {
+      "@type": "InteractionCounter",
+      "interactionType": "http://schema.org/WatchAction",
+      "userInteractionCount": 100
+    },
+    {
+      "@type": "InteractionCounter",
+      "interactionType": "http://schema.org/WantAction",
+      "userInteractionCount": 10
+    }
+  ],
+  "thumbnail": [
+    {
+      "@type": "ImageObject",
+      "url": "https://example.test/thumbnails/sm9/original.jpg"
+    },
+    {
+      "@type": "ImageObject",
+      "url": "https://example.test/thumbnails/sm9/large.jpg",
+      "width": 360,
+      "height": 270
+    },
+    {
+      "@type": "ImageObject",
+      "url": "https://example.test/thumbnails/sm9/medium.jpg"
+    },
+    {
+      "@type": "ImageObject",
+      "url": "https://example.test/thumbnails/sm9/small.jpg",
+      "width": 130,
+      "height": 100
+    }
+  ],
+  "thumbnailUrl": [
+    "https://example.test/thumbnails/sm9/original.jpg",
+    "https://example.test/thumbnails/sm9/large.jpg",
+    "https://example.test/thumbnails/sm9/medium.jpg",
+    "https://example.test/thumbnails/sm9/small.jpg"
+  ],
+  "requiresSubscription": false,
+  "isAccessibleForFree": true,
+  "commentCount": 0,
+  "keywords": "test,dummy,video",
+  "genre": "テスト",
+  "playerType": "HTML5",
+  "provider": {
+    "@type": "Organization",
+    "name": "Example Video Service"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Test User",
+    "description": "テスト用アカウントです。",
+    "url": "https://example.test/user/test-user"
+  }
+}

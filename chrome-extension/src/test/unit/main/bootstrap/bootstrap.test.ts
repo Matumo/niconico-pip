@@ -53,7 +53,13 @@ const createMockContext = (): AppContext => {
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
       pip: { get: () => ({ enabled: false, reason: "unknown" as const }) },
-      info: { get: () => ({ title: null, videoId: null }) },
+      info: { get: () => ({
+        title: null,
+        author: null,
+        thumbnail: null,
+        pageGeneration: 0,
+        infoGeneration: 0,
+      }) },
     },
     elementResolver: {
       resolve: vi.fn(() => null),

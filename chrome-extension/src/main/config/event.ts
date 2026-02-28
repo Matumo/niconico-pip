@@ -33,7 +33,10 @@ interface AppEventMap {
   // 動画メタ情報の更新を通知するイベント
   VideoInfoChanged: {
     title: string | null;
-    videoId: string | null;
+    author: string | null;
+    thumbnail: string | null;
+    pageGeneration: number;
+    infoGeneration: number;
   };
   // 再生時刻情報の更新を通知するイベント
   VideoTimeChanged: {

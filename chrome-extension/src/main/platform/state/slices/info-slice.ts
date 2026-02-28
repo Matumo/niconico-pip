@@ -7,7 +7,10 @@ import type { InfoState } from "@main/types/app-context";
 // infoスライスの初期state
 const initialInfoState: InfoState = {
   title: null,
-  videoId: null,
+  author: null,
+  thumbnail: null,
+  pageGeneration: 0,
+  infoGeneration: 0,
 };
 
 // infoスライスを作成する関数

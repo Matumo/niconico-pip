@@ -45,7 +45,10 @@ interface PipState {
 // 動画情報状態型
 interface InfoState {
   title: string | null;
-  videoId: string | null;
+  author: string | null;
+  thumbnail: string | null;
+  pageGeneration: number;
+  infoGeneration: number;
 }
 
 // state sliceインターフェース型

@@ -76,7 +76,13 @@ describe("イベントレジストリ", () => {
     eventRegistry.emit({
       target,
       eventKey: "VideoInfoChanged",
-      payload: { title: "title", videoId: "sm9" },
+      payload: {
+        title: "title",
+        author: "author",
+        thumbnail: "https://example.test/thumb.jpg",
+        pageGeneration: 1,
+        infoGeneration: 1,
+      },
     });
 
     expect(listener).not.toHaveBeenCalled();

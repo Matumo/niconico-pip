@@ -34,12 +34,8 @@ interface ExtensionFixtureEnvironment {
 }
 
 // 既定のfixture配置先と拡張機能dist配置先
-const projectRootPath = process.cwd();
-const defaultFixtureRootDirPath = resolve(
-  projectRootPath,
-  "chrome-extension/src/test/browser-headless/fixtures",
-);
-const defaultExtensionDistDirPath = resolve(projectRootPath, "dist-test/chrome-extension");
+const defaultFixtureRootDirPath = resolve(__dirname, "../fixtures");
+const defaultExtensionDistDirPath = resolve(__dirname, "../../../../../dist-test/chrome-extension");
 
 // fixtureサーバーURLから、拡張機能match用のローカルパターンを作る
 const createLocalMatchPattern = (baseUrl: string): string => {
