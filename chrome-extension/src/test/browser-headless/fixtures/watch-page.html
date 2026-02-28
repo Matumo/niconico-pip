@@ -9,23 +9,29 @@
     <link rel="shortcut icon" href="data:," />
   </head>
   <body>
-    <div class="grid-area_[player]">
-      <div class="PlayerPresenter">
-        <div>
-          <div>
-            <div data-scope="menu">
-              <button data-scope="tooltip" data-part="trigger" aria-label="コメントを表示する">
-                コメント
-              </button>
-              <div data-name="content">
-                <video muted></video>
-              </div>
-              <div data-name="comment">
-                <canvas width="1280" height="720"></canvas>
+    <div id="root">
+      <div>
+        <main>
+          <div class="grid-area_[player]">
+            <div class="PlayerPresenter">
+              <div>
+                <div>
+                  <div data-scope="menu">
+                    <button data-scope="tooltip" data-part="trigger" aria-label="コメントを表示する">
+                      コメント
+                    </button>
+                    <div data-name="content">
+                      <video muted></video>
+                    </div>
+                    <div data-name="comment">
+                      <canvas width="1280" height="720"></canvas>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   </body>

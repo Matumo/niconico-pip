@@ -5,7 +5,9 @@ import { runTest as run_main_config_config_test } from "@test/browser-headless/m
 import { runTest as run_main_config_event_test } from "@test/browser-headless/main/config/event.test.runtime";
 import { runTest as run_main_config_http_test } from "@test/browser-headless/main/config/http.test.runtime";
 import { runTest as run_main_config_selector_test } from "@test/browser-headless/main/config/selector.test.runtime";
+import { runTest as run_main_adapter_dom_video_element_observer_test } from "@test/browser-headless/main/adapter/dom/video-element-observer.test.runtime";
 import { runTest as run_main_adapter_dom_url_change_observer_test } from "@test/browser-headless/main/adapter/dom/url-change-observer.test.runtime";
+import { runTest as run_main_domain_elements_test } from "@test/browser-headless/main/domain/elements.test.runtime";
 import { runTest as run_main_domain_page_test } from "@test/browser-headless/main/domain/page.test.runtime";
 import type {
   HeadlessBridgeDetails,
@@ -21,7 +23,9 @@ const runtimeTestHandlerMap: Record<string, RuntimeTestHandler> = {
   [runtimeTestPathMap.main.config.eventTest]: () => run_main_config_event_test(),
   [runtimeTestPathMap.main.config.selectorTest]: () => run_main_config_selector_test(),
   [runtimeTestPathMap.main.config.httpTest]: () => run_main_config_http_test(),
+  [runtimeTestPathMap.main.adapter.dom.videoElementObserverTest]: () => run_main_adapter_dom_video_element_observer_test(),
   [runtimeTestPathMap.main.adapter.dom.urlChangeObserverTest]: () => run_main_adapter_dom_url_change_observer_test(),
+  [runtimeTestPathMap.main.domain.elementsTest]: (request) => run_main_domain_elements_test(request),
   [runtimeTestPathMap.main.domain.pageTest]: (request) => run_main_domain_page_test(request),
 };
 

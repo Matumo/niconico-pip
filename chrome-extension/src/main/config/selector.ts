@@ -44,6 +44,12 @@ const isCanvasElement = (elem: Element): elem is HTMLCanvasElement => hasTagName
 const commentToggleButtonSelectorPrefix = `button[data-scope="tooltip"][data-part="trigger"]`;
 // プレイヤー領域用の共通セレクタ前方
 const playerAreaSelectorPrefix = String.raw`div.grid-area_\[player\]`;
+// discover監視で使うtarget候補セレクタ（厳しい順）
+const discoverPlayerTargetSelectors = [
+  "body > #root main",
+  "body > #root",
+  "body",
+] as const;
 // selectorだけで判定可能な要素は追加検証を行わない
 const validateNoop = <TElement extends Element>(_: TElement): boolean => true;
 
@@ -82,5 +88,5 @@ const selectorDefinitions: SelectorDefinitions = {
 };
 
 // エクスポート
-export { selectorDefinitions };
+export { selectorDefinitions, discoverPlayerTargetSelectors };
 export type { SelectorElementMap, SelectorKey, SelectorDefinitions };

@@ -12,10 +12,12 @@ const runtimeTestPathMap = {
     },
     adapter: {
       dom: {
+        videoElementObserverTest: "main_adapter_dom_video_element_observer_test",
         urlChangeObserverTest: "main_adapter_dom_url_change_observer_test",
       },
     },
     domain: {
+      elementsTest: "main_domain_elements_test",
       pageTest: "main_domain_page_test",
     },
   },

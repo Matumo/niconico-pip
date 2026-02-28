@@ -100,6 +100,7 @@ const createPageDomain = (): DomainModule => {
         payload: {
           url: currentUrl,
           generation: nextGeneration,
+          isWatchPage,
         },
       });
     } else {

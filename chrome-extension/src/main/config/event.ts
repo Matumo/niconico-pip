@@ -1,16 +1,30 @@
 /**
  * イベント設定
  */
+import type { SelectorElementMap, SelectorKey } from "@main/config/selector";
+
+// 要素スナップショット型
+type ElementsSnapshot = {
+  [K in SelectorKey]: SelectorElementMap[K] | null;
+};
+
+// ElementsUpdatedで公開する読み取り専用スナップショット型
+type ReadonlyElementsSnapshot = Readonly<ElementsSnapshot>;
+
 // アプリで扱うイベントのペイロード型
 interface AppEventMap {
   // ページURL変更を通知するイベント
   PageUrlChanged: {
     url: string;
     generation: number;
+    isWatchPage: boolean;
   };
   // 主要要素の再解決完了を通知するイベント
   ElementsUpdated: {
-    generation: number;
+    readonly pageGeneration: number;
+    readonly elementsGeneration: number;
+    readonly changedKeys: readonly SelectorKey[];
+    readonly snapshot: ReadonlyElementsSnapshot;
   };
   // 再生状態の変化を通知するイベント
   StatusChanged: {
@@ -50,4 +64,4 @@ const createAppEventNameMap = (prefixId: string): AppEventNameMap => ({
 
 // エクスポート
 export { createAppEventNameMap };
-export type { AppEventMap, AppEventKey, AppEventNameMap };
+export type { ElementsSnapshot, ReadonlyElementsSnapshot, AppEventMap, AppEventKey, AppEventNameMap };

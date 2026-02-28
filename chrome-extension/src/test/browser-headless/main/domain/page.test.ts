@@ -1,6 +1,8 @@
 /**
  * pageドメインブラウザテスト
  */
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { getLogger } from "@matumo/ts-simple-logger";
 import { expect, test, type Page } from "@playwright/test";
 import {
@@ -17,6 +19,14 @@ import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/r
 import type { BrowserLogCollector } from "@test/shared/browser/browser-log-collector";
 
 const log = getLogger("test");
+const watchPageFixturePath = resolve(
+  process.cwd(),
+  "chrome-extension/src/test/browser-headless/fixtures/watch-page.html",
+);
+const nonWatchPageFixturePath = resolve(
+  process.cwd(),
+  "chrome-extension/src/test/browser-headless/fixtures/non-watch-page.html",
+);
 
 const createPageUrlChangedLogText = (url: string): string =>
   `page url changed: ${url} (trigger=mutation-observer)`;
@@ -73,7 +83,17 @@ test.describe("pageドメイン", () => {
     const session = await environment.createSession();
 
     try {
-      await session.goto("/");
+      const nonWatchPageFixtureHtml = await readFile(nonWatchPageFixturePath, "utf8");
+      await session.context.route("https://www.nicovideo.jp/ranking*", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "text/html; charset=utf-8",
+          body: nonWatchPageFixtureHtml,
+        });
+      });
+
+      const initialNonWatchUrl = "https://www.nicovideo.jp/ranking";
+      await session.page.goto(initialNonWatchUrl);
       await expectBrowserConsoleLogContaining(session.logCollector, "bootstrap completed");
       const runtimeTestPath = runtimeTestPathMap.main.domain.pageTest;
       const initializeResult = await executeHeadlessRuntimeTest(session.page, runtimeTestPath, {
@@ -85,9 +105,8 @@ test.describe("pageドメイン", () => {
 
       try {
         const initialUrl = session.page.url();
-        const origin = new URL(initialUrl).origin;
-        const nextPath = `?browser-headless-${Date.now()}`;
-        const nextUrl = new URL(nextPath, origin).toString();
+        const nextPath = `/ranking?browser-headless-${Date.now()}`;
+        const nextUrl = new URL(nextPath, "https://www.nicovideo.jp").toString();
 
         // pushStateでは検知しないことを確認
         log.info(`[1] pushState: current url = ${session.page.url()}`);
@@ -122,6 +141,7 @@ test.describe("pageドメイン", () => {
             details: {
               command: "checkNewEvent",
               expectedUrl: nextUrl,
+              expectedIsWatchPage: false,
             },
           },
         );
@@ -159,6 +179,7 @@ test.describe("pageドメイン", () => {
             details: {
               command: "checkNewEvent",
               expectedUrl: initialUrl,
+              expectedIsWatchPage: false,
             },
           },
         );
@@ -196,11 +217,128 @@ test.describe("pageドメイン", () => {
             details: {
               command: "checkNewEvent",
               expectedUrl: nextUrl,
+              expectedIsWatchPage: false,
             },
           },
         );
         expect(goForwardMutationResult.ok).toBe(true);
         log.info(`[6] mutation-observer: current url = ${session.page.url()}`);
+      } finally {
+        await executeHeadlessRuntimeTest(session.page, runtimeTestPath, {
+          details: {
+            command: "reset",
+          },
+        }).catch(() => undefined);
+      }
+
+      expectNoBrowserConsoleWarnings(session.logCollector);
+      expectNoBrowserPageErrors(session.logCollector);
+    } finally {
+      await session.close();
+    }
+  });
+
+  test("watch URL変更時はisWatchPage=trueを通知すること", async () => {
+    if (!environment) {
+      throw new Error("Extension fixture environment is not initialized");
+    }
+
+    const session = await environment.createSession();
+
+    try {
+      const watchPageFixtureHtml = await readFile(watchPageFixturePath, "utf8");
+      await session.context.route("https://www.nicovideo.jp/watch/*", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "text/html; charset=utf-8",
+          body: watchPageFixtureHtml,
+        });
+      });
+
+      const initialWatchUrl = "https://www.nicovideo.jp/watch/sm9";
+      await session.page.goto(initialWatchUrl);
+      await expectBrowserConsoleLogContaining(session.logCollector, "bootstrap completed");
+
+      const runtimeTestPath = runtimeTestPathMap.main.domain.pageTest;
+      const initializeResult = await executeHeadlessRuntimeTest(session.page, runtimeTestPath, {
+        details: {
+          command: "init",
+        },
+      });
+      expect(initializeResult.ok).toBe(true);
+
+      try {
+        const nextWatchPath = `/watch/sm10?browser-headless-${Date.now()}`;
+        const nextWatchUrl = new URL(nextWatchPath, "https://www.nicovideo.jp").toString();
+
+        // pushStateでは検知しないことを確認
+        const pushStateTargetCountBefore = countPageUrlChangedLogs(session.logCollector, nextWatchUrl);
+        await session.page.evaluate((path) => {
+          globalThis.history.pushState({ browserHeadlessTest: true }, "", path);
+        }, nextWatchPath);
+        await expectNoPageUrlChangedLogWithin(session.page, nextWatchUrl);
+        expect(countPageUrlChangedLogs(session.logCollector, nextWatchUrl)).toBe(pushStateTargetCountBefore);
+        const pushStateNoEventResult = await executeHeadlessRuntimeTest(
+          session.page,
+          runtimeTestPath,
+          {
+            details: {
+              command: "checkNoEvent",
+              expectedUrl: nextWatchUrl,
+            },
+          },
+        );
+        expect(pushStateNoEventResult.ok).toBe(true);
+
+        // mutation-observerで検知し、isWatchPage=trueで通知することを確認
+        await mutateHead(session.page, `watch-after-push-state-${Date.now()}`);
+        await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextWatchUrl))
+          .toBe(pushStateTargetCountBefore + 1);
+        const pushStateMutationResult = await executeHeadlessRuntimeTest(
+          session.page,
+          runtimeTestPath,
+          {
+            details: {
+              command: "checkNewEvent",
+              expectedUrl: nextWatchUrl,
+              expectedIsWatchPage: true,
+            },
+          },
+        );
+        expect(pushStateMutationResult.ok).toBe(true);
+
+        // goBack後のmutation-observerでもisWatchPage=trueを維持することを確認
+        const goBackTargetCountBefore = countPageUrlChangedLogs(session.logCollector, initialWatchUrl);
+        await session.page.goBack();
+        await expectNoPageUrlChangedLogWithin(session.page, initialWatchUrl);
+        expect(countPageUrlChangedLogs(session.logCollector, initialWatchUrl)).toBe(goBackTargetCountBefore);
+        const goBackNoEventResult = await executeHeadlessRuntimeTest(
+          session.page,
+          runtimeTestPath,
+          {
+            details: {
+              command: "checkNoEvent",
+              expectedUrl: initialWatchUrl,
+            },
+          },
+        );
+        expect(goBackNoEventResult.ok).toBe(true);
+
+        await mutateHead(session.page, `watch-after-go-back-${Date.now()}`);
+        await expect.poll(() => countPageUrlChangedLogs(session.logCollector, initialWatchUrl))
+          .toBe(goBackTargetCountBefore + 1);
+        const goBackMutationResult = await executeHeadlessRuntimeTest(
+          session.page,
+          runtimeTestPath,
+          {
+            details: {
+              command: "checkNewEvent",
+              expectedUrl: initialWatchUrl,
+              expectedIsWatchPage: true,
+            },
+          },
+        );
+        expect(goBackMutationResult.ok).toBe(true);
       } finally {
         await executeHeadlessRuntimeTest(session.page, runtimeTestPath, {
           details: {

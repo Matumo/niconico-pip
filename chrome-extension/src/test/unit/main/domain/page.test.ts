@@ -184,6 +184,7 @@ describe("pageドメイン", () => {
       payload: {
         url: changedUrl,
         generation: 1,
+        isWatchPage: true,
       },
     });
     expect(domainLogger.info).toHaveBeenCalledWith(
@@ -208,6 +209,36 @@ describe("pageドメイン", () => {
     expect(pagePatch).not.toHaveBeenCalled();
     expect(eventRegistryEmit).not.toHaveBeenCalled();
     expect(domainLogger.debug).toHaveBeenCalledWith("page url unchanged (trigger=popstate)");
+  });
+
+  test("watchページでないURL変更時はisWatchPage=falseで通知すること", async () => {
+    const initialUrl = "https://www.nicovideo.jp/watch/sm9";
+    const changedUrl = "https://www.nicovideo.jp/ranking";
+    const { context, stateWriters, pagePatch, eventRegistryEmit } = createPageDomainTestContext(initialUrl);
+    const { emitTrigger } = prepareUrlChangeObserverMock();
+    const domain = createPageDomain();
+
+    setGlobalProperty("location", { href: changedUrl });
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    emitTrigger("mutation-observer");
+
+    expect(pagePatch).toHaveBeenCalledWith({
+      url: changedUrl,
+      isWatchPage: false,
+      generation: 1,
+    });
+    expect(eventRegistryEmit).toHaveBeenCalledWith({
+      target: globalThis,
+      eventKey: "PageUrlChanged",
+      payload: {
+        url: changedUrl,
+        generation: 1,
+        isWatchPage: false,
+      },
+    });
   });
 
   test("location.hrefが使えない場合はwarnしてスキップすること", async () => {

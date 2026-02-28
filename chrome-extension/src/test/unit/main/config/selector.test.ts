@@ -2,7 +2,7 @@
  * セレクタ設定テスト
  */
 import { describe, expect, test } from "vitest";
-import { selectorDefinitions } from "@main/config/selector";
+import { discoverPlayerTargetSelectors, selectorDefinitions } from "@main/config/selector";
 
 // テスト用要素型
 type FakeElement = {
@@ -60,5 +60,11 @@ describe("セレクタ定義", () => {
   test("テスト用要素ヘルパーが利用できること", () => {
     const element = fakeElement("BUTTON") as FakeElement;
     expect(element.tagName).toBe("BUTTON");
+  });
+
+  test("discover監視ターゲット候補が空文字・重複なしで定義されていること", () => {
+    expect(discoverPlayerTargetSelectors.length).toBeGreaterThan(0);
+    expect(discoverPlayerTargetSelectors.every((selector) => selector.trim() !== "")).toBe(true);
+    expect(new Set(discoverPlayerTargetSelectors).size).toBe(discoverPlayerTargetSelectors.length);
   });
 });

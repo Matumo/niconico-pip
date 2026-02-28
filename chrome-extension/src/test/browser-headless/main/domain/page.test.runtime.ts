@@ -31,6 +31,14 @@ const resolveStringDetail = (request: HeadlessBridgeRequest, key: string): strin
   return typeof value === "string" ? value : null;
 };
 
+// request.detailsから真偽値を取り出すヘルパー関数
+const resolveBooleanDetail = (request: HeadlessBridgeRequest, key: string): boolean | null => {
+  const details = request.details;
+  if (!details || !isObjectRecord(details)) return null;
+  const value = details[key];
+  return typeof value === "boolean" ? value : null;
+};
+
 // 収集済みの最新イベントを取得するヘルパー関数
 const getLatestObservedEvent = (
   observedEvents: AppEventMap["PageUrlChanged"][],
@@ -58,7 +66,8 @@ const initializeState = (): HeadlessBridgeDetails => {
   const listener = (event: Event): void => {
     const customEvent = event as CustomEvent<AppEventMap["PageUrlChanged"]>;
     if (customEvent.detail && typeof customEvent.detail.url === "string"
-        && typeof customEvent.detail.generation === "number") {
+        && typeof customEvent.detail.generation === "number"
+        && typeof customEvent.detail.isWatchPage === "boolean") {
       observedEvents.push(customEvent.detail);
     }
   };
@@ -128,6 +137,15 @@ const checkNewEvent = (request: HeadlessBridgeRequest): HeadlessBridgeDetails =>
       expectedUrlSpecified: false,
     };
   }
+  const expectedIsWatchPage = resolveBooleanDetail(request, "expectedIsWatchPage");
+  if (expectedIsWatchPage === null) {
+    return {
+      commandRecognized: true,
+      runtimeInitialized: true,
+      expectedUrlSpecified: true,
+      expectedIsWatchPageSpecified: false,
+    };
+  }
 
   const baselineBefore = state.baselineEventCount;
   const observedCount = state.observedEvents.length;
@@ -139,10 +157,13 @@ const checkNewEvent = (request: HeadlessBridgeRequest): HeadlessBridgeDetails =>
     commandRecognized: true,
     runtimeInitialized: true,
     expectedUrlSpecified: true,
+    expectedIsWatchPageSpecified: true,
     currentUrlMatchedExpected: globalThis.location.href === expectedUrl,
     newEventObservedSinceBaseline: observedCount > baselineBefore,
     latestEventUrlMatchedExpected: latestEvent?.url === expectedUrl,
     latestEventHasGeneration: typeof latestEvent?.generation === "number",
+    latestEventHasIsWatchPage: typeof latestEvent?.isWatchPage === "boolean",
+    latestEventIsWatchPageMatchedExpected: latestEvent?.isWatchPage === expectedIsWatchPage,
     generationIncreasedFromPrevious: latestEvent !== null &&
       (previousEvent === null || latestEvent.generation > previousEvent.generation),
   };
