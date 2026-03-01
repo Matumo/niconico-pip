@@ -28,6 +28,8 @@ const createDefaultBuildConfig = () => ({
 
 export default defineConfig(({ mode }) => {
   const buildConfig = createDefaultBuildConfig();
+  const debugEnvValue = process.env.DEBUG?.trim().toLowerCase();
+  const shouldUseDebugLog = debugEnvValue === "1" || debugEnvValue === "true";
 
   if (mode === "browser-headless-test") {
     buildConfig.outDir = browserHeadlessTestDistDirPath;
@@ -39,6 +41,9 @@ export default defineConfig(({ mode }) => {
   return {
     root: resolve(projectRoot, "chrome-extension"),
     publicDir: "public",
+    define: {
+      "globalThis.__APP_DEBUG__": JSON.stringify(shouldUseDebugLog),
+    },
     resolve: {
       alias: {
         "@main": resolve(projectRoot, "chrome-extension/src/main"),

@@ -1,6 +1,11 @@
 /**
  * アプリ設定
  */
+
+type GlobalWithAppDebug = typeof globalThis & {
+  __APP_DEBUG__?: boolean;
+};
+
 // アプリの設定型
 interface AppConfig {
   appName: string;
@@ -20,7 +25,7 @@ interface AppConfig {
 // 既定の設定項目
 const appName = "niconico-pip";
 const prefixId = `com-matumo-dev-${appName}`;
-const shouldUseDebugLog = false;
+const shouldUseDebugLog = (globalThis as GlobalWithAppDebug).__APP_DEBUG__ ?? false;
 const watchPageUrlPattern = /^https:\/\/www\.nicovideo\.jp\/watch\/.+$/;
 // 要素ID
 const pipButtonElementId = `${prefixId}-elem-pip-button`;

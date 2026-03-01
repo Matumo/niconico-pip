@@ -252,3 +252,4 @@ coverage/
 # Project-specific
 # Keep docs out of git tracking in this repo
 docs
+build

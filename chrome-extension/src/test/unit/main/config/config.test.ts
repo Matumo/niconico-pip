@@ -1,11 +1,37 @@
 /**
  * configテスト
  */
-import { describe, expect, test } from "vitest";
-import { createAppConfig } from "@main/config/config";
+import { afterEach, describe, expect, test, vi } from "vitest";
+
+type DebugGlobal = typeof globalThis & {
+  __APP_DEBUG__?: boolean;
+};
+
+const setAppDebug = (value: boolean | undefined): void => {
+  const globalWithDebug = globalThis as DebugGlobal;
+
+  if (value === undefined) {
+    delete globalWithDebug.__APP_DEBUG__;
+    return;
+  }
+
+  globalWithDebug.__APP_DEBUG__ = value;
+};
+
+const loadCreateAppConfig = async () => {
+  vi.resetModules();
+  const configModule = await import("@main/config/config");
+  return configModule.createAppConfig;
+};
+
+afterEach(() => {
+  setAppDebug(undefined);
+  vi.resetModules();
+});
 
 describe("config", () => {
-  test("既定設定が契約どおりの形で返ること", () => {
+  test("既定設定が契約どおりの形で返ること", async () => {
+    const createAppConfig = await loadCreateAppConfig();
     const config = createAppConfig();
 
     // 型チェック
@@ -39,10 +65,10 @@ describe("config", () => {
     expect(config.seekForwardDefaultOffset).toBeGreaterThan(0);
   });
 
-  test("上書き設定を適用すること", () => {
+  test("上書き設定を適用すること", async () => {
+    const createAppConfig = await loadCreateAppConfig();
     const baseConfig = createAppConfig();
     const overrides = {
-      shouldUseDebugLog: true,
       appName: "custom-app",
     };
     const config = createAppConfig(overrides);
@@ -52,5 +78,20 @@ describe("config", () => {
       ...overrides,
     });
     expect(config.prefixId).toBe(baseConfig.prefixId);
+  });
+
+  test("既定では shouldUseDebugLog が false であること", async () => {
+    const createAppConfig = await loadCreateAppConfig();
+    const config = createAppConfig();
+
+    expect(config.shouldUseDebugLog).toBe(false);
+  });
+
+  test("__APP_DEBUG__ が true のとき shouldUseDebugLog が true であること", async () => {
+    setAppDebug(true);
+    const createAppConfig = await loadCreateAppConfig();
+    const config = createAppConfig();
+
+    expect(config.shouldUseDebugLog).toBe(true);
   });
 });
