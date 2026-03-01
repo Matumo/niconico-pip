@@ -7,7 +7,6 @@ import type { PipState } from "@main/types/app-context";
 // pipスライスの初期state
 const initialPipState: PipState = {
   enabled: false,
-  reason: "unknown",
 };
 
 // pipスライスを作成する関数

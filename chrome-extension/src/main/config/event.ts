@@ -46,7 +46,6 @@ interface AppEventMap {
   // PiP有効状態の変化を通知するイベント
   PipStatusChanged: {
     enabled: boolean;
-    reason: "user" | "system" | "unknown";
   };
 }
 

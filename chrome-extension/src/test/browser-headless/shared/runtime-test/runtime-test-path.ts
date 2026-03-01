@@ -16,11 +16,18 @@ const runtimeTestPathMap = {
         urlChangeObserverTest: "main_adapter_dom_url_change_observer_test",
         videoInfoTest: "main_adapter_dom_video_info_test",
       },
+      media: {
+        pipVideoElementTest: "main_adapter_media_pip_video_element_test",
+        pipVideoElementSizeTest: "main_adapter_media_pip_video_element_size_test",
+        pipVideoElementPosterTest: "main_adapter_media_pip_video_element_poster_test",
+        pipVideoElementLoadedMetadataTest: "main_adapter_media_pip_video_element_loaded_metadata_test",
+      },
     },
     domain: {
       elementsTest: "main_domain_elements_test",
       pageTest: "main_domain_page_test",
       statusTest: "main_domain_status_test",
+      pipTest: "main_domain_pip_test",
     },
   },
 };

@@ -1,13 +1,12 @@
 /**
  * ドメインテスト
  */
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createAdDomain } from "@main/domain/ad";
 import { createControllerDomain } from "@main/domain/controller";
 import { createElementsDomain } from "@main/domain/elements";
 import { createMediaSessionDomain } from "@main/domain/media-session";
 import { createPageDomain } from "@main/domain/page";
-import { createPipDomain } from "@main/domain/pip";
 import { createStatusDomain } from "@main/domain/status";
 import { createTimeDomain } from "@main/domain/time";
 import { createDomainModule } from "@main/domain/create-domain-module";
@@ -19,6 +18,9 @@ import type {
   AppObserverRegistry,
   AppStateWriters,
 } from "@main/types/app-context";
+import type { PipVideoElementAdapter } from "@main/adapter/media/pip-video-element";
+
+let createPipDomain: typeof import("@main/domain/pip").createPipDomain;
 
 // ドメインテスト用コンテキストを作成する関数
 const createDomainTestContext = (): AppContext => {
@@ -45,7 +47,7 @@ const createDomainTestContext = (): AppContext => {
       elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedAt: null }) },
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
-      pip: { get: () => ({ enabled: false, reason: "unknown" as const }) },
+      pip: { get: () => ({ enabled: false }) },
       info: { get: () => ({
         title: null,
         author: null,
@@ -73,7 +75,29 @@ const stateWriters: AppStateWriters = {
   info: { set: () => undefined, patch: () => undefined, reset: () => undefined },
 };
 
+// PiP動画要素アダプターのモック生成関数
+const createPipVideoElementAdapterMock = vi.fn(
+  (): PipVideoElementAdapter => ({
+    getElement: () => new EventTarget() as unknown as HTMLVideoElement,
+    ensureInserted: vi.fn(() => true),
+    updateSize: vi.fn(() => true),
+    updatePoster: vi.fn(async () => true),
+    requestPictureInPicture: vi.fn(async () => true),
+    isOwnPictureInPictureElement: vi.fn(() => false),
+    stop: vi.fn(),
+  }),
+);
+
 describe("ドメインモジュール", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    createPipVideoElementAdapterMock.mockClear();
+    vi.doMock("@main/adapter/media/pip-video-element", async () => ({
+      createPipVideoElementAdapter: createPipVideoElementAdapterMock,
+    }));
+    ({ createPipDomain } = await import("@main/domain/pip"));
+  });
+
   test("各ファクトリーが期待どおりのドメインを返すこと", async () => {
     const context = createDomainTestContext();
     const modules = [

@@ -52,7 +52,7 @@ const createMockContext = (): AppContext => {
       elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedAt: null }) },
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
-      pip: { get: () => ({ enabled: false, reason: "unknown" as const }) },
+      pip: { get: () => ({ enabled: false }) },
       info: { get: () => ({
         title: null,
         author: null,

@@ -39,7 +39,6 @@ interface TimeState {
 // PiP状態型
 interface PipState {
   enabled: boolean;
-  reason: "user" | "system" | "unknown";
 }
 
 // 動画情報状態型
