@@ -25,6 +25,10 @@ const nonWatchPageFixturePath = resolve(__dirname, "../../fixtures/non-watch-pag
 const createPageUrlChangedLogText = (url: string): string =>
   `page url changed: ${url} (trigger=mutation-observer)`;
 
+const logCurrentUrl = (phase: string, page: Page): void => {
+  log.info(`${phase}: current url = ${page.url()} (fixture only; no real site access)`);
+};
+
 const countPageUrlChangedLogs = (logCollector: BrowserLogCollector, url: string): number => {
   const text = createPageUrlChangedLogText(url);
   return logCollector.entries.filter(
@@ -103,7 +107,7 @@ test.describe("pageドメイン", () => {
         const nextUrl = new URL(nextPath, "https://www.nicovideo.jp").toString();
 
         // pushStateでは検知しないことを確認
-        log.info(`[1] pushState: current url = ${session.page.url()}`);
+        logCurrentUrl("[1] pushState", session.page);
         const pushStateTargetCountBefore = countPageUrlChangedLogs(session.logCollector, nextUrl);
         await session.page.evaluate((path) => {
           globalThis.history.pushState({ browserHeadlessTest: true }, "", path);
@@ -121,10 +125,10 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(pushStateNoEventResult.ok).toBe(true);
-        log.info(`[1] pushState: current url = ${session.page.url()}`);
+        logCurrentUrl("[1] pushState", session.page);
 
         // mutation-observerで検知することを確認
-        log.info(`[2] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[2] mutation-observer", session.page);
         await mutateHead(session.page, `after-push-state-${Date.now()}`);
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextUrl))
           .toBe(pushStateTargetCountBefore + 1);
@@ -140,10 +144,10 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(pushStateMutationResult.ok).toBe(true);
-        log.info(`[2] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[2] mutation-observer", session.page);
 
         // goBackでは検知しないことを確認
-        log.info(`[3] goBack: current url = ${session.page.url()}`);
+        logCurrentUrl("[3] goBack", session.page);
         const goBackTargetCountBefore = countPageUrlChangedLogs(session.logCollector, initialUrl);
         await session.page.goBack();
         await expectNoPageUrlChangedLogWithin(session.page, initialUrl);
@@ -159,10 +163,10 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(goBackNoEventResult.ok).toBe(true);
-        log.info(`[3] goBack: current url = ${session.page.url()}`);
+        logCurrentUrl("[3] goBack", session.page);
 
         // goBack後のmutation-observerで検知することを確認
-        log.info(`[4] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[4] mutation-observer", session.page);
         await mutateHead(session.page, `after-go-back-${Date.now()}`);
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, initialUrl))
           .toBe(goBackTargetCountBefore + 1);
@@ -178,10 +182,10 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(goBackMutationResult.ok).toBe(true);
-        log.info(`[4] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[4] mutation-observer", session.page);
 
         // goForwardでは検知しないことを確認
-        log.info(`[5] goForward: current url = ${session.page.url()}`);
+        logCurrentUrl("[5] goForward", session.page);
         const goForwardTargetCountBefore = countPageUrlChangedLogs(session.logCollector, nextUrl);
         await session.page.goForward();
         await expectNoPageUrlChangedLogWithin(session.page, nextUrl);
@@ -197,10 +201,10 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(goForwardNoEventResult.ok).toBe(true);
-        log.info(`[5] goForward: current url = ${session.page.url()}`);
+        logCurrentUrl("[5] goForward", session.page);
 
         // goForward後のmutation-observerで検知することを確認
-        log.info(`[6] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[6] mutation-observer", session.page);
         await mutateHead(session.page, `after-go-forward-${Date.now()}`);
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextUrl))
           .toBe(goForwardTargetCountBefore + 1);
@@ -216,7 +220,7 @@ test.describe("pageドメイン", () => {
           },
         );
         expect(goForwardMutationResult.ok).toBe(true);
-        log.info(`[6] mutation-observer: current url = ${session.page.url()}`);
+        logCurrentUrl("[6] mutation-observer", session.page);
       } finally {
         await executeHeadlessRuntimeTest(session.page, runtimeTestPath, {
           details: {

@@ -18,6 +18,7 @@ const appLoggerNames = {
   bootstrap: "bootstrap",
   domain: "domain",
   elementResolver: "element-resolver",
+  eventRegistry: "event-registry",
   http: "http",
   safeRunner: "safe-runner",
 } as const;
@@ -82,6 +83,7 @@ const createAppLoggers = (): AppLoggerMap => ({
   bootstrap: getLogger(appLoggerNames.bootstrap),
   domain: getLogger(appLoggerNames.domain),
   elementResolver: getLogger(appLoggerNames.elementResolver),
+  eventRegistry: getLogger(appLoggerNames.eventRegistry),
   http: getLogger(appLoggerNames.http),
   safeRunner: getLogger(appLoggerNames.safeRunner),
 });

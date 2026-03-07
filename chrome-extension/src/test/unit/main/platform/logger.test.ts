@@ -64,7 +64,16 @@ describe("ロガー", () => {
 
     expect(config.prefixFormat).toContain("%loggerName");
     expect(config.placeholders["%time"]()).toBe("1.0");
-    for (const loggerName of ["logger", "main", "bootstrap", "domain", "element-resolver", "http", "safe-runner"]) {
+    for (const loggerName of [
+      "logger",
+      "main",
+      "bootstrap",
+      "domain",
+      "element-resolver",
+      "event-registry",
+      "http",
+      "safe-runner",
+    ]) {
       expect(setLoggerConfigMock).toHaveBeenCalledWith(loggerName, { level: "debug" });
       expect(getLoggerMock).toHaveBeenCalledWith(loggerName);
     }
@@ -73,6 +82,7 @@ describe("ロガー", () => {
     expect(loggers.logger.name).toBe("logger");
     expect(loggers.main.name).toBe("main");
     expect(loggers.bootstrap.name).toBe("bootstrap");
+    expect(loggers.eventRegistry.name).toBe("event-registry");
     expect(loggers.safeRunner.name).toBe("safe-runner");
 
     const browserErrorHandler = addEventListener.mock.calls[0][1] as (event: ErrorEvent) => void;
@@ -104,7 +114,7 @@ describe("ロガー", () => {
       now: () => 2,
     });
     expect(setDefaultConfigMock).toHaveBeenCalledTimes(1);
-    expect(setLoggerConfigMock).toHaveBeenCalledTimes(7);
+    expect(setLoggerConfigMock).toHaveBeenCalledTimes(8);
     expect(addEventListener).toHaveBeenCalledTimes(2);
     expect(processOn).toHaveBeenCalledTimes(2);
   });

@@ -2,6 +2,8 @@
  * イベントレジストリ
  */
 import type { AppEventKey, AppEventMap, AppEventNameMap } from "@main/config/event";
+import { appLoggerNames } from "@main/platform/logger";
+import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppEventRegistry, Unsubscribe } from "@main/types/app-context";
 
 // 登録済みイベントの保持型
@@ -11,6 +13,8 @@ type RegisteredEvent = {
   listener: EventListener;
   options?: AddEventListenerOptions;
 };
+
+const log = getLogger(appLoggerNames.eventRegistry);
 
 // イベントの登録、発火、解除を管理する関数
 const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry => {
@@ -68,6 +72,7 @@ const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry =>
     payload: AppEventMap[K];
   }): void => {
     const eventName = eventNameMap[params.eventKey];
+    log.debug(`----- Event Emitted ----- (event=${eventName})`, params.payload);
     params.target.dispatchEvent(new CustomEvent(eventName, { detail: params.payload }));
   };
 
