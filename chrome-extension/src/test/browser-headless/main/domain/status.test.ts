@@ -84,13 +84,13 @@ const setVideoInfoJsonLd = async (
   videoInfoJsonLd: Record<string, unknown>,
 ): Promise<void> => {
   await page.evaluate((nextJsonLd) => {
-    const selector = 'script[data-test-role="video-info-jsonld"]';
+    const selector = 'script[data-niconico-pip-marker="video-info-jsonld"]';
     const existing = globalThis.document.querySelector(selector);
     const script = existing instanceof HTMLScriptElement ?
       existing : globalThis.document.createElement("script");
 
     script.type = "application/ld+json";
-    script.dataset.testRole = "video-info-jsonld";
+    script.dataset.niconicoPipMarker = "video-info-jsonld";
     script.textContent = JSON.stringify(nextJsonLd);
 
     if (!(existing instanceof HTMLScriptElement)) {

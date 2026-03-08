@@ -42,11 +42,11 @@ const appendDiscoverWrapper = async (page: Page): Promise<void> => {
     }
 
     const existingWrapper = Array.from(discoverTarget.children).find((child) =>
-      child instanceof HTMLElement && child.dataset.testRole === "discover-wrapper");
+      child instanceof HTMLElement && child.dataset.niconicoPipMarker === "discover-wrapper");
     if (existingWrapper instanceof HTMLElement) return;
 
     const wrapper = globalThis.document.createElement("div");
-    wrapper.dataset.testRole = "discover-wrapper";
+    wrapper.dataset.niconicoPipMarker = "discover-wrapper";
     discoverTarget.appendChild(wrapper);
   });
 };
@@ -65,7 +65,7 @@ const appendSnapshotPlayerAreaToDiscoverWrapper = async (
   playerAreaHtmlSnapshot: string,
 ): Promise<void> => {
   await page.evaluate((snapshotHtml) => {
-    const wrapper = globalThis.document.querySelector(String.raw`[data-test-role="discover-wrapper"]`);
+    const wrapper = globalThis.document.querySelector(String.raw`[data-niconico-pip-marker="discover-wrapper"]`);
     if (!(wrapper instanceof HTMLElement)) {
       throw new TypeError("discover wrapper is not found");
     }
@@ -129,7 +129,7 @@ const wrapPlayerMenuUnderContainerDescendant = async (page: Page): Promise<void>
 
     const directChildren = Array.from(playerContainer.children);
     const existingWrapper = directChildren.find((child) =>
-      child instanceof HTMLElement && child.dataset.testRole === "menu-wrapper");
+      child instanceof HTMLElement && child.dataset.niconicoPipMarker === "menu-wrapper");
     if (existingWrapper instanceof HTMLElement) return;
 
     const directPlayerMenu = directChildren.find((child) =>
@@ -139,7 +139,7 @@ const wrapPlayerMenuUnderContainerDescendant = async (page: Page): Promise<void>
     }
 
     const wrapper = globalThis.document.createElement("div");
-    wrapper.dataset.testRole = "menu-wrapper";
+    wrapper.dataset.niconicoPipMarker = "menu-wrapper";
     directPlayerMenu.replaceWith(wrapper);
     wrapper.appendChild(directPlayerMenu);
   });
@@ -158,7 +158,7 @@ const replaceNestedPlayerMenu = async (
     }
 
     const wrapper = Array.from(playerContainer.children).find((child) =>
-      child instanceof HTMLElement && child.dataset.testRole === "menu-wrapper");
+      child instanceof HTMLElement && child.dataset.niconicoPipMarker === "menu-wrapper");
     if (!(wrapper instanceof HTMLElement)) {
       throw new TypeError("menu wrapper is not found");
     }
@@ -189,7 +189,7 @@ const pulsePlayerContainerChildListMutation = async (page: Page): Promise<void> 
     }
 
     const pulseNode = globalThis.document.createElement("div");
-    pulseNode.dataset.testRole = "observer-pulse";
+    pulseNode.dataset.niconicoPipMarker = "observer-pulse";
     playerContainer.appendChild(pulseNode);
     pulseNode.remove();
   });
@@ -203,6 +203,7 @@ interface AppPageUrlChangedDetails {
 
 const expectedPrimaryElementKeys = [
   "commentToggleButton",
+  "fullscreenToggleButton",
   "playerContainer",
   "playerMenu",
   "video",
@@ -363,6 +364,7 @@ test.describe("elementsドメイン", () => {
         await pulsePlayerContainerChildListMutation(session.page);
         await waitForElementsUpdated(session.page, runtimeTestPath, [
           "commentToggleButton",
+          "fullscreenToggleButton",
           "playerMenu",
           "video",
           "commentsCanvas",

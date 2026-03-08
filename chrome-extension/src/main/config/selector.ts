@@ -12,6 +12,7 @@ type SelectorDefinition<TElement extends Element> = {
 // 要素キーとDOM型の対応定義
 interface SelectorElementMap {
   commentToggleButton: HTMLButtonElement;  // コメントトグルボタン要素
+  fullscreenToggleButton: HTMLButtonElement; // 全画面トグルボタン要素
   playerContainer: HTMLDivElement;   // プレイヤー全体を包むコンテナ要素
   playerMenu: HTMLDivElement;        // プレイヤーのメニュー領域要素
   video: HTMLVideoElement;           // 再生対象のvideo要素
@@ -57,6 +58,12 @@ const validateNoop = <TElement extends Element>(_: TElement): boolean => true;
 const selectorDefinitions: SelectorDefinitions = {
   commentToggleButton: {
     primary: `${commentToggleButtonSelectorPrefix}[aria-label="コメントを非表示にする"], ${commentToggleButtonSelectorPrefix}[aria-label="コメントを表示する"]`,
+    fallbacks: [],
+    guard: isButtonElement,
+    validate: validateNoop,
+  },
+  fullscreenToggleButton: {
+    primary: `${commentToggleButtonSelectorPrefix}[aria-label="全画面表示する"], ${commentToggleButtonSelectorPrefix}[aria-label="全画面表示を終了"]`,
     fallbacks: [],
     guard: isButtonElement,
     validate: validateNoop,

@@ -21,6 +21,7 @@ describe("セレクタ定義", () => {
     expect(Object.keys(selectorDefinitions).sort(compareAlphabetically)).toEqual([
       "commentsCanvas",
       "commentToggleButton",
+      "fullscreenToggleButton",
       "playerContainer",
       "playerMenu",
       "video",
@@ -49,6 +50,7 @@ describe("セレクタ定義", () => {
     expect(selectorDefinitions.video.guard(div)).toBe(false);
     expect(selectorDefinitions.playerContainer.guard(div)).toBe(true);
     expect(selectorDefinitions.commentToggleButton.guard(button)).toBe(true);
+    expect(selectorDefinitions.fullscreenToggleButton.guard(button)).toBe(true);
     expect(selectorDefinitions.commentsCanvas.guard(canvas)).toBe(true);
   });
 

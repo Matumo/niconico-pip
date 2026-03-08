@@ -12,6 +12,7 @@ interface AppConfig {
   prefixId: string;
   watchPageUrlPattern: RegExp;
   shouldUseDebugLog: boolean;
+  shouldExitPipOnNonWatchPage: boolean;
   pipButtonElementId: string;
   pipVideoElementId: string;
   videoPipCanvasHeight: number;
@@ -26,6 +27,7 @@ interface AppConfig {
 const appName = "niconico-pip";
 const prefixId = `com-matumo-dev-${appName}`;
 const shouldUseDebugLog = (globalThis as GlobalWithAppDebug).__APP_DEBUG__ ?? false;
+const shouldExitPipOnNonWatchPage = true;
 const watchPageUrlPattern = /^https:\/\/www\.nicovideo\.jp\/watch\/.+$/;
 // 要素ID
 const pipButtonElementId = `${prefixId}-elem-pip-button`;
@@ -45,6 +47,7 @@ const defaultAppConfig: AppConfig = {
   appName,
   prefixId,
   shouldUseDebugLog,
+  shouldExitPipOnNonWatchPage,
   watchPageUrlPattern,
   pipButtonElementId,
   pipVideoElementId,

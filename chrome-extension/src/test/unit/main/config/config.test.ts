@@ -39,6 +39,7 @@ describe("config", () => {
       appName: expect.any(String),
       prefixId: expect.any(String),
       shouldUseDebugLog: expect.any(Boolean),
+      shouldExitPipOnNonWatchPage: expect.any(Boolean),
       watchPageUrlPattern: expect.any(RegExp),
       pipButtonElementId: expect.any(String),
       pipVideoElementId: expect.any(String),
@@ -55,6 +56,7 @@ describe("config", () => {
     expect(config.pipVideoElementId).toBe(`${config.prefixId}-elem-pip-video`);
     expect(config.watchPageUrlPattern.test("https://www.nicovideo.jp/watch/sm9")).toBe(true);
     expect(config.watchPageUrlPattern.test("https://www.nicovideo.jp/mylist/1")).toBe(false);
+    expect(config.shouldExitPipOnNonWatchPage).toBe(true);
     expect(config.appName.trim()).not.toBe("");
     expect(config.prefixId.trim()).not.toBe("");
     expect(config.pipButtonOnMouseOverColor).toMatch(/^#[0-9a-fA-F]{6}$/);

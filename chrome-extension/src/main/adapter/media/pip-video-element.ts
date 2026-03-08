@@ -15,7 +15,7 @@ interface CreatePipVideoElementAdapterOptions {
 // PiP動画要素アダプター型
 interface PipVideoElementAdapter {
   getElement(): HTMLVideoElement;
-  ensureInserted(target: HTMLDivElement): boolean;
+  updatePipVideoPlacement(target: HTMLDivElement | null): boolean;
   updateSize(): boolean;
   updatePoster(thumbnailUrl: string | null): Promise<boolean>;
   requestPictureInPicture(): Promise<boolean>;
@@ -27,11 +27,6 @@ interface PipVideoElementAdapter {
 type BrowserGlobal = typeof globalThis & {
   document?: Document;
   ResizeObserver?: typeof ResizeObserver;
-};
-
-// captureStreamを持つcanvas型
-type CaptureStreamCanvasElement = HTMLCanvasElement & {
-  captureStream?: (frameRate?: number) => MediaStream;
 };
 
 // requestPictureInPictureを持つvideo型
@@ -71,37 +66,6 @@ const createPipVideoElement = (params: {
   return pipVideoElement;
 };
 
-// ストリームを停止する関数
-const stopStream = (stream: MediaStream | null): void => {
-  if (!stream) return;
-  for (const track of stream.getTracks()) {
-    track.stop();
-  }
-};
-
-// PiP用ダミーストリームを作成する関数
-const createDummyStream = (params: {
-  documentNode: DocumentLike;
-  canvasWidth: number;
-  canvasHeight: number;
-}): MediaStream | null => {
-  const canvasElement = params.documentNode.createElement("canvas");
-  if (!(canvasElement instanceof HTMLCanvasElement)) return null;
-
-  const captureCanvas = canvasElement as CaptureStreamCanvasElement;
-  if (typeof captureCanvas.captureStream !== "function") return null;
-
-  canvasElement.width = params.canvasWidth;
-  canvasElement.height = params.canvasHeight;
-
-  const context = canvasElement.getContext("2d");
-  if (!context) return null;
-
-  context.fillStyle = "black";
-  context.fillRect(0, 0, canvasElement.width, canvasElement.height);
-  return captureCanvas.captureStream(1);
-};
-
 // PiP動画要素アダプターを作成する関数
 const createPipVideoElementAdapter = (
   options: CreatePipVideoElementAdapterOptions,
@@ -113,15 +77,18 @@ const createPipVideoElementAdapter = (
   });
   const pictureInPictureCapableVideoElement = pipVideoElement as PictureInPictureCapableVideoElement;
 
-  let currentStream: MediaStream | null = null;
   let sizeObserver: ResizeObserver | null = null;
 
-  // PiP動画要素へストリームを設定する関数
-  const setSourceStream = (nextStream: MediaStream | null): void => {
-    if (currentStream === nextStream) return;
-    stopStream(currentStream);
-    currentStream = nextStream;
-    pipVideoElement.srcObject = nextStream;
+  // PiP動画要素をDOMから外して監視も止める関数
+  const detach = (): void => {
+    if (sizeObserver) {
+      sizeObserver.disconnect();
+      sizeObserver = null;
+    }
+
+    if (pipVideoElement.parentElement) {
+      pipVideoElement.remove();
+    }
   };
 
   // PiP動画要素サイズを更新する関数
@@ -170,15 +137,27 @@ const createPipVideoElementAdapter = (
     return documentNode.pictureInPictureElement === pipVideoElement;
   };
 
-  // PiP動画要素を挿入する関数
-  const ensureInserted = (target: HTMLDivElement): boolean => {
+  // PiP動画要素の挿入先を更新する関数
+  const updatePipVideoPlacement = (target: HTMLDivElement | null): boolean => {
+    // 配置先がなければPiP動画要素をDOMから削除してサイズ監視を停止
+    if (!target) {
+      detach();
+      return true;
+    }
+    // DOMに未接続の要素には配置しない
     if (!target.parentElement) return false;
 
-    // 同じidの要素が既にある場合は、自分自身かどうかで処理を分ける
+    // 異なるPiP動画要素で同じidの残存要素はDOMから削除
     const existingElement = documentNode.getElementById(pipVideoElement.id);
-    if (existingElement === pipVideoElement) return true;
-    if (existingElement) existingElement.remove();
+    if (existingElement && existingElement !== pipVideoElement) {
+      existingElement.remove();
+    }
+    // 同じ配置先の先頭にいるなら再配置は不要
+    if (pipVideoElement.parentElement === target && target.firstChild === pipVideoElement) {
+      return true;
+    }
 
+    // 配置先を更新したらPiP動画要素を挿入してサイズ監視を開始
     target.insertBefore(pipVideoElement, target.firstChild);
     updateSize();
     observeSize();
@@ -220,28 +199,13 @@ const createPipVideoElementAdapter = (
 
   // アダプターを停止する関数
   const stop = (): void => {
-    if (sizeObserver) {
-      sizeObserver.disconnect();
-      sizeObserver = null;
-    }
-    setSourceStream(null);
-
     // 再初期化時に重複要素が残らないよう、DOMから要素を外す
-    if (pipVideoElement.parentElement) {
-      pipVideoElement.remove();
-    }
+    detach();
   };
-
-  // 初期ダミーストリームを設定する
-  setSourceStream(createDummyStream({
-    documentNode,
-    canvasWidth: options.canvasWidth,
-    canvasHeight: options.canvasHeight,
-  }));
 
   return {
     getElement: () => pipVideoElement,
-    ensureInserted,
+    updatePipVideoPlacement,
     updateSize,
     updatePoster,
     requestPictureInPicture,

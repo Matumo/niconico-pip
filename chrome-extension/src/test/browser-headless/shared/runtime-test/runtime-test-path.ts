@@ -17,6 +17,8 @@ const runtimeTestPathMap = {
         videoInfoTest: "main_adapter_dom_video_info_test",
       },
       media: {
+        pipRendererTest: "main_adapter_media_pip_renderer_test",
+        pipStreamTest: "main_adapter_media_pip_stream_test",
         pipVideoElementTest: "main_adapter_media_pip_video_element_test",
         pipVideoElementSizeTest: "main_adapter_media_pip_video_element_size_test",
         pipVideoElementPosterTest: "main_adapter_media_pip_video_element_poster_test",

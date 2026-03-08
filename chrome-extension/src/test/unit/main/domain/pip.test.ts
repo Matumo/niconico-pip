@@ -11,6 +11,13 @@ import type {
   AppStateWriters,
 } from "@main/types/app-context";
 import type {
+  PipRenderer,
+} from "@main/adapter/media/pip-renderer";
+import type {
+  CreatePipStreamOptions,
+  PipStream,
+} from "@main/adapter/media/pip-stream";
+import type {
   CreatePipVideoElementAdapterOptions,
   PipVideoElementAdapter,
 } from "@main/adapter/media/pip-video-element";
@@ -25,6 +32,8 @@ import {
 import { createTsSimpleLoggerMockHarness, type TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 
 const createPipVideoElementAdapterMock = vi.fn();
+const createPipRendererMock = vi.fn();
+const createPipStreamMock = vi.fn();
 let createPipDomain: typeof import("@main/domain/pip").createPipDomain;
 let loggerMockHarness: TsSimpleLoggerMockHarness;
 
@@ -39,6 +48,7 @@ type TestElementsSnapshot = {
 // 空のElementsUpdatedスナップショットを作る関数
 const createEmptyElementsSnapshot = (overrides: Partial<TestElementsSnapshot> = {}): TestElementsSnapshot => ({
   commentToggleButton: null,
+  fullscreenToggleButton: null,
   playerContainer: null,
   playerMenu: null,
   video: null,
@@ -48,8 +58,10 @@ const createEmptyElementsSnapshot = (overrides: Partial<TestElementsSnapshot> = 
 
 // PiP動画要素アダプターモックを準備する関数
 const preparePipVideoElementAdapterMock = () => {
-  const pipElement = new EventTarget() as unknown as HTMLVideoElement;
-  const ensureInserted = vi.fn(() => true);
+  const pipElement = Object.assign(new EventTarget(), {
+    hidden: true,
+  }) as unknown as HTMLVideoElement;
+  const updatePipVideoPlacement = vi.fn(() => true);
   const updateSize = vi.fn(() => true);
   const updatePoster = vi.fn(async () => true);
   const requestPictureInPicture = vi.fn(async () => true);
@@ -59,7 +71,7 @@ const preparePipVideoElementAdapterMock = () => {
   createPipVideoElementAdapterMock.mockImplementation(
     (_: CreatePipVideoElementAdapterOptions): PipVideoElementAdapter => ({
       getElement: () => pipElement,
-      ensureInserted,
+      updatePipVideoPlacement,
       updateSize,
       updatePoster,
       requestPictureInPicture,
@@ -70,12 +82,62 @@ const preparePipVideoElementAdapterMock = () => {
 
   return {
     pipElement,
-    ensureInserted,
+    updatePipVideoPlacement,
     updateSize,
     updatePoster,
     requestPictureInPicture,
     isOwnPictureInPictureElement,
     stop,
+  };
+};
+
+// PiPレンダラーモックを準備する関数
+const preparePipRendererMock = () => {
+  const setSources = vi.fn();
+  const drawFrame = vi.fn(() => true);
+
+  createPipRendererMock.mockImplementation(
+    (): PipRenderer => ({
+      setSources,
+      drawFrame,
+    }),
+  );
+
+  return {
+    setSources,
+    drawFrame,
+  };
+};
+
+// PiPストリームモックを準備する関数
+const preparePipStreamMock = () => {
+  let running = false;
+  const start = vi.fn(() => {
+    running = true;
+    return true;
+  });
+  const stop = vi.fn(() => {
+    running = false;
+  });
+  const teardown = vi.fn(() => {
+    running = false;
+  });
+  const isRunning = vi.fn(() => running);
+
+  createPipStreamMock.mockImplementation(
+    (_: CreatePipStreamOptions): PipStream => ({
+      start,
+      stop,
+      teardown,
+      isRunning,
+    }),
+  );
+
+  return {
+    start,
+    stop,
+    teardown,
+    isRunning,
   };
 };
 
@@ -119,6 +181,8 @@ const createPipDomainTestContext = () => {
 
   let elementsUpdatedListener: ((payload: AppEventMap["ElementsUpdated"]) => void) | null = null;
   let videoInfoChangedListener: ((payload: AppEventMap["VideoInfoChanged"]) => void) | null = null;
+  let pageUrlChangedListener: ((payload: AppEventMap["PageUrlChanged"]) => void) | null = null;
+  const unsubscribePageUrlChanged = vi.fn();
   const unsubscribeElementsUpdated = vi.fn();
   const unsubscribeVideoInfoChanged = vi.fn();
 
@@ -139,6 +203,10 @@ const createPipDomainTestContext = () => {
         videoInfoChangedListener = params.listener as (payload: AppEventMap["VideoInfoChanged"]) => void;
         return unsubscribeVideoInfoChanged;
       }
+      if (params.eventKey === "PageUrlChanged") {
+        pageUrlChangedListener = params.listener as (payload: AppEventMap["PageUrlChanged"]) => void;
+        return unsubscribePageUrlChanged;
+      }
       return () => undefined;
     },
   );
@@ -151,6 +219,10 @@ const createPipDomainTestContext = () => {
     if (!videoInfoChangedListener) throw new Error("VideoInfoChanged listener is not initialized");
     videoInfoChangedListener(payload);
   };
+  const emitPageUrlChanged = (payload: AppEventMap["PageUrlChanged"]): void => {
+    if (!pageUrlChangedListener) throw new Error("PageUrlChanged listener is not initialized");
+    pageUrlChangedListener(payload);
+  };
 
   const eventRegistry = {
     on: eventRegistryOn,
@@ -160,9 +232,16 @@ const createPipDomainTestContext = () => {
     size: vi.fn(() => 0),
   } as AppEventRegistry;
 
+  const observerRegistryObserve = vi.fn((_: {
+    key: string;
+    target: Node;
+    callback: MutationCallback;
+    options: MutationObserverInit;
+  }) => ({ disconnect: vi.fn() }) as unknown as MutationObserver);
+  const observerRegistryDisconnect = vi.fn(() => false);
   const observerRegistry = {
-    observe: vi.fn(() => ({ disconnect: vi.fn() }) as unknown as MutationObserver),
-    disconnect: vi.fn(() => false),
+    observe: observerRegistryObserve,
+    disconnect: observerRegistryDisconnect,
     disconnectAll: vi.fn(),
     size: vi.fn(() => 0),
   } as AppObserverRegistry;
@@ -206,8 +285,12 @@ const createPipDomainTestContext = () => {
     stateWriters,
     eventRegistryOn,
     eventRegistryEmit,
+    observerRegistryObserve,
+    observerRegistryDisconnect,
+    emitPageUrlChanged,
     emitElementsUpdated,
     emitVideoInfoChanged,
+    unsubscribePageUrlChanged,
     unsubscribeElementsUpdated,
     unsubscribeVideoInfoChanged,
     pipPatch,
@@ -221,6 +304,12 @@ describe("pipドメイン", () => {
   beforeEach(async () => {
     vi.resetModules();
     loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@main/adapter/media/pip-renderer", async () => ({
+      createPipRenderer: createPipRendererMock,
+    }));
+    vi.doMock("@main/adapter/media/pip-stream", async () => ({
+      createPipStream: createPipStreamMock,
+    }));
     vi.doMock("@main/adapter/media/pip-video-element", async () => ({
       createPipVideoElementAdapter: createPipVideoElementAdapterMock,
     }));
@@ -228,6 +317,10 @@ describe("pipドメイン", () => {
     ({ createPipDomain } = await import("@main/domain/pip"));
 
     createPipVideoElementAdapterMock.mockReset();
+    createPipRendererMock.mockReset();
+    createPipStreamMock.mockReset();
+    preparePipRendererMock();
+    preparePipStreamMock();
     loggerMockHarness.clearLoggerCalls();
     globalDescriptors = captureGlobalDescriptors(globalPropertyKeys);
   });
@@ -242,11 +335,14 @@ describe("pipドメイン", () => {
       context,
       stateWriters,
       eventRegistryOn,
+      unsubscribePageUrlChanged,
       unsubscribeElementsUpdated,
       unsubscribeVideoInfoChanged,
       pipPatch,
     } = createPipDomainTestContext();
     const nativeEventApi = createNativeEventApiMock();
+    const { drawFrame } = preparePipRendererMock();
+    const { teardown } = preparePipStreamMock();
     const { stop } = preparePipVideoElementAdapterMock();
     const domain = createPipDomain();
 
@@ -262,6 +358,19 @@ describe("pipドメイン", () => {
       elementId: context.config.pipVideoElementId,
       canvasWidth: context.config.videoPipCanvasWidth,
       canvasHeight: context.config.videoPipCanvasHeight,
+    });
+    expect(createPipRendererMock).toHaveBeenCalledWith();
+    expect(createPipStreamMock).toHaveBeenCalledWith({
+      pipVideoElement: expect.any(EventTarget),
+      renderFrame: drawFrame,
+      canvasWidth: context.config.videoPipCanvasWidth,
+      canvasHeight: context.config.videoPipCanvasHeight,
+    });
+    expect(eventRegistryOn).toHaveBeenCalledWith({
+      target: globalThis,
+      key: "domain:pip:page-url-changed",
+      eventKey: "PageUrlChanged",
+      listener: expect.any(Function),
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
@@ -279,8 +388,10 @@ describe("pipドメイン", () => {
     expect(nativeEventApi.addEventListener).toHaveBeenCalledWith("leavepictureinpicture", expect.any(Function));
     expect(nativeEventApi.removeEventListener).toHaveBeenCalledWith("enterpictureinpicture", expect.any(Function));
     expect(nativeEventApi.removeEventListener).toHaveBeenCalledWith("leavepictureinpicture", expect.any(Function));
+    expect(unsubscribePageUrlChanged).toHaveBeenCalledTimes(1);
     expect(unsubscribeElementsUpdated).toHaveBeenCalledTimes(1);
     expect(unsubscribeVideoInfoChanged).toHaveBeenCalledTimes(1);
+    expect(teardown).toHaveBeenCalledTimes(1);
     expect(stop).toHaveBeenCalledTimes(1);
     expect(pipPatch).toHaveBeenCalledWith({ enabled: false });
   });
@@ -292,8 +403,11 @@ describe("pipドメイン", () => {
       emitElementsUpdated,
       emitVideoInfoChanged,
     } = createPipDomainTestContext();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
+    const { setSources } = preparePipRendererMock();
+    preparePipStreamMock();
     const {
-      ensureInserted,
+      updatePipVideoPlacement,
       updatePoster,
     } = preparePipVideoElementAdapterMock();
     const domain = createPipDomain();
@@ -321,7 +435,14 @@ describe("pipドメイン", () => {
       infoGeneration: 1,
     });
 
-    expect(ensureInserted).toHaveBeenCalledWith(playerContainer);
+    expect(setSources).toHaveBeenCalledWith({
+      video: null,
+      commentsCanvas: null,
+    });
+    expect(updatePipVideoPlacement).toHaveBeenCalledWith(playerContainer);
+    expect(domainLogger.debug).toHaveBeenCalledWith(
+      "pip video element placement synced: attached=true (trigger=elements-updated)",
+    );
     expect(updatePoster).toHaveBeenCalledWith("https://example.test/default-thumbnail.jpg");
     expect(updatePoster).toHaveBeenCalledWith("https://example.test/updated-thumbnail.jpg");
   });
@@ -333,10 +454,10 @@ describe("pipドメイン", () => {
       emitElementsUpdated,
     } = createPipDomainTestContext();
     const {
-      ensureInserted,
+      updatePipVideoPlacement,
       updatePoster,
     } = preparePipVideoElementAdapterMock();
-    ensureInserted.mockReturnValue(false);
+    updatePipVideoPlacement.mockReturnValue(false);
     const domain = createPipDomain();
 
     setGlobalProperty("dispatchEvent", vi.fn(() => true));
@@ -354,7 +475,7 @@ describe("pipドメイン", () => {
       })),
     });
 
-    expect(ensureInserted).toHaveBeenCalledTimes(1);
+    expect(updatePipVideoPlacement).toHaveBeenCalledTimes(1);
     expect(updatePoster).not.toHaveBeenCalled();
   });
 
@@ -548,6 +669,8 @@ describe("pipドメイン", () => {
       pipState,
     } = createPipDomainTestContext();
     const nativeEventApi = createNativeEventApiMock();
+    preparePipRendererMock();
+    const { start } = preparePipStreamMock();
     const {
       isOwnPictureInPictureElement,
     } = preparePipVideoElementAdapterMock();
@@ -564,6 +687,7 @@ describe("pipドメイン", () => {
     isOwnPictureInPictureElement.mockReturnValue(true);
     nativeEventApi.dispatch("enterpictureinpicture", { target: ownTarget } as Event);
     expect(isOwnPictureInPictureElement).toHaveBeenLastCalledWith(ownTarget);
+    expect(start).toHaveBeenCalledTimes(1);
     expect(pipState.enabled).toBe(true);
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
@@ -578,9 +702,9 @@ describe("pipドメイン", () => {
     nativeEventApi.dispatch("enterpictureinpicture");
     expect(eventRegistryEmit.mock.calls).toHaveLength(emitCallCountAfterEnter);
 
-    isOwnPictureInPictureElement.mockReturnValue(false);
+    isOwnPictureInPictureElement.mockReturnValue(true);
     nativeEventApi.dispatch("leavepictureinpicture", { target: ownTarget } as Event);
-    expect(isOwnPictureInPictureElement).toHaveBeenLastCalledWith();
+    expect(isOwnPictureInPictureElement).toHaveBeenLastCalledWith(ownTarget);
     expect(pipPatch).toHaveBeenCalledWith({ enabled: false });
     expect(eventRegistryEmit).toHaveBeenLastCalledWith({
       target: globalThis,
@@ -616,13 +740,665 @@ describe("pipドメイン", () => {
     nativeEventApi.dispatch("enterpictureinpicture", { target: ownTarget } as Event);
     expect(pipState.enabled).toBe(true);
 
-    isOwnPictureInPictureElement.mockReturnValue(false);
+    isOwnPictureInPictureElement.mockReturnValue(true);
     nativeEventApi.dispatch("leavepictureinpicture", { target: ownTarget } as Event);
     expect(pipState.enabled).toBe(false);
     const emitCallCountAfterFirstLeave = eventRegistryEmit.mock.calls.length;
 
     nativeEventApi.dispatch("leavepictureinpicture", { target: ownTarget } as Event);
     expect(eventRegistryEmit.mock.calls).toHaveLength(emitCallCountAfterFirstLeave);
+  });
+
+  test("PiP有効中に描画ソースが変わると現在ソースだけhidden同期すること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    preparePipRendererMock();
+    const { start } = preparePipStreamMock();
+    const {
+      pipElement,
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    const ownTarget = new EventTarget();
+    const videoElement = { hidden: false } as unknown as HTMLVideoElement;
+    const firstCommentsCanvas = { hidden: false } as unknown as HTMLCanvasElement;
+    const secondCommentsCanvas = { hidden: false } as unknown as HTMLCanvasElement;
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    nativeEventApi.dispatch("enterpictureinpicture", { target: ownTarget } as Event);
+    expect(start).toHaveBeenCalledTimes(1);
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["video", "commentsCanvas"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        video: videoElement,
+        commentsCanvas: firstCommentsCanvas,
+      })),
+    });
+    expect(videoElement.hidden).toBe(true);
+    expect(firstCommentsCanvas.hidden).toBe(true);
+    expect((pipElement as HTMLVideoElement & { hidden: boolean }).hidden).toBe(false);
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 2,
+      changedKeys: ["commentsCanvas"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        video: videoElement,
+        commentsCanvas: secondCommentsCanvas,
+      })),
+    });
+    expect(videoElement.hidden).toBe(true);
+    expect(firstCommentsCanvas.hidden).toBe(false);
+    expect(secondCommentsCanvas.hidden).toBe(true);
+
+    nativeEventApi.dispatch("leavepictureinpicture", { target: ownTarget } as Event);
+    expect(videoElement.hidden).toBe(false);
+    expect(secondCommentsCanvas.hidden).toBe(false);
+    expect((pipElement as HTMLVideoElement & { hidden: boolean }).hidden).toBe(true);
+  });
+
+  test("foreign leavepictureinpictureは終了同期を行わないこと", async () => {
+    const {
+      context,
+      stateWriters,
+      eventRegistryEmit,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const { stop } = preparePipStreamMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+
+    isOwnPictureInPictureElement.mockReturnValue(false);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    nativeEventApi.dispatch("leavepictureinpicture", { target: new EventTarget() } as Event);
+
+    expect(stop).not.toHaveBeenCalled();
+    expect(eventRegistryEmit).not.toHaveBeenCalled();
+  });
+
+  test("ElementsUpdatedでfullscreenToggleButtonを受けたらaria-label監視を開始しstopで解除すること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+      observerRegistryObserve,
+      observerRegistryDisconnect,
+    } = createPipDomainTestContext();
+    preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn(() => "全画面表示する"),
+    } as unknown as HTMLButtonElement;
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+
+    expect(observerRegistryObserve).toHaveBeenCalledWith({
+      key: "domain:pip:fullscreen-toggle-label",
+      target: fullscreenToggleButton,
+      callback: expect.any(Function),
+      options: {
+        attributes: true,
+        attributeFilter: ["aria-label"],
+      },
+    });
+
+    await domain.stop();
+    expect(observerRegistryDisconnect).toHaveBeenCalledWith("domain:pip:fullscreen-toggle-label");
+  });
+
+  test("fullscreenToggleButton監視は同一要素再通知と解除後callbackを安全に扱うこと", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+      observerRegistryObserve,
+      observerRegistryDisconnect,
+    } = createPipDomainTestContext();
+    preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    let ariaLabel = "全画面表示する";
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn((attributeName: string) => {
+        if (attributeName !== "aria-label") return null;
+        return ariaLabel;
+      }),
+    } as unknown as HTMLButtonElement;
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+    const observerCallback = observerRegistryObserve.mock.calls[0]?.[0]?.callback as MutationCallback;
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 2,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+    expect(observerRegistryObserve).toHaveBeenCalledTimes(1);
+
+    observerCallback(
+      [{ type: "attributes", attributeName: "data-state" } as MutationRecord],
+      {} as MutationObserver,
+    );
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 3,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton: null,
+      })),
+    });
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 4,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton: null,
+      })),
+    });
+    expect(observerRegistryDisconnect).toHaveBeenCalledWith("domain:pip:fullscreen-toggle-label");
+
+    ariaLabel = "全画面表示を終了";
+    observerCallback(
+      [{ type: "attributes", attributeName: "aria-label" } as MutationRecord],
+      {} as MutationObserver,
+    );
+
+    await domain.stop();
+    observerCallback(
+      [{ type: "attributes", attributeName: "aria-label" } as MutationRecord],
+      {} as MutationObserver,
+    );
+  });
+
+  test("fullscreenToggleButtonのaria-labelが想定外ならブラウザサイズ全画面状態更新をskipすること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+    } = createPipDomainTestContext();
+    preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn(() => "想定外ラベル"),
+    } as unknown as HTMLButtonElement;
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+  });
+
+  test("ブラウザサイズ全画面の開始ラベルへ変化したらown PiP中のみexitPictureInPictureすること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+      observerRegistryObserve,
+    } = createPipDomainTestContext();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const exitPictureInPicture = vi.fn(async () => undefined);
+    let ownPipActive = false;
+    let ariaLabel = "全画面表示する";
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn((attributeName: string) => {
+        if (attributeName !== "aria-label") return null;
+        return ariaLabel;
+      }),
+    } as unknown as HTMLButtonElement;
+
+    isOwnPictureInPictureElement.mockImplementation(() => ownPipActive);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+    setGlobalProperty("document", {
+      exitPictureInPicture,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+
+    const observerCallback = observerRegistryObserve.mock.calls[0]?.[0]?.callback as MutationCallback | undefined;
+    expect(typeof observerCallback).toBe("function");
+
+    ownPipActive = true;
+    ariaLabel = "全画面表示を終了";
+    observerCallback?.([{ type: "attributes", attributeName: "aria-label" } as MutationRecord], {} as MutationObserver);
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+
+    // 同じ状態の再通知では重複終了しないこと
+    observerCallback?.([{ type: "attributes", attributeName: "aria-label" } as MutationRecord], {} as MutationObserver);
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+
+    // 全画面解除ラベル側へ戻っても追加終了しないこと
+    ariaLabel = "全画面表示する";
+    observerCallback?.([{ type: "attributes", attributeName: "aria-label" } as MutationRecord], {} as MutationObserver);
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+  });
+
+  test("own PiP開始時にブラウザサイズ全画面中ならfullscreenToggleButtonをクリックして解除要求すること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    let ariaLabel = "全画面表示する";
+    const click = vi.fn();
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn((attributeName: string) => {
+        if (attributeName !== "aria-label") return null;
+        return ariaLabel;
+      }),
+      click,
+    } as unknown as HTMLButtonElement;
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+
+    const ownTarget = new EventTarget();
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    ariaLabel = "全画面表示を終了";
+    nativeEventApi.dispatch("enterpictureinpicture", { target: ownTarget } as Event);
+    expect(click).toHaveBeenCalledTimes(1);
+  });
+
+  test("own PiP開始時にブラウザサイズ全画面解除クリックが失敗しても継続すること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const { start } = preparePipStreamMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn(() => "全画面表示を終了"),
+      click: vi.fn(() => {
+        throw new Error("click failed");
+      }),
+    } as unknown as HTMLButtonElement;
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    nativeEventApi.dispatch("enterpictureinpicture", { target: new EventTarget() } as Event);
+
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  test("own PiP開始時にブラウザサイズ全画面でなければクリックせずfullscreen終了だけ要求すること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitElementsUpdated,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const { start } = preparePipStreamMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const click = vi.fn();
+    const exitFullscreen = vi.fn(async () => undefined);
+    const fullscreenToggleButton = {
+      getAttribute: vi.fn(() => "全画面表示する"),
+      click,
+    } as unknown as HTMLButtonElement;
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+    setGlobalProperty("document", {
+      fullscreenElement: {} as Element,
+      exitFullscreen,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    emitElementsUpdated({
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["fullscreenToggleButton"],
+      snapshot: Object.freeze(createEmptyElementsSnapshot({
+        fullscreenToggleButton,
+      })),
+    });
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    nativeEventApi.dispatch("enterpictureinpicture", { target: new EventTarget() } as Event);
+    await Promise.resolve();
+
+    expect(click).not.toHaveBeenCalled();
+    expect(exitFullscreen).toHaveBeenCalledTimes(1);
+    expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  test("own PiP開始時にfullscreen終了が失敗してもstream開始失敗を含めて継続すること", async () => {
+    const {
+      context,
+      stateWriters,
+      pipPatch,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const { start } = preparePipStreamMock();
+    const {
+      pipElement,
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const exitFullscreen = vi.fn(async () => {
+      throw new Error("exit fullscreen failed");
+    });
+    start.mockReturnValueOnce(false);
+
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+    setGlobalProperty("document", {
+      fullscreenElement: {} as Element,
+      exitFullscreen,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    nativeEventApi.dispatch("enterpictureinpicture", { target: new EventTarget() } as Event);
+    await new Promise<void>((resolve) => {
+      globalThis.setTimeout(resolve, 0);
+    });
+
+    expect(exitFullscreen).toHaveBeenCalledTimes(1);
+    expect(start).toHaveBeenCalledTimes(1);
+    expect((pipElement as HTMLVideoElement & { hidden: boolean }).hidden).toBe(true);
+    expect(pipPatch).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  test("fullscreenchangeでfullscreenElementがnullなら終了要求しないこと", async () => {
+    const {
+      context,
+      stateWriters,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const exitPictureInPicture = vi.fn(async () => undefined);
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+    setGlobalProperty("document", {
+      fullscreenElement: null,
+      exitPictureInPicture,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    nativeEventApi.dispatch("fullscreenchange");
+
+    expect(exitPictureInPicture).not.toHaveBeenCalled();
+  });
+
+  test("fullscreenchangeでown PiP終了要求がrejectしても継続すること", async () => {
+    const {
+      context,
+      stateWriters,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const exitPictureInPicture = vi.fn(async () => {
+      throw new Error("exit pip failed");
+    });
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+    setGlobalProperty("document", {
+      fullscreenElement: {} as Element,
+      exitPictureInPicture,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+    nativeEventApi.dispatch("fullscreenchange");
+    await new Promise<void>((resolve) => {
+      globalThis.setTimeout(resolve, 0);
+    });
+
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+  });
+
+  test("fullscreenchangeでexitPictureInPicture未対応なら終了要求をskipすること", async () => {
+    const {
+      context,
+      stateWriters,
+    } = createPipDomainTestContext();
+    const nativeEventApi = createNativeEventApiMock();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", nativeEventApi.addEventListener);
+    setGlobalProperty("removeEventListener", nativeEventApi.removeEventListener);
+    setGlobalProperty("document", {
+      fullscreenElement: {} as Element,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    expect(() => {
+      nativeEventApi.dispatch("fullscreenchange");
+    }).not.toThrow();
+  });
+
+  test("PageUrlChangedでwatch外へ遷移したらown PiP中のみexitPictureInPictureすること", async () => {
+    const {
+      context,
+      stateWriters,
+      emitPageUrlChanged,
+    } = createPipDomainTestContext();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    let ownPipActive = false;
+    const exitPictureInPicture = vi.fn(async () => undefined);
+
+    isOwnPictureInPictureElement.mockImplementation(() => ownPipActive);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+    setGlobalProperty("document", {
+      exitPictureInPicture,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    emitPageUrlChanged({
+      url: "https://www.nicovideo.jp/watch/sm9",
+      generation: 1,
+      isWatchPage: true,
+    });
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(0);
+
+    ownPipActive = true;
+    emitPageUrlChanged({
+      url: "https://www.nicovideo.jp/ranking",
+      generation: 2,
+      isWatchPage: false,
+    });
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+
+    ownPipActive = false;
+    emitPageUrlChanged({
+      url: "https://www.nicovideo.jp/tag/test",
+      generation: 3,
+      isWatchPage: false,
+    });
+    await Promise.resolve();
+    expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
+  });
+
+  test("設定OFF時はPageUrlChangedでwatch外へ遷移してもPiP終了を要求しないこと", async () => {
+    const {
+      context,
+      stateWriters,
+      emitPageUrlChanged,
+    } = createPipDomainTestContext();
+    const {
+      isOwnPictureInPictureElement,
+    } = preparePipVideoElementAdapterMock();
+    const domain = createPipDomain();
+    const exitPictureInPicture = vi.fn(async () => undefined);
+
+    context.config = {
+      ...context.config,
+      shouldExitPipOnNonWatchPage: false,
+    };
+    isOwnPictureInPictureElement.mockReturnValue(true);
+    setGlobalProperty("dispatchEvent", vi.fn(() => true));
+    setGlobalProperty("addEventListener", vi.fn());
+    setGlobalProperty("removeEventListener", vi.fn());
+    setGlobalProperty("document", {
+      exitPictureInPicture,
+    });
+
+    await domain.init(context, stateWriters);
+    await domain.start();
+
+    emitPageUrlChanged({
+      url: "https://www.nicovideo.jp/ranking",
+      generation: 1,
+      isWatchPage: false,
+    });
+    await Promise.resolve();
+    expect(exitPictureInPicture).not.toHaveBeenCalled();
   });
 
   test("init失敗後のstartはruntime未初期化エラーになること", async () => {
@@ -675,8 +1451,9 @@ describe("pipドメイン", () => {
       stateWriters,
       emitElementsUpdated,
     } = createPipDomainTestContext();
+    const domainLogger = loggerMockHarness.resolveMockLogger("domain");
     const {
-      ensureInserted,
+      updatePipVideoPlacement,
       updatePoster,
     } = preparePipVideoElementAdapterMock();
     const domain = createPipDomain();
@@ -693,7 +1470,10 @@ describe("pipドメイン", () => {
       snapshot: Object.freeze(createEmptyElementsSnapshot()),
     });
 
-    expect(ensureInserted).not.toHaveBeenCalled();
+    expect(updatePipVideoPlacement).toHaveBeenCalledWith(null);
+    expect(domainLogger.debug).toHaveBeenCalledWith(
+      "pip video element placement synced: attached=false (trigger=elements-updated)",
+    );
     expect(updatePoster).not.toHaveBeenCalled();
   });
 
@@ -704,7 +1484,7 @@ describe("pipドメイン", () => {
       emitElementsUpdated,
     } = createPipDomainTestContext();
     const {
-      ensureInserted,
+      updatePipVideoPlacement,
       updatePoster,
     } = preparePipVideoElementAdapterMock();
     const domain = createPipDomain();
@@ -723,7 +1503,7 @@ describe("pipドメイン", () => {
       })),
     });
 
-    expect(ensureInserted).not.toHaveBeenCalled();
+    expect(updatePipVideoPlacement).not.toHaveBeenCalled();
     expect(updatePoster).not.toHaveBeenCalled();
   });
 
@@ -836,14 +1616,15 @@ describe("pipドメイン", () => {
       stateWriters,
       emitElementsUpdated,
       emitVideoInfoChanged,
-      ensureInserted,
+      emitPageUrlChanged,
+      updatePipVideoPlacement,
       updatePoster,
     } = (() => {
       const base = createPipDomainTestContext();
       const adapter = preparePipVideoElementAdapterMock();
       return {
         ...base,
-        ensureInserted: adapter.ensureInserted,
+        updatePipVideoPlacement: adapter.updatePipVideoPlacement,
         updatePoster: adapter.updatePoster,
       };
     })();
@@ -859,6 +1640,7 @@ describe("pipドメイン", () => {
 
     const enterListener = nativeEventApi.getListener("enterpictureinpicture");
     const leaveListener = nativeEventApi.getListener("leavepictureinpicture");
+    const fullscreenListener = nativeEventApi.getListener("fullscreenchange");
 
     await domain.stop();
 
@@ -877,10 +1659,16 @@ describe("pipドメイン", () => {
       pageGeneration: 1,
       infoGeneration: 1,
     });
+    emitPageUrlChanged({
+      url: "https://www.nicovideo.jp/ranking",
+      generation: 2,
+      isWatchPage: false,
+    });
     enterListener?.(new Event("enterpictureinpicture"));
     leaveListener?.(new Event("leavepictureinpicture"));
+    fullscreenListener?.(new Event("fullscreenchange"));
 
-    expect(ensureInserted).not.toHaveBeenCalled();
+    expect(updatePipVideoPlacement).not.toHaveBeenCalled();
     expect(updatePoster).not.toHaveBeenCalled();
   });
 
@@ -915,7 +1703,7 @@ describe("pipドメイン", () => {
       eventRegistryEmit,
     } = createPipDomainTestContext();
     const {
-      ensureInserted,
+      updatePipVideoPlacement,
       updatePoster,
       requestPictureInPicture,
     } = preparePipVideoElementAdapterMock();
@@ -930,7 +1718,7 @@ describe("pipドメイン", () => {
 
     expect(eventRegistryOn).not.toHaveBeenCalled();
     expect(eventRegistryEmit).not.toHaveBeenCalled();
-    expect(ensureInserted).not.toHaveBeenCalled();
+    expect(updatePipVideoPlacement).not.toHaveBeenCalled();
     expect(updatePoster).not.toHaveBeenCalled();
     expect(requestPictureInPicture).not.toHaveBeenCalled();
   });

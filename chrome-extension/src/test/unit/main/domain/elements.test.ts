@@ -40,6 +40,7 @@ type TestElementsSnapshot = {
 // null初期化済みスナップショットを作る関数
 const createSnapshot = (overrides: Partial<TestElementsSnapshot> = {}): TestElementsSnapshot => ({
   commentToggleButton: null,
+  fullscreenToggleButton: null,
   playerContainer: null,
   playerMenu: null,
   video: null,

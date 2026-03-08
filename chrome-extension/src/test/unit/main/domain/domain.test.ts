@@ -78,8 +78,12 @@ const stateWriters: AppStateWriters = {
 // PiP動画要素アダプターのモック生成関数
 const createPipVideoElementAdapterMock = vi.fn(
   (): PipVideoElementAdapter => ({
-    getElement: () => new EventTarget() as unknown as HTMLVideoElement,
-    ensureInserted: vi.fn(() => true),
+    getElement: () => ({
+      srcObject: null,
+      play: vi.fn(async () => undefined),
+      pause: vi.fn(),
+    }) as unknown as HTMLVideoElement,
+    updatePipVideoPlacement: vi.fn(() => true),
     updateSize: vi.fn(() => true),
     updatePoster: vi.fn(async () => true),
     requestPictureInPicture: vi.fn(async () => true),

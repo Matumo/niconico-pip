@@ -124,10 +124,13 @@ class FakeDivElement extends EventTarget {
   }
 
   insertBefore = vi.fn((node: Node, _: Node | null) => {
+    const child = node as unknown as { parentElement?: FakeDivElement | null; id?: string };
+    if (child.parentElement && child.parentElement !== this) {
+      child.parentElement.detachChild(node);
+    }
     this.children.unshift(node);
     this.firstChild = this.children[0] ?? null;
 
-    const child = node as unknown as { parentElement?: FakeDivElement | null; id?: string };
     child.parentElement = this;
     if (typeof child.id === "string" && child.id !== "") {
       this.documentNode.registerElement(child.id, node as unknown as Element);
@@ -278,7 +281,7 @@ describe("PiP動画要素アダプター", () => {
     })).toThrow("video element creation failed");
   });
 
-  test("target未接続時は挿入せずfalseを返すこと", () => {
+  test("target未接続時は配置更新せずfalseを返すこと", () => {
     const { documentNode } = setupDomEnvironment();
     const adapter = createPipVideoElementAdapter({
       elementId: "pip-video",
@@ -289,7 +292,7 @@ describe("PiP動画要素アダプター", () => {
     const target = new FakeDivElement(documentNode);
     target.parentElement = null;
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(false);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(false);
   });
 
   test("stopは未挿入時でも安全に実行できること", () => {
@@ -319,7 +322,7 @@ describe("PiP動画要素アダプター", () => {
       height: 360,
     };
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
 
     const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
     expect(target.firstChild).toBe(pipVideoElement as unknown as Node);
@@ -355,9 +358,6 @@ describe("PiP動画要素アダプター", () => {
     expect(pipVideoElement.parentElement).toBeNull();
     expect(target.firstChild).toBeNull();
     expect(documentNode.getElementById("pip-video")).toBeNull();
-
-    const dummyStream = documentNode.createdCanvases[0]?.stream;
-    expect(dummyStream?.track.stop).toHaveBeenCalledTimes(1);
   });
 
   test("stop後は同じtargetへ再挿入できること", () => {
@@ -376,7 +376,7 @@ describe("PiP動画要素アダプター", () => {
       height: 360,
     };
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
     const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
     expect(target.firstChild).toBe(pipVideoElement as unknown as Node);
 
@@ -384,12 +384,12 @@ describe("PiP動画要素アダプター", () => {
     expect(target.firstChild).toBeNull();
     expect(documentNode.getElementById("pip-video")).toBeNull();
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
     expect(target.firstChild).toBe(pipVideoElement as unknown as Node);
     expect(documentNode.getElementById("pip-video")).toBe(pipVideoElement as unknown as Element);
   });
 
-  test("observe再設定時は既存observerをdisconnectし、ResizeObserver未対応時は監視をskipすること", () => {
+  test("別targetへ再配置時は既存observerをdisconnectし、ResizeObserver未対応時は監視をskipすること", () => {
     const { documentNode } = setupDomEnvironment();
     const adapter = createPipVideoElementAdapter({
       elementId: "pip-video",
@@ -398,19 +398,24 @@ describe("PiP動画要素アダプター", () => {
     });
 
     const rootParent = new FakeDivElement(documentNode);
-    const target = new FakeDivElement(documentNode);
-    target.parentElement = rootParent;
-    target.nextRect = {
+    const firstTarget = new FakeDivElement(documentNode);
+    firstTarget.parentElement = rootParent;
+    firstTarget.nextRect = {
       width: 640,
       height: 360,
     };
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(firstTarget as unknown as HTMLDivElement)).toBe(true);
 
     const previousObserver = FakeResizeObserver.instances[0];
     expect(previousObserver).toBeDefined();
 
-    documentNode.getElementById = vi.fn(() => null);
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    const secondTarget = new FakeDivElement(documentNode);
+    secondTarget.parentElement = rootParent;
+    secondTarget.nextRect = {
+      width: 320,
+      height: 180,
+    };
+    expect(adapter.updatePipVideoPlacement(secondTarget as unknown as HTMLDivElement)).toBe(true);
     expect(previousObserver.disconnect).toHaveBeenCalledTimes(1);
 
     setGlobalProperty("ResizeObserver", undefined);
@@ -425,7 +430,7 @@ describe("PiP動画要素アダプター", () => {
       width: 640,
       height: 360,
     };
-    expect(adapterWithoutObserver.ensureInserted(targetWithoutObserver as unknown as HTMLDivElement)).toBe(true);
+    expect(adapterWithoutObserver.updatePipVideoPlacement(targetWithoutObserver as unknown as HTMLDivElement)).toBe(true);
     expect(FakeResizeObserver.instances).toHaveLength(2);
   });
 
@@ -448,7 +453,7 @@ describe("PiP動画要素アダプター", () => {
       })),
     } as unknown as HTMLDivElement;
 
-    expect(adapter.ensureInserted(detachedInsertTarget)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(detachedInsertTarget)).toBe(true);
     expect(adapter.updateSize()).toBe(false);
   });
 
@@ -470,7 +475,7 @@ describe("PiP動画要素アダプター", () => {
 
     const staleElement = new FakeVideoElement();
     documentNode.registerElement("pip-video", staleElement as unknown as Element);
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
     const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
     expect(staleElement.remove).toHaveBeenCalledTimes(1);
     expect(target.insertBefore).toHaveBeenCalledWith(pipVideoElement as unknown as Node, null);
@@ -478,7 +483,7 @@ describe("PiP動画要素アダプター", () => {
     expect(documentNode.getElementById("pip-video")).toBe(pipVideoElement as unknown as Element);
   });
 
-  test("同じidの既存要素が自分自身なら再挿入しないこと", () => {
+  test("同じtargetに既に配置済みなら再挿入しないこと", () => {
     const { documentNode } = setupDomEnvironment();
     const adapter = createPipVideoElementAdapter({
       elementId: "pip-video",
@@ -494,13 +499,73 @@ describe("PiP動画要素アダプター", () => {
       height: 360,
     };
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
     const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
     expect(target.insertBefore).toHaveBeenCalledTimes(1);
 
-    expect(adapter.ensureInserted(target as unknown as HTMLDivElement)).toBe(true);
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
     expect(target.insertBefore).toHaveBeenCalledTimes(1);
     expect(target.firstChild).toBe(pipVideoElement as unknown as Node);
+  });
+
+  test("別targetへ更新した場合は既存要素を移動すること", () => {
+    const { documentNode } = setupDomEnvironment();
+    const adapter = createPipVideoElementAdapter({
+      elementId: "pip-video",
+      canvasWidth: 1280,
+      canvasHeight: 720,
+    });
+
+    const rootParent = new FakeDivElement(documentNode);
+    const firstTarget = new FakeDivElement(documentNode);
+    const secondTarget = new FakeDivElement(documentNode);
+    firstTarget.parentElement = rootParent;
+    secondTarget.parentElement = rootParent;
+    firstTarget.nextRect = {
+      width: 640,
+      height: 360,
+    };
+    secondTarget.nextRect = {
+      width: 320,
+      height: 180,
+    };
+
+    expect(adapter.updatePipVideoPlacement(firstTarget as unknown as HTMLDivElement)).toBe(true);
+    const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
+    expect(firstTarget.firstChild).toBe(pipVideoElement as unknown as Node);
+
+    expect(adapter.updatePipVideoPlacement(secondTarget as unknown as HTMLDivElement)).toBe(true);
+    expect(firstTarget.firstChild).toBeNull();
+    expect(secondTarget.firstChild).toBe(pipVideoElement as unknown as Node);
+    expect(pipVideoElement.style.width).toBe("320px");
+    expect(pipVideoElement.style.height).toBe("180px");
+  });
+
+  test("targetがnullなら要素を外して監視も停止すること", () => {
+    const { documentNode } = setupDomEnvironment();
+    const adapter = createPipVideoElementAdapter({
+      elementId: "pip-video",
+      canvasWidth: 1280,
+      canvasHeight: 720,
+    });
+
+    const rootParent = new FakeDivElement(documentNode);
+    const target = new FakeDivElement(documentNode);
+    target.parentElement = rootParent;
+    target.nextRect = {
+      width: 640,
+      height: 360,
+    };
+
+    expect(adapter.updatePipVideoPlacement(target as unknown as HTMLDivElement)).toBe(true);
+    const pipVideoElement = adapter.getElement() as unknown as FakeVideoElement;
+    const resizeObserver = FakeResizeObserver.instances[0];
+
+    expect(adapter.updatePipVideoPlacement(null)).toBe(true);
+    expect(resizeObserver?.disconnect).toHaveBeenCalledTimes(1);
+    expect(target.firstChild).toBeNull();
+    expect(pipVideoElement.parentElement).toBeNull();
+    expect(documentNode.getElementById("pip-video")).toBeNull();
   });
 
   test("updatePosterは成功時に設定し、未指定時はposterを削除してfalseを返すこと", async () => {
@@ -538,61 +603,6 @@ describe("PiP動画要素アダプター", () => {
 
     expect(await adapter.updatePoster("https://example.test/fallback.jpg")).toBe(true);
     expect(pipVideoElement.getAttribute("poster")).toBe("https://example.test/fallback.jpg");
-  });
-
-  test("初期ダミーストリーム作成でcanvas/captureStream/context不備時はsrcObjectがnullになること", () => {
-    const documentNodeNoCanvas = new FakeDocument();
-    documentNodeNoCanvas.createElement = (tagName: string): Element => {
-      if (tagName === "video") return new FakeVideoElement() as unknown as Element;
-      if (tagName === "canvas") return {} as Element;
-      return new FakeDivElement(documentNodeNoCanvas) as unknown as Element;
-    };
-    setGlobalProperty("document", documentNodeNoCanvas);
-    setGlobalProperty("HTMLVideoElement", FakeVideoElement);
-    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-    setGlobalProperty("ResizeObserver", FakeResizeObserver);
-    const adapterNoCanvas = createPipVideoElementAdapter({
-      elementId: "pip-video-no-canvas",
-      canvasWidth: 1280,
-      canvasHeight: 720,
-    });
-    expect((adapterNoCanvas.getElement() as unknown as FakeVideoElement).srcObject).toBeNull();
-
-    const documentNodeNoCapture = new FakeDocument();
-    documentNodeNoCapture.createElement = (tagName: string): Element => {
-      if (tagName === "video") return new FakeVideoElement() as unknown as Element;
-      if (tagName === "canvas") {
-        const canvas = new FakeCanvasElement();
-        (canvas as unknown as { captureStream?: unknown }).captureStream = undefined;
-        return canvas as unknown as Element;
-      }
-      return new FakeDivElement(documentNodeNoCapture) as unknown as Element;
-    };
-    setGlobalProperty("document", documentNodeNoCapture);
-    const adapterNoCapture = createPipVideoElementAdapter({
-      elementId: "pip-video-no-capture",
-      canvasWidth: 1280,
-      canvasHeight: 720,
-    });
-    expect((adapterNoCapture.getElement() as unknown as FakeVideoElement).srcObject).toBeNull();
-
-    const documentNodeNoContext = new FakeDocument();
-    documentNodeNoContext.createElement = (tagName: string): Element => {
-      if (tagName === "video") return new FakeVideoElement() as unknown as Element;
-      if (tagName === "canvas") {
-        const canvas = new FakeCanvasElement();
-        canvas.getContext = vi.fn(() => null) as unknown as typeof canvas.getContext;
-        return canvas as unknown as Element;
-      }
-      return new FakeDivElement(documentNodeNoContext) as unknown as Element;
-    };
-    setGlobalProperty("document", documentNodeNoContext);
-    const adapterNoContext = createPipVideoElementAdapter({
-      elementId: "pip-video-no-context",
-      canvasWidth: 1280,
-      canvasHeight: 720,
-    });
-    expect((adapterNoContext.getElement() as unknown as FakeVideoElement).srcObject).toBeNull();
   });
 
   test("requestPictureInPictureはloadedmetadata待機ヘルパーとnative API結果に応じて処理すること", async () => {

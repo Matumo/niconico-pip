@@ -6,12 +6,12 @@ import type { HeadlessBridgeDetails } from "@test/browser-headless/shared/runtim
 
 // テスト用JSON-LD scriptを設定する関数
 const upsertJsonLdScript = (key: string, textContent: string): void => {
-  const selector = `script[data-test-role="${key}"]`;
+  const selector = `script[data-niconico-pip-marker="${key}"]`;
   const existing = globalThis.document.querySelector(selector);
   const script = existing instanceof HTMLScriptElement ?
     existing : globalThis.document.createElement("script");
   script.type = "application/ld+json";
-  script.dataset.testRole = key;
+  script.dataset.niconicoPipMarker = key;
   script.textContent = textContent;
   if (!(existing instanceof HTMLScriptElement)) {
     globalThis.document.head.appendChild(script);
@@ -20,7 +20,7 @@ const upsertJsonLdScript = (key: string, textContent: string): void => {
 
 // テスト用JSON-LD scriptを全削除する関数
 const removeAllJsonLdScripts = (): void => {
-  const scripts = globalThis.document.querySelectorAll('script[data-test-role^="video-info-runtime-"]');
+  const scripts = globalThis.document.querySelectorAll('script[data-niconico-pip-marker^="video-info-runtime-"]');
   for (const script of Array.from(scripts)) {
     script.remove();
   }

@@ -8,6 +8,8 @@ import { runTest as run_main_config_selector_test } from "@test/browser-headless
 import { runTest as run_main_adapter_dom_video_element_observer_test } from "@test/browser-headless/main/adapter/dom/video-element-observer.test.runtime";
 import { runTest as run_main_adapter_dom_url_change_observer_test } from "@test/browser-headless/main/adapter/dom/url-change-observer.test.runtime";
 import { runTest as run_main_adapter_dom_video_info_test } from "@test/browser-headless/main/adapter/dom/video-info.test.runtime";
+import { runTest as run_main_adapter_media_pip_renderer_test } from "@test/browser-headless/main/adapter/media/pip-renderer.test.runtime";
+import { runTest as run_main_adapter_media_pip_stream_test } from "@test/browser-headless/main/adapter/media/pip-stream.test.runtime";
 import { runTest as run_main_adapter_media_pip_video_element_test } from "@test/browser-headless/main/adapter/media/pip-video-element.test.runtime";
 import { runTest as run_main_adapter_media_pip_video_element_size_test } from "@test/browser-headless/main/adapter/media/pip-video-element-size.test.runtime";
 import { runTest as run_main_adapter_media_pip_video_element_poster_test } from "@test/browser-headless/main/adapter/media/pip-video-element-poster.test.runtime";
@@ -33,6 +35,8 @@ const runtimeTestHandlerMap: Record<string, RuntimeTestHandler> = {
   [runtimeTestPathMap.main.adapter.dom.videoElementObserverTest]: () => run_main_adapter_dom_video_element_observer_test(),
   [runtimeTestPathMap.main.adapter.dom.urlChangeObserverTest]: () => run_main_adapter_dom_url_change_observer_test(),
   [runtimeTestPathMap.main.adapter.dom.videoInfoTest]: () => run_main_adapter_dom_video_info_test(),
+  [runtimeTestPathMap.main.adapter.media.pipRendererTest]: (request) => run_main_adapter_media_pip_renderer_test(request),
+  [runtimeTestPathMap.main.adapter.media.pipStreamTest]: (request) => run_main_adapter_media_pip_stream_test(request),
   [runtimeTestPathMap.main.adapter.media.pipVideoElementTest]: () => run_main_adapter_media_pip_video_element_test(),
   [runtimeTestPathMap.main.adapter.media.pipVideoElementSizeTest]: () => run_main_adapter_media_pip_video_element_size_test(),
   [runtimeTestPathMap.main.adapter.media.pipVideoElementPosterTest]: (request) => run_main_adapter_media_pip_video_element_poster_test(request),

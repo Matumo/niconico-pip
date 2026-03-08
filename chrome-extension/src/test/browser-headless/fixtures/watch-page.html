@@ -20,6 +20,9 @@
                     <button data-scope="tooltip" data-part="trigger" aria-label="コメントを表示する">
                       コメント
                     </button>
+                    <button data-scope="tooltip" data-part="trigger" aria-label="全画面表示する">
+                      全画面
+                    </button>
                     <div data-name="content">
                       <video muted></video>
                     </div>
@@ -34,5 +37,21 @@
         </main>
       </div>
     </div>
+    <script>
+      (() => {
+        const fullscreenToggleButton = globalThis.document.querySelector(
+          'button[data-scope="tooltip"][data-part="trigger"][aria-label="全画面表示する"]',
+        );
+        if (!(fullscreenToggleButton instanceof HTMLButtonElement)) return;
+
+        fullscreenToggleButton.addEventListener("click", () => {
+          const currentLabel = fullscreenToggleButton.getAttribute("aria-label");
+          const nextLabel = currentLabel === "全画面表示を終了"
+            ? "全画面表示する"
+            : "全画面表示を終了";
+          fullscreenToggleButton.setAttribute("aria-label", nextLabel);
+        });
+      })();
+    </script>
   </body>
 </html>

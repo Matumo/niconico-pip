@@ -23,16 +23,24 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
   const config = createAppConfig();
   const runtimeElementId = `${config.pipVideoElementId}-runtime-${Date.now()}`;
   const host = globalThis.document.createElement("div");
-  const target = globalThis.document.createElement("div");
+  const firstTarget = globalThis.document.createElement("div");
+  const secondTarget = globalThis.document.createElement("div");
+  const secondTargetExistingChild = globalThis.document.createElement("div");
   const staleElement = globalThis.document.createElement("video");
   staleElement.id = runtimeElementId;
   host.style.position = "fixed";
   host.style.left = "-10000px";
   host.style.top = "-10000px";
-  target.style.display = "block";
-  target.style.width = "640px";
-  target.style.height = "360px";
-  host.appendChild(target);
+  firstTarget.style.display = "block";
+  firstTarget.style.width = "640px";
+  firstTarget.style.height = "360px";
+  secondTarget.style.display = "block";
+  secondTarget.style.width = "320px";
+  secondTarget.style.height = "180px";
+  secondTargetExistingChild.dataset.niconicoPipMarker = "existing-second-target-child";
+  host.appendChild(firstTarget);
+  host.appendChild(secondTarget);
+  secondTarget.appendChild(secondTargetExistingChild);
   globalThis.document.body.appendChild(staleElement);
   globalThis.document.body.appendChild(host);
 
@@ -44,24 +52,33 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
 
   try {
     const staleElementResolvedBeforeInsert = globalThis.document.getElementById(runtimeElementId) === staleElement;
-    const inserted = adapter.ensureInserted(target);
+    const inserted = adapter.updatePipVideoPlacement(firstTarget);
     const pipVideoElement = adapter.getElement();
-    const insertedAsFirstChild = target.firstElementChild === pipVideoElement;
+    const insertedAsFirstChild = firstTarget.firstElementChild === pipVideoElement;
     const staleElementRemovedOnInsert = !staleElement.isConnected;
     const ownElementResolvedByIdAfterInsert = globalThis.document.getElementById(runtimeElementId) === pipVideoElement;
     const pipVideoElementWithPipApi = pipVideoElement as HTMLVideoElement & {
       requestPictureInPicture?: () => Promise<PictureInPictureWindow>;
     };
     const stream = pipVideoElement.srcObject;
-    const hasInitialMediaStream = stream instanceof MediaStream;
+    const startsWithoutMediaStream = stream === null;
 
     const initialSizeApplied = await waitForCondition(
       () => pipVideoElement.style.width === "640px" && pipVideoElement.style.height === "360px",
     );
 
-    target.style.width = "320px";
-    target.style.height = "180px";
+    firstTarget.style.width = "320px";
+    firstTarget.style.height = "180px";
     const resizeObserverTracked = await waitForCondition(
+      () => pipVideoElement.style.width === "320px" && pipVideoElement.style.height === "180px",
+    );
+
+    const movedToSecondTarget = adapter.updatePipVideoPlacement(secondTarget);
+    const movedToSecondTargetAsFirstChild = secondTarget.firstElementChild === pipVideoElement;
+    const existingChildMovedBehindPip = secondTarget.children.item(1) === secondTargetExistingChild;
+    const removedFromFirstTargetOnMove = !firstTarget.contains(pipVideoElement);
+    const singlePipNodeAfterMove = globalThis.document.querySelectorAll(`#${runtimeElementId}`).length === 1;
+    const movedSizeApplied = await waitForCondition(
       () => pipVideoElement.style.width === "320px" && pipVideoElement.style.height === "180px",
     );
 
@@ -102,11 +119,11 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
     }
 
     adapter.stop();
-    const tracksEndedAfterStop = stream instanceof MediaStream &&
-      stream.getTracks().every((track) => track.readyState === "ended");
     const removedAfterStop = pipVideoElement.parentElement === null &&
-      target.firstElementChild !== pipVideoElement;
+      firstTarget.firstElementChild !== pipVideoElement &&
+      secondTarget.firstElementChild !== pipVideoElement;
     const notFoundByIdAfterStop = globalThis.document.getElementById(runtimeElementId) === null;
+    const srcObjectUntouchedAfterStop = pipVideoElement.srcObject === stream;
 
     return {
       inserted,
@@ -114,9 +131,15 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
       staleElementResolvedBeforeInsert,
       staleElementRemovedOnInsert,
       ownElementResolvedByIdAfterInsert,
-      hasInitialMediaStream,
+      startsWithoutMediaStream,
       updatedSize: initialSizeApplied,
       resizeObserverTracked,
+      movedToSecondTarget,
+      movedToSecondTargetAsFirstChild,
+      existingChildMovedBehindPip,
+      removedFromFirstTargetOnMove,
+      singlePipNodeAfterMove,
+      movedSizeApplied,
       updatePosterSucceeded: updatePosterResult === true,
       posterClearedOnNull: clearPosterResult === false,
       posterSet: posterSetBeforeClear,
@@ -126,7 +149,7 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
       ownByDocumentStateWhenNotInPip,
       requestPictureInPictureHandled,
       requestPictureInPictureAttempted,
-      tracksEndedAfterStop,
+      srcObjectUntouchedAfterStop,
       removedAfterStop,
       notFoundByIdAfterStop,
     };
