@@ -10,6 +10,7 @@ type GlobalWithAppDebug = typeof globalThis & {
 interface AppConfig {
   appName: string;
   prefixId: string;
+  debugMode: boolean;
   watchPageUrlPattern: RegExp;
   shouldUseDebugLog: boolean;
   shouldExitPipOnNonWatchPage: boolean;
@@ -26,7 +27,8 @@ interface AppConfig {
 // 既定の設定項目
 const appName = "niconico-pip";
 const prefixId = `com-matumo-dev-${appName}`;
-const shouldUseDebugLog = (globalThis as GlobalWithAppDebug).__APP_DEBUG__ ?? false;
+const debugMode = (globalThis as GlobalWithAppDebug).__APP_DEBUG__ ?? false;
+const shouldUseDebugLog = debugMode;
 const shouldExitPipOnNonWatchPage = true;
 const watchPageUrlPattern = /^https:\/\/www\.nicovideo\.jp\/watch\/.+$/;
 // 要素ID
@@ -46,6 +48,7 @@ const seekForwardDefaultOffset = 10;
 const defaultAppConfig: AppConfig = {
   appName,
   prefixId,
+  debugMode,
   shouldUseDebugLog,
   shouldExitPipOnNonWatchPage,
   watchPageUrlPattern,

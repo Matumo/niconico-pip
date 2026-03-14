@@ -10,6 +10,7 @@ const runTest = (): HeadlessBridgeDetails => {
   const details: HeadlessBridgeDetails = {
     appName: config.appName.trim() !== "",
     prefixId: config.prefixId.trim() !== "",
+    debugModeMatchesDebugLog: config.debugMode === config.shouldUseDebugLog,
     watchPageUrlPatternSource: config.watchPageUrlPattern.source.trim() !== "",
     pipButtonElementId: config.pipButtonElementId.includes(config.prefixId),
     pipVideoElementId: config.pipVideoElementId.includes(config.prefixId),

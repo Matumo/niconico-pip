@@ -38,6 +38,7 @@ describe("config", () => {
     expect(config).toMatchObject({
       appName: expect.any(String),
       prefixId: expect.any(String),
+      debugMode: expect.any(Boolean),
       shouldUseDebugLog: expect.any(Boolean),
       shouldExitPipOnNonWatchPage: expect.any(Boolean),
       watchPageUrlPattern: expect.any(RegExp),
@@ -86,14 +87,16 @@ describe("config", () => {
     const createAppConfig = await loadCreateAppConfig();
     const config = createAppConfig();
 
+    expect(config.debugMode).toBe(false);
     expect(config.shouldUseDebugLog).toBe(false);
   });
 
-  test("__APP_DEBUG__ が true のとき shouldUseDebugLog が true であること", async () => {
+  test("__APP_DEBUG__ が true のとき debugMode と shouldUseDebugLog が true であること", async () => {
     setAppDebug(true);
     const createAppConfig = await loadCreateAppConfig();
     const config = createAppConfig();
 
+    expect(config.debugMode).toBe(true);
     expect(config.shouldUseDebugLog).toBe(true);
   });
 });
