@@ -95,7 +95,7 @@ const createColorCanvas = (
   const canvas = globalThis.document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new TypeError("2d context is unavailable");
   context.fillStyle = fillStyle;
   context.fillRect(0, 0, width, height);

@@ -237,7 +237,7 @@ const createStreamBackedVideoElement = (): HTMLVideoElement => {
   const canvas = globalThis.document.createElement("canvas");
   canvas.width = 16;
   canvas.height = 16;
-  const context = canvas.getContext("2d");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
   if (context) {
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);

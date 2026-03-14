@@ -490,11 +490,36 @@ describe("PiPストリーム", () => {
     expect(() => anotherStream.teardown()).not.toThrow();
   });
 
-  test("playがrejectしても開始処理を継続すること", async () => {
+  test("playがAbortErrorでrejectしても開始処理を継続しdebugログに留めること", async () => {
     setupDomEnvironment();
     const mediaLogger = loggerMockHarness.resolveMockLogger("media");
     const pipVideoElement = new FakeVideoElement();
-    pipVideoElement.play.mockRejectedValueOnce(new Error("play failed"));
+    const abortError = new Error("play aborted");
+    abortError.name = "AbortError";
+    pipVideoElement.play.mockRejectedValueOnce(abortError);
+    const stream = createPipStream({
+      pipVideoElement: pipVideoElement as unknown as HTMLVideoElement,
+      renderFrame: vi.fn(() => true),
+      canvasWidth: 1280,
+      canvasHeight: 720,
+    });
+
+    expect(stream.start()).toBe(true);
+    await flushMicrotasks(2);
+    expect(stream.isRunning()).toBe(true);
+    expect(mediaLogger.debug).toHaveBeenCalledWith(
+      "pip stream play rejected with AbortError",
+      abortError,
+    );
+    expect(mediaLogger.warn).not.toHaveBeenCalled();
+  });
+
+  test("playがAbortError以外でrejectした場合はwarnログを出すこと", async () => {
+    setupDomEnvironment();
+    const mediaLogger = loggerMockHarness.resolveMockLogger("media");
+    const pipVideoElement = new FakeVideoElement();
+    const playError = new Error("play failed");
+    pipVideoElement.play.mockRejectedValueOnce(playError);
     const stream = createPipStream({
       pipVideoElement: pipVideoElement as unknown as HTMLVideoElement,
       renderFrame: vi.fn(() => true),
@@ -507,7 +532,7 @@ describe("PiPストリーム", () => {
     expect(stream.isRunning()).toBe(true);
     expect(mediaLogger.warn).toHaveBeenCalledWith(
       "pip stream play rejected",
-      expect.any(Error),
+      playError,
     );
   });
 

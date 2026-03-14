@@ -47,6 +47,10 @@ type BrowserGlobal = typeof globalThis & {
 const log = getLogger(appLoggerNames.media);
 const renderFrameErrorLogCooldownMs = 10_000; // クールダウン期間（ミリ秒）
 
+// play()のrejectがAbortErrorかどうかを判定する関数
+const isAbortError = (error: unknown): boolean =>
+  error instanceof Error && error.name === "AbortError";
+
 // クールダウン付き描画ループ失敗ロガーを作成する関数
 const createRenderFrameErrorLogger = (message: string): RenderFrameErrorLogger => {
   let lastLoggedAt = -Infinity;
@@ -218,6 +222,10 @@ const createPipStream = (
           log.debug("pip stream play resolved");
         })
         .catch((error: unknown) => {
+          if (isAbortError(error)) {
+            log.debug("pip stream play rejected with AbortError", error);
+            return;
+          }
           log.warn("pip stream play rejected", error);
         });
 
