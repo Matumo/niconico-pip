@@ -2,7 +2,8 @@
  * PiP動画要素アダプター
  */
 import { waitForLoadedMetadata } from "@main/adapter/media/pip-video-element/pip-video-element-loaded-metadata";
-import { makePoster16By9 } from "@main/adapter/media/pip-video-element/pip-video-element-poster";
+import { createPosterDataUrlCache } from "@main/adapter/media/pip-video-element/pip-video-element-poster-cache";
+import { getPosterDataUrl } from "@main/adapter/media/pip-video-element/pip-video-element-poster";
 import { calculatePipVideoElementSize } from "@main/adapter/media/pip-video-element/pip-video-element-size";
 
 // PiP動画要素アダプター生成の入力型
@@ -78,6 +79,9 @@ const createPipVideoElementAdapter = (
   const pictureInPictureCapableVideoElement = pipVideoElement as PictureInPictureCapableVideoElement;
 
   let sizeObserver: ResizeObserver | null = null;
+  const posterDataUrlCache = createPosterDataUrlCache({
+    maxEntries: 3,
+  });
 
   // PiP動画要素をDOMから外して監視も止める関数
   const detach = (): void => {
@@ -164,6 +168,7 @@ const createPipVideoElementAdapter = (
     return true;
   };
 
+  // TODO: 完了が遅延して次のposterを上書きしないようガードを入れる
   // PiP動画要素のposterを更新する関数
   const updatePoster = async (thumbnailUrl: string | null): Promise<boolean> => {
     if (!thumbnailUrl) {
@@ -172,7 +177,10 @@ const createPipVideoElementAdapter = (
     }
 
     try {
-      const posterDataUrl = await makePoster16By9(thumbnailUrl, documentNode);
+      const posterDataUrl = await getPosterDataUrl({
+        thumbnailUrl,
+        posterDataUrlCache,
+      });
       pipVideoElement.setAttribute("poster", posterDataUrl);
     } catch {
       pipVideoElement.setAttribute("poster", thumbnailUrl);

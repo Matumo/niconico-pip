@@ -2,7 +2,8 @@
  * PiP動画要素 poster変換テスト
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { makePoster16By9 } from "@main/adapter/media/pip-video-element/pip-video-element-poster";
+import { createPosterDataUrlCache } from "@main/adapter/media/pip-video-element/pip-video-element-poster-cache";
+import { getPosterDataUrl } from "@main/adapter/media/pip-video-element/pip-video-element-poster";
 import {
   captureGlobalDescriptors,
   restoreGlobalDescriptors,
@@ -10,7 +11,11 @@ import {
   type GlobalDescriptorMap,
 } from "@test/unit/main/shared/global-property";
 
-const globalPropertyKeys = ["Image", "HTMLCanvasElement"] as const;
+const globalPropertyKeys = ["document", "Image", "HTMLCanvasElement"] as const;
+
+interface PosterDocumentLike {
+  createElement(tagName: string): Element;
+}
 
 class FakeCanvasRenderingContext2D {
   drawImage = vi.fn();
@@ -30,13 +35,24 @@ class FakeImage {
     | "success"
     | "error"
     | "successThenError"
-    | "errorThenSuccess" = "success";
+    | "errorThenSuccess"
+    | "manual" = "success";
   static readonly instances: FakeImage[] = [];
+  static readonly srcValues: string[] = [];
+  static readonly pendingImages: FakeImage[] = [];
 
   static setMode(
-    mode: "success" | "error" | "successThenError" | "errorThenSuccess",
+    mode: "success" | "error" | "successThenError" | "errorThenSuccess" | "manual",
   ): void {
     FakeImage.currentMode = mode;
+  }
+
+  static flushPendingSuccess(): void {
+    const pendingImages = [...FakeImage.pendingImages];
+    FakeImage.pendingImages.length = 0;
+    for (const image of pendingImages) {
+      image.onload?.();
+    }
   }
 
   constructor() {
@@ -49,7 +65,8 @@ class FakeImage {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
 
-  set src(_value: string) {
+  set src(value: string) {
+    FakeImage.srcValues.push(value);
     if (FakeImage.currentMode === "success") {
       this.onload?.();
       return;
@@ -63,10 +80,38 @@ class FakeImage {
       this.onerror?.();
       return;
     }
+    if (FakeImage.currentMode === "manual") {
+      FakeImage.pendingImages.push(this);
+      return;
+    }
     this.onerror?.();
     this.onload?.();
   }
 }
+
+const createPosterDocumentNode = () => {
+  const createdCanvases: FakeCanvasElement[] = [];
+  const documentNode: PosterDocumentLike = {
+    createElement: vi.fn(() => {
+      const canvas = new FakeCanvasElement();
+      createdCanvases.push(canvas);
+      return canvas as unknown as Element;
+    }),
+  };
+  setGlobalProperty("document", documentNode);
+  return {
+    createdCanvases,
+    documentNode,
+  };
+};
+
+const getPosterDataUrlWithFreshCache = (thumbnailUrl: string): Promise<string> =>
+  getPosterDataUrl({
+    thumbnailUrl,
+    posterDataUrlCache: createPosterDataUrlCache({
+      maxEntries: 3,
+    }),
+  });
 
 describe("PiP動画要素 poster変換", () => {
   let globalDescriptors: GlobalDescriptorMap<(typeof globalPropertyKeys)[number]>;
@@ -74,6 +119,8 @@ describe("PiP動画要素 poster変換", () => {
   beforeEach(() => {
     globalDescriptors = captureGlobalDescriptors(globalPropertyKeys);
     FakeImage.instances.length = 0;
+    FakeImage.srcValues.length = 0;
+    FakeImage.pendingImages.length = 0;
     FakeImage.setMode("success");
   });
 
@@ -81,36 +128,49 @@ describe("PiP動画要素 poster変換", () => {
     vi.restoreAllMocks();
     restoreGlobalDescriptors(globalDescriptors);
     FakeImage.instances.length = 0;
+    FakeImage.srcValues.length = 0;
+    FakeImage.pendingImages.length = 0;
     FakeImage.setMode("success");
   });
 
   test("Image未対応時はTypeErrorを返すこと", async () => {
     setGlobalProperty("Image", undefined);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    createPosterDocumentNode();
 
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
-
-    await expect(makePoster16By9("https://example.test/no-image.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/no-image.jpg")).rejects.toThrow(
       "poster conversion is unavailable",
+    );
+  });
+
+  test("document未対応時はTypeErrorを返すこと", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("document", undefined);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/no-document.jpg")).rejects.toThrow(
+      "poster conversion document is unavailable",
+    );
+  });
+
+  test("documentのcreateElementが関数でない場合はTypeErrorを返すこと", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("document", {
+      createElement: 1,
+    });
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/invalid-document.jpg")).rejects.toThrow(
+      "poster conversion document is unavailable",
     );
   });
 
   test("変換成功時は16:9へ中央トリミングしたdata URLを返すこと", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    const { createdCanvases } = createPosterDocumentNode();
 
-    const createdCanvases: FakeCanvasElement[] = [];
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => {
-        const canvas = new FakeCanvasElement();
-        createdCanvases.push(canvas);
-        return canvas as unknown as HTMLElement;
-      }),
-    };
-
-    await expect(makePoster16By9("https://example.test/success.jpg", documentNode)).resolves.toBe(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/success.jpg")).resolves.toBe(
       "data:image/png;base64,converted",
     );
     const image = FakeImage.instances[0];
@@ -124,12 +184,11 @@ describe("PiP動画要素 poster変換", () => {
   test("変換用canvasが利用できない場合はTypeErrorを返すこと", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-
-    const documentNode: Pick<Document, "createElement"> = {
+    setGlobalProperty("document", {
       createElement: vi.fn(() => ({}) as unknown as HTMLElement),
-    };
+    });
 
-    await expect(makePoster16By9("https://example.test/no-canvas.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/no-canvas.jpg")).rejects.toThrow(
       "poster conversion canvas is unavailable",
     );
   });
@@ -137,16 +196,15 @@ describe("PiP動画要素 poster変換", () => {
   test("変換用canvasのcontextが取得できない場合はTypeErrorを返すこと", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-
-    const documentNode: Pick<Document, "createElement"> = {
+    setGlobalProperty("document", {
       createElement: vi.fn(() => {
         const canvas = new FakeCanvasElement();
         canvas.getContext = vi.fn(() => null) as unknown as typeof canvas.getContext;
         return canvas as unknown as HTMLElement;
       }),
-    };
+    });
 
-    await expect(makePoster16By9("https://example.test/no-context.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/no-context.jpg")).rejects.toThrow(
       "poster conversion context is unavailable",
     );
   });
@@ -155,12 +213,9 @@ describe("PiP動画要素 poster変換", () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
     FakeImage.setMode("error");
+    createPosterDocumentNode();
 
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
-
-    await expect(makePoster16By9("https://example.test/image-error.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/image-error.jpg")).rejects.toThrow(
       "poster image load failed",
     );
   });
@@ -169,12 +224,9 @@ describe("PiP動画要素 poster変換", () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
     FakeImage.setMode("error");
+    createPosterDocumentNode();
 
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
-
-    await expect(makePoster16By9("https://example.test/not-found.png", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/not-found.png")).rejects.toThrow(
       "poster image load failed",
     );
   });
@@ -183,27 +235,23 @@ describe("PiP動画要素 poster変換", () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
     FakeImage.setMode("error");
-
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
+    createPosterDocumentNode();
 
     await expect(
-      makePoster16By9("data:text/plain;base64,SGVsbG8sIHBvc3RlciB0ZXN0", documentNode),
+      getPosterDataUrlWithFreshCache("data:text/plain;base64,SGVsbG8sIHBvc3RlciB0ZXN0"),
     ).rejects.toThrow("poster image load failed");
   });
 
   test("createElementが例外を投げた場合はrejectすること", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-
-    const documentNode: Pick<Document, "createElement"> = {
+    setGlobalProperty("document", {
       createElement: vi.fn(() => {
         throw new Error("createElement failed");
       }),
-    };
+    });
 
-    await expect(makePoster16By9("https://example.test/create-throw.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/create-throw.jpg")).rejects.toThrow(
       "createElement failed",
     );
   });
@@ -211,8 +259,7 @@ describe("PiP動画要素 poster変換", () => {
   test("drawImageが例外を投げた場合はrejectすること", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-
-    const documentNode: Pick<Document, "createElement"> = {
+    setGlobalProperty("document", {
       createElement: vi.fn(() => {
         const canvas = new FakeCanvasElement();
         canvas.context.drawImage = vi.fn(() => {
@@ -220,9 +267,9 @@ describe("PiP動画要素 poster変換", () => {
         });
         return canvas as unknown as HTMLElement;
       }),
-    };
+    });
 
-    await expect(makePoster16By9("https://example.test/draw-throw.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/draw-throw.jpg")).rejects.toThrow(
       "drawImage failed",
     );
   });
@@ -230,8 +277,7 @@ describe("PiP動画要素 poster変換", () => {
   test("toDataURLが例外を投げた場合はrejectすること", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
-
-    const documentNode: Pick<Document, "createElement"> = {
+    setGlobalProperty("document", {
       createElement: vi.fn(() => {
         const canvas = new FakeCanvasElement();
         canvas.toDataURL = vi.fn(() => {
@@ -239,9 +285,9 @@ describe("PiP動画要素 poster変換", () => {
         });
         return canvas as unknown as HTMLElement;
       }),
-    };
+    });
 
-    await expect(makePoster16By9("https://example.test/dataurl-throw.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/dataurl-throw.jpg")).rejects.toThrow(
       "toDataURL failed",
     );
   });
@@ -250,12 +296,9 @@ describe("PiP動画要素 poster変換", () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
     FakeImage.setMode("successThenError");
+    createPosterDocumentNode();
 
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
-
-    await expect(makePoster16By9("https://example.test/success-then-error.jpg", documentNode)).resolves.toBe(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/success-then-error.jpg")).resolves.toBe(
       "data:image/png;base64,converted",
     );
   });
@@ -264,13 +307,104 @@ describe("PiP動画要素 poster変換", () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
     FakeImage.setMode("errorThenSuccess");
+    createPosterDocumentNode();
 
-    const documentNode: Pick<Document, "createElement"> = {
-      createElement: vi.fn(() => new FakeCanvasElement() as unknown as HTMLElement),
-    };
-
-    await expect(makePoster16By9("https://example.test/error-then-success.jpg", documentNode)).rejects.toThrow(
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/error-then-success.jpg")).rejects.toThrow(
       "poster image load failed",
     );
+  });
+
+  test("getPosterDataUrlはkeyパラメーターだけ異なるURLでも同じcache entryを使うこと", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    createPosterDocumentNode();
+    const posterDataUrlCache = createPosterDataUrlCache({
+      maxEntries: 3,
+    });
+
+    await expect(getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?key=aaa&foo=1",
+      posterDataUrlCache,
+    })).resolves.toBe("data:image/png;base64,converted");
+    await expect(getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?foo=1&key=bbb",
+      posterDataUrlCache,
+    })).resolves.toBe("data:image/png;base64,converted");
+
+    expect(FakeImage.instances).toHaveLength(1);
+    expect(FakeImage.srcValues).toEqual([
+      "https://example.test/thumb.jpg?key=aaa&foo=1",
+    ]);
+  });
+
+  test("getPosterDataUrlは同時実行時に同じcache keyの進行中Promiseを共有して重複変換しないこと", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    FakeImage.setMode("manual");
+    createPosterDocumentNode();
+    const posterDataUrlCache = createPosterDataUrlCache({
+      maxEntries: 3,
+    });
+
+    const firstResolve = getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?key=aaa",
+      posterDataUrlCache,
+    });
+    const secondResolve = getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?key=bbb",
+      posterDataUrlCache,
+    });
+
+    expect(secondResolve).toBe(firstResolve);
+    expect(FakeImage.instances).toHaveLength(1);
+    FakeImage.flushPendingSuccess();
+
+    await expect(firstResolve).resolves.toBe("data:image/png;base64,converted");
+    await expect(secondResolve).resolves.toBe("data:image/png;base64,converted");
+  });
+
+  test("getPosterDataUrlは変換失敗時にcacheから外して次回再試行すること", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    FakeImage.setMode("error");
+    createPosterDocumentNode();
+    const posterDataUrlCache = createPosterDataUrlCache({
+      maxEntries: 3,
+    });
+
+    await expect(getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?key=aaa",
+      posterDataUrlCache,
+    })).rejects.toThrow("poster image load failed");
+    await expect(getPosterDataUrl({
+      thumbnailUrl: "https://example.test/thumb.jpg?key=bbb",
+      posterDataUrlCache,
+    })).rejects.toThrow("poster image load failed");
+
+    expect(FakeImage.instances).toHaveLength(2);
+  });
+
+  test("getPosterDataUrlはFIFOで最大件数を超えたら最古entryから再生成すること", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    createPosterDocumentNode();
+    const posterDataUrlCache = createPosterDataUrlCache({
+      maxEntries: 3,
+    });
+
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/1.jpg?key=a", posterDataUrlCache });
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/2.jpg?key=a", posterDataUrlCache });
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/3.jpg?key=a", posterDataUrlCache });
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/2.jpg?key=b", posterDataUrlCache });
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/4.jpg?key=a", posterDataUrlCache });
+    await getPosterDataUrl({ thumbnailUrl: "https://example.test/1.jpg?key=b", posterDataUrlCache });
+
+    expect(FakeImage.srcValues).toEqual([
+      "https://example.test/1.jpg?key=a",
+      "https://example.test/2.jpg?key=a",
+      "https://example.test/3.jpg?key=a",
+      "https://example.test/4.jpg?key=a",
+      "https://example.test/1.jpg?key=b",
+    ]);
   });
 });

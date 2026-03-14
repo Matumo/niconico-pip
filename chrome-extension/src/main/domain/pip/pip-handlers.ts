@@ -113,10 +113,10 @@ const createPipEventHandlers = (
         syncSourceVisibilityForPipEnabled(runtime);
       }
 
-      // TODO: 必要ならそれ以外のキーでも処理するようにする
+      // playerContainerが更新されたらPiP動画要素とposterの更新を試みる
       if (payload.changedKeys.includes("playerContainer")) {
         const playerContainer = payload.snapshot.playerContainer;
-        // playerContainerが更新されたらPiP動画要素の挿入先を更新
+        // PiP動画要素の挿入先を更新
         const updated = runtime.pipVideoElementAdapter.updatePipVideoPlacement(playerContainer);
         if (!updated) {
           log.warn("pip video element placement update failed: playerContainer is unavailable");
@@ -141,7 +141,6 @@ const createPipEventHandlers = (
       const runtime = options.resolveRuntime();
       if (!runtime) return;
 
-      // TODO: 同じURLは省く処理を入れる
       void runtime.pipVideoElementAdapter.updatePoster(payload.thumbnail)
         .then((updated) => {
           log.debug(`pip poster update synced: updated=${updated} (trigger=video-info-changed)`);

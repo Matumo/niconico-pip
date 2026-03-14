@@ -12,7 +12,7 @@ import {
 
 const helperMocks = vi.hoisted(() => ({
   waitForLoadedMetadata: vi.fn(),
-  makePoster16By9: vi.fn(),
+  getPosterDataUrl: vi.fn(),
   calculatePipVideoElementSize: vi.fn(),
 }));
 
@@ -21,7 +21,7 @@ vi.mock("@main/adapter/media/pip-video-element/pip-video-element-loaded-metadata
 }));
 
 vi.mock("@main/adapter/media/pip-video-element/pip-video-element-poster", () => ({
-  makePoster16By9: helperMocks.makePoster16By9,
+  getPosterDataUrl: helperMocks.getPosterDataUrl,
 }));
 
 vi.mock("@main/adapter/media/pip-video-element/pip-video-element-size", () => ({
@@ -237,10 +237,10 @@ describe("PiP動画要素アダプター", () => {
   beforeEach(() => {
     globalDescriptors = captureGlobalDescriptors(globalPropertyKeys);
     helperMocks.waitForLoadedMetadata.mockReset();
-    helperMocks.makePoster16By9.mockReset();
+    helperMocks.getPosterDataUrl.mockReset();
     helperMocks.calculatePipVideoElementSize.mockReset();
     helperMocks.waitForLoadedMetadata.mockResolvedValue(true);
-    helperMocks.makePoster16By9.mockResolvedValue("data:image/png;base64,converted");
+    helperMocks.getPosterDataUrl.mockResolvedValue("data:image/png;base64,converted");
     helperMocks.calculatePipVideoElementSize.mockImplementation((options) => ({
       width: Math.max(1, Math.floor(options.parentWidth)),
       height: Math.max(0, Math.floor(options.parentHeight)),
@@ -579,21 +579,23 @@ describe("PiP動画要素アダプター", () => {
 
     expect(await adapter.updatePoster("https://example.test/success.jpg")).toBe(true);
     expect(pipVideoElement.getAttribute("poster")).toBe("data:image/png;base64,converted");
-    expect(helperMocks.makePoster16By9).toHaveBeenCalledWith(
-      "https://example.test/success.jpg",
-      expect.objectContaining({
-        createElement: expect.any(Function),
+    expect(helperMocks.getPosterDataUrl).toHaveBeenCalledWith(expect.objectContaining({
+      thumbnailUrl: "https://example.test/success.jpg",
+      posterDataUrlCache: expect.objectContaining({
+        get: expect.any(Function),
+        set: expect.any(Function),
+        delete: expect.any(Function),
       }),
-    );
+    }));
     expect(await adapter.updatePoster(null)).toBe(false);
     expect(pipVideoElement.getAttribute("poster")).toBeNull();
     expect(pipVideoElement.removeAttribute).toHaveBeenCalledWith("poster");
-    expect(helperMocks.makePoster16By9).toHaveBeenCalledTimes(1);
+    expect(helperMocks.getPosterDataUrl).toHaveBeenCalledTimes(1);
   });
 
   test("updatePosterは変換失敗時に元URLへフォールバックすること", async () => {
     setupDomEnvironment();
-    helperMocks.makePoster16By9.mockRejectedValueOnce(new Error("poster convert failed"));
+    helperMocks.getPosterDataUrl.mockRejectedValueOnce(new Error("poster convert failed"));
     const adapter = createPipVideoElementAdapter({
       elementId: "pip-video",
       canvasWidth: 1280,

@@ -1,25 +1,52 @@
 /**
  * PiP動画要素 poster変換
  */
+import { appLoggerNames } from "@main/platform/logger";
+import { type PosterDataUrlCache } from "@main/adapter/media/pip-video-element/pip-video-element-poster-cache";
+import { getLogger } from "@matumo/ts-simple-logger";
 
 // 実行環境へアクセスするための最小型
 type BrowserGlobal = typeof globalThis & {
   Image?: typeof Image;
+  document?: unknown;
 };
 
 // poster変換で利用する最小Document型
-type DocumentLike = Pick<Document, "createElement">;
+interface PosterDocumentLike {
+  createElement(tagName: string): Element;
+}
+
+interface GetPosterDataUrlOptions {
+  thumbnailUrl: string;
+  posterDataUrlCache: PosterDataUrlCache;
+}
+
+const log = getLogger(appLoggerNames.media);
+
+// poster変換に必要なdocumentかどうかを判定する関数
+const isPosterDocumentLike = (value: unknown): value is PosterDocumentLike =>
+  typeof (value as Partial<PosterDocumentLike> | null)?.createElement === "function";
+
+// poster変換に必要なdocumentを取得する関数
+const resolvePosterDocument = (): PosterDocumentLike => {
+  const browserGlobal = globalThis as BrowserGlobal;
+  const documentNode = browserGlobal.document;
+  if (!isPosterDocumentLike(documentNode)) {
+    throw new TypeError("poster conversion document is unavailable");
+  }
+  return documentNode;
+};
 
 // サムネイルURLを16:9へ変換する関数
 const makePoster16By9 = async (
   thumbnailUrl: string,
-  documentNode: DocumentLike,
 ): Promise<string> => {
   const browserGlobal = globalThis as BrowserGlobal;
   const ImageCtor = browserGlobal.Image;
   if (typeof ImageCtor !== "function") {
     throw new TypeError("poster conversion is unavailable");
   }
+  const documentNode = resolvePosterDocument();
 
   return new Promise((resolve, reject) => {
     const image = new ImageCtor();
@@ -55,7 +82,7 @@ const makePoster16By9 = async (
         reject(error);
       }
     };
-    // 失敗時は元URLを渡す
+    // 失敗時はrejectする
     image.onerror = () => {
       reject(new Error("poster image load failed"));
     };
@@ -63,6 +90,26 @@ const makePoster16By9 = async (
   });
 };
 
+// サムネイルURLからposter用data URLを取得する関数
+const getPosterDataUrl = (
+  options: GetPosterDataUrlOptions,
+): Promise<string> => {
+  const cachedPosterDataUrl = options.posterDataUrlCache.get(options.thumbnailUrl);
+  log.debug(`poster cache ${cachedPosterDataUrl ? "hit" : "miss"}`);
+  if (cachedPosterDataUrl) {
+    return cachedPosterDataUrl;
+  }
+
+  const posterDataUrlPromise = makePoster16By9(options.thumbnailUrl)
+    .catch((error: unknown) => {
+      options.posterDataUrlCache.delete(options.thumbnailUrl);
+      throw error;
+    });
+
+  options.posterDataUrlCache.set(options.thumbnailUrl, posterDataUrlPromise);
+  return posterDataUrlPromise;
+};
+
 // エクスポート
-export { makePoster16By9 };
-export type { DocumentLike as PipVideoPosterDocumentLike };
+export { getPosterDataUrl };
+export type { GetPosterDataUrlOptions };
