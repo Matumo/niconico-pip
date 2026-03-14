@@ -6,7 +6,7 @@ import {
   createPosterDataUrlCache,
 } from "@main/adapter/media/pip-video-element/pip-video-element-poster-cache";
 
-describe("PiP動画要素 poster変換キャッシュ", () => {
+describe("PiP動画要素poster変換キャッシュ", () => {
   test("同じ画像でkeyパラメーターだけ異なるURLは同じcache entryを返すこと", async () => {
     const cache = createPosterDataUrlCache({
       maxEntries: 3,

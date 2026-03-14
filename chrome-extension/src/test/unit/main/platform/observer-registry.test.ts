@@ -143,7 +143,7 @@ describe("オブザーバーレジストリ", () => {
     expect(observerRegistry.size()).toBe(0);
   });
 
-  test("add -> remove -> add で同一キーを再登録できること", () => {
+  test("add -> remove -> addで同一キーを再登録できること", () => {
     const instances: FakeMutationObserver[] = [];
     const observerRegistry = createObserverRegistry({
       createObserver: (callback) => {

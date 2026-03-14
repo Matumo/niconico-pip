@@ -113,7 +113,7 @@ describe("イベントレジストリ", () => {
     expect(eventRegistry.size()).toBe(0);
   });
 
-  test("add -> remove -> add で同一キーを再登録できること", () => {
+  test("add -> remove -> addで同一キーを再登録できること", () => {
     const target = new EventTarget();
     const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
     const first = vi.fn();

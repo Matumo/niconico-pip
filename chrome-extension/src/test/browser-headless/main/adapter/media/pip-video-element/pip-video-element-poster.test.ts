@@ -28,7 +28,7 @@ const executePipVideoElementPosterRuntimeTest = (
   },
 );
 
-test.describe("PiP動画要素 poster変換アダプター", () => {
+test.describe("PiP動画要素poster変換アダプター", () => {
   let environment: ExtensionFixtureEnvironment | null = null;
 
   test.beforeAll(async () => {

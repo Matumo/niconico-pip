@@ -83,7 +83,7 @@ describe("config", () => {
     expect(config.prefixId).toBe(baseConfig.prefixId);
   });
 
-  test("既定では shouldUseDebugLog が false であること", async () => {
+  test("既定ではshouldUseDebugLogがfalseであること", async () => {
     const createAppConfig = await loadCreateAppConfig();
     const config = createAppConfig();
 
@@ -91,7 +91,7 @@ describe("config", () => {
     expect(config.shouldUseDebugLog).toBe(false);
   });
 
-  test("__APP_DEBUG__ が true のとき debugMode と shouldUseDebugLog が true であること", async () => {
+  test("__APP_DEBUG__がtrueのときdebugModeとshouldUseDebugLogがtrueであること", async () => {
     setAppDebug(true);
     const createAppConfig = await loadCreateAppConfig();
     const config = createAppConfig();

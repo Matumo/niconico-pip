@@ -113,7 +113,7 @@ const getPosterDataUrlWithFreshCache = (thumbnailUrl: string): Promise<string> =
     }),
   });
 
-describe("PiP動画要素 poster変換", () => {
+describe("PiP動画要素poster変換", () => {
   let globalDescriptors: GlobalDescriptorMap<(typeof globalPropertyKeys)[number]>;
 
   beforeEach(() => {

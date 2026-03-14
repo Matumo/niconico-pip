@@ -14,7 +14,7 @@ import {
 import { executeHeadlessRuntimeTest } from "@test/browser-headless/shared/runtime-test/headless-bridge-client";
 import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/runtime-test-path";
 
-test.describe("PiP動画要素 loadedmetadata待機アダプター", () => {
+test.describe("PiP動画要素loadedmetadata待機アダプター", () => {
   let environment: ExtensionFixtureEnvironment | null = null;
 
   test.beforeAll(async () => {

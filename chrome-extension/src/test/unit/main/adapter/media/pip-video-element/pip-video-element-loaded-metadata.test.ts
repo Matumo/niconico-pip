@@ -4,7 +4,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { waitForLoadedMetadata } from "@main/adapter/media/pip-video-element/pip-video-element-loaded-metadata";
 
-describe("PiP動画要素 loadedmetadata待機", () => {
+describe("PiP動画要素loadedmetadata待機", () => {
   test("開始時点でreadyStateが準備済みなら即時trueで終了すること", async () => {
     const videoElement = {
       readyState: 1,
