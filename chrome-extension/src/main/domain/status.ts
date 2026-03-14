@@ -4,6 +4,7 @@
 import { createVideoInfoAdapter, type VideoInfoAdapter, type VideoInfoSnapshot } from "@main/adapter/dom/video-info";
 import type { AppEventMap } from "@main/config/event";
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
+import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppContext, AppStateWriters, Unsubscribe } from "@main/types/app-context";
@@ -23,11 +24,6 @@ interface StatusDomainRuntime {
   unsubscribeElementsUpdated: Unsubscribe | null;
 }
 
-// 実行環境へアクセスするための最小型
-type BrowserGlobal = typeof globalThis & {
-  dispatchEvent?: (event: Event) => boolean;
-};
-
 const log = getLogger(appLoggerNames.domain);
 
 // 空の動画情報スナップショットを作る関数
@@ -36,13 +32,6 @@ const createEmptyVideoInfoSnapshot = (): VideoInfoSnapshot => ({
   author: null,
   thumbnail: null,
 });
-
-// globalThisをEventTargetとして扱えるか判定する関数
-const resolveEventTarget = (): EventTarget | null => {
-  const browserGlobal = globalThis as BrowserGlobal;
-  if (typeof browserGlobal.dispatchEvent !== "function") return null;
-  return browserGlobal as unknown as EventTarget;
-};
 
 // 2つの動画情報スナップショットが一致するか判定する関数
 const isSameVideoInfoSnapshot = (left: VideoInfoSnapshot, right: VideoInfoSnapshot): boolean =>

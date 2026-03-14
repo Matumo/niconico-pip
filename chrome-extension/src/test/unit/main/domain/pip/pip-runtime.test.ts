@@ -11,10 +11,9 @@ import {
 import {
   canUseNativeEventApi,
   hasAnyPipElement,
-  resolveEventTarget,
 } from "@main/domain/pip/pip-runtime";
 
-const globalPropertyKeys = ["dispatchEvent", "addEventListener", "removeEventListener", "document"] as const;
+const globalPropertyKeys = ["addEventListener", "removeEventListener", "document"] as const;
 
 describe("pipドメインランタイム補助", () => {
   let globalDescriptors: GlobalDescriptorMap<(typeof globalPropertyKeys)[number]>;
@@ -26,15 +25,6 @@ describe("pipドメインランタイム補助", () => {
   afterEach(() => {
     restoreGlobalDescriptors(globalDescriptors);
     vi.restoreAllMocks();
-  });
-
-  test("global event targetを解決できること", () => {
-    setGlobalProperty("dispatchEvent", vi.fn(() => true));
-
-    expect(resolveEventTarget()).toBe(globalThis);
-
-    setGlobalProperty("dispatchEvent", undefined);
-    expect(resolveEventTarget()).toBeNull();
   });
 
   test("native event APIの利用可否を判定できること", () => {

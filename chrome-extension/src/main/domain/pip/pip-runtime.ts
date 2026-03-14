@@ -10,7 +10,6 @@ import type { AppContext, AppStateWriters, Unsubscribe } from "@main/types/app-c
 type BrowserGlobal = typeof globalThis & {
   addEventListener?: typeof globalThis.addEventListener;
   removeEventListener?: typeof globalThis.removeEventListener;
-  dispatchEvent?: (event: Event) => boolean;
   document?: Pick<Document, "pictureInPictureElement" | "fullscreenElement" | "exitFullscreen" | "exitPictureInPicture">;
 };
 
@@ -42,13 +41,6 @@ interface PipDomainRuntime {
 // ランタイム解決関数型
 type ResolvePipRuntime = () => PipDomainRuntime | null;
 
-// globalThisをEventTargetとして扱えるか判定する関数
-const resolveEventTarget = (): EventTarget | null => {
-  const browserGlobal = globalThis as BrowserGlobal;
-  if (typeof browserGlobal.dispatchEvent !== "function") return null;
-  return browserGlobal as unknown as EventTarget;
-};
-
 // globalThisへネイティブイベントを登録できるか判定する関数
 const canUseNativeEventApi = (): boolean => {
   const browserGlobal = globalThis as BrowserGlobal;
@@ -64,7 +56,6 @@ const hasAnyPipElement = (): boolean => {
 
 // エクスポート
 export {
-  resolveEventTarget,
   canUseNativeEventApi,
   hasAnyPipElement,
 };

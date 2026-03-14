@@ -9,6 +9,7 @@ import {
 import type { AppEventMap, ElementsSnapshot } from "@main/config/event";
 import { selectorDefinitions, type SelectorKey } from "@main/config/selector";
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
+import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppContext, AppStateWriters, Unsubscribe } from "@main/types/app-context";
@@ -27,11 +28,6 @@ interface ElementsDomainRuntime {
   unsubscribePageUrlChanged: Unsubscribe | null;
 }
 
-// 実行環境へアクセスするための最小型
-type BrowserGlobal = typeof globalThis & {
-  dispatchEvent?: (event: Event) => boolean;
-};
-
 const selectorKeys = Object.keys(selectorDefinitions) as SelectorKey[];
 const log = getLogger(appLoggerNames.domain);
 
@@ -42,13 +38,6 @@ const setSnapshotValue = <K extends SelectorKey>(
   value: ElementsSnapshot[K],
 ): void => {
   snapshot[key] = value;
-};
-
-// globalThisをEventTargetとして扱えるか判定する関数
-const resolveEventTarget = (): EventTarget | null => {
-  const browserGlobal = globalThis as BrowserGlobal;
-  if (typeof browserGlobal.dispatchEvent !== "function") return null;
-  return browserGlobal as unknown as EventTarget;
 };
 
 // 空の要素スナップショットを作成する関数

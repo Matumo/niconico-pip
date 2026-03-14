@@ -2,10 +2,11 @@
  * pipドメイン 表示同期
  */
 import type { AppEventMap } from "@main/config/event";
+import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import { requestExitBrowserSizeFullscreenForOwnPipEnter } from "./pip-fullscreen";
-import { resolveEventTarget, type BrowserGlobal, type PipDomainRuntime } from "./pip-runtime";
+import type { BrowserGlobal, PipDomainRuntime } from "./pip-runtime";
 
 const log = getLogger(appLoggerNames.domain);
 

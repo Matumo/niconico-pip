@@ -5,11 +5,12 @@ import { createPipRenderer } from "@main/adapter/media/pip-renderer";
 import { createPipStream } from "@main/adapter/media/pip-stream";
 import { createPipVideoElementAdapter } from "@main/adapter/media/pip-video-element";
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
+import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import { createPipEventHandlers } from "@main/domain/pip/pip-handlers";
 import { fullscreenToggleObserverKey, syncFullscreenToggleObserver } from "@main/domain/pip/pip-fullscreen";
-import { canUseNativeEventApi, resolveEventTarget, type PipDomainRuntime } from "@main/domain/pip/pip-runtime";
+import { canUseNativeEventApi, type PipDomainRuntime } from "@main/domain/pip/pip-runtime";
 import { syncOwnPipPresentation } from "@main/domain/pip/pip-presentation";
 import type { Unsubscribe } from "@main/types/app-context";
 

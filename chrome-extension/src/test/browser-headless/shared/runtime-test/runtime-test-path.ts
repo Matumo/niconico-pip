@@ -35,6 +35,9 @@ const runtimeTestPathMap = {
       pageTest: "main_domain_page_test",
       statusTest: "main_domain_status_test",
       pipTest: "main_domain_pip_test",
+      shared: {
+        resolveEventTargetTest: "main_domain_shared_resolve_event_target_test",
+      },
       pip: {
         pipRuntimeTest: "main_domain_pip_pip_runtime_test",
         pipPresentationTest: "main_domain_pip_pip_presentation_test",

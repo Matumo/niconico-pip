@@ -18,6 +18,7 @@ import { runTest as run_main_adapter_media_pip_video_element_loaded_metadata_tes
 import { runTest as run_main_domain_elements_test } from "@test/browser-headless/main/domain/elements.test.runtime";
 import { runTest as run_main_domain_page_test } from "@test/browser-headless/main/domain/page.test.runtime";
 import { runTest as run_main_domain_pip_test } from "@test/browser-headless/main/domain/pip.test.runtime";
+import { runTest as run_main_domain_shared_resolve_event_target_test } from "@test/browser-headless/main/domain/shared/resolve-event-target.test.runtime";
 import { runTest as run_main_domain_pip_pip_runtime_test } from "@test/browser-headless/main/domain/pip/pip-runtime.test.runtime";
 import { runTest as run_main_domain_pip_pip_presentation_test } from "@test/browser-headless/main/domain/pip/pip-presentation.test.runtime";
 import { runTest as run_main_domain_pip_pip_fullscreen_test } from "@test/browser-headless/main/domain/pip/pip-fullscreen.test.runtime";
@@ -53,6 +54,7 @@ const runtimeTestHandlerMap: Record<string, RuntimeTestHandler> = {
   [runtimeTestPathMap.main.domain.elementsTest]: (request) => run_main_domain_elements_test(request),
   [runtimeTestPathMap.main.domain.pageTest]: (request) => run_main_domain_page_test(request),
   [runtimeTestPathMap.main.domain.pipTest]: (request) => run_main_domain_pip_test(request),
+  [runtimeTestPathMap.main.domain.shared.resolveEventTargetTest]: () => run_main_domain_shared_resolve_event_target_test(),
   [runtimeTestPathMap.main.domain.pip.pipRuntimeTest]: () => run_main_domain_pip_pip_runtime_test(),
   [runtimeTestPathMap.main.domain.pip.pipPresentationTest]: () => run_main_domain_pip_pip_presentation_test(),
   [runtimeTestPathMap.main.domain.pip.pipFullscreenTest]: () => run_main_domain_pip_pip_fullscreen_test(),

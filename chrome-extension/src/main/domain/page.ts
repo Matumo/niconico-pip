@@ -7,6 +7,7 @@ import {
   type UrlCheckTrigger,
 } from "@main/adapter/dom/url-change-observer";
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
+import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
@@ -14,7 +15,6 @@ import type { AppContext, AppStateWriters } from "@main/types/app-context";
 // 実行環境へアクセスするための最小型
 type BrowserGlobal = typeof globalThis & {
   location?: Location;
-  dispatchEvent?: (event: Event) => boolean;
 };
 
 // 現在URLを取得する関数
@@ -23,13 +23,6 @@ const resolveCurrentUrl = (): string | null => {
   const location = browserGlobal.location;
   if (!location || typeof location.href !== "string") return null;
   return location.href;
-};
-
-// globalThisをEventTargetとして扱えるか判定する関数
-const resolveEventTarget = (): EventTarget | null => {
-  const browserGlobal = globalThis as BrowserGlobal;
-  if (typeof browserGlobal.dispatchEvent !== "function") return null;
-  return browserGlobal as unknown as EventTarget;
 };
 
 // pageドメイン実行時に利用するランタイム依存型

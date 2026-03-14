@@ -4,7 +4,6 @@
 import {
   canUseNativeEventApi,
   hasAnyPipElement,
-  resolveEventTarget,
 } from "@main/domain/pip/pip-runtime";
 import type { HeadlessBridgeDetails } from "@test/browser-headless/shared/runtime-test/headless-bridge-contract";
 
@@ -34,7 +33,6 @@ const runTest = (): HeadlessBridgeDetails => {
   const fakePipElement = globalThis.document.createElement("video");
 
   return {
-    eventTargetResolved: resolveEventTarget() === globalThis,
     nativeEventApiAvailable: canUseNativeEventApi(),
     noPipInitially: hasAnyPipElement() === false,
     pipDetectedWithShimmedDocument: withDocumentProperty(
