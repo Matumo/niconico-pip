@@ -16,15 +16,15 @@ const helperMocks = vi.hoisted(() => ({
   calculatePipVideoElementSize: vi.fn(),
 }));
 
-vi.mock("@main/adapter/media/pip-video-element-loaded-metadata", () => ({
+vi.mock("@main/adapter/media/pip-video-element/pip-video-element-loaded-metadata", () => ({
   waitForLoadedMetadata: helperMocks.waitForLoadedMetadata,
 }));
 
-vi.mock("@main/adapter/media/pip-video-element-poster", () => ({
+vi.mock("@main/adapter/media/pip-video-element/pip-video-element-poster", () => ({
   makePoster16By9: helperMocks.makePoster16By9,
 }));
 
-vi.mock("@main/adapter/media/pip-video-element-size", () => ({
+vi.mock("@main/adapter/media/pip-video-element/pip-video-element-size", () => ({
   calculatePipVideoElementSize: helperMocks.calculatePipVideoElementSize,
 }));
 

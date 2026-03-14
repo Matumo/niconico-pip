@@ -1,9 +1,9 @@
 /**
  * PiP動画要素アダプター
  */
-import { waitForLoadedMetadata } from "@main/adapter/media/pip-video-element-loaded-metadata";
-import { makePoster16By9 } from "@main/adapter/media/pip-video-element-poster";
-import { calculatePipVideoElementSize } from "@main/adapter/media/pip-video-element-size";
+import { waitForLoadedMetadata } from "@main/adapter/media/pip-video-element/pip-video-element-loaded-metadata";
+import { makePoster16By9 } from "@main/adapter/media/pip-video-element/pip-video-element-poster";
+import { calculatePipVideoElementSize } from "@main/adapter/media/pip-video-element/pip-video-element-size";
 
 // PiP動画要素アダプター生成の入力型
 interface CreatePipVideoElementAdapterOptions {

@@ -5,7 +5,7 @@ import { createAppContext, type CreateAppContextOptions } from "@main/bootstrap/
 import { createAppConfig } from "@main/config/config";
 import { createAdDomain } from "@main/domain/ad";
 import { createControllerDomain } from "@main/domain/controller";
-import type { DomainModule, DomainPhase } from "@main/domain/create-domain-module";
+import type { DomainModule, DomainPhase } from "@main/domain/shared/create-domain-module";
 import { createElementsDomain } from "@main/domain/elements";
 import { createMediaSessionDomain } from "@main/domain/media-session";
 import { createPageDomain } from "@main/domain/page";

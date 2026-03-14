@@ -20,9 +20,11 @@ const runtimeTestPathMap = {
         pipRendererTest: "main_adapter_media_pip_renderer_test",
         pipStreamTest: "main_adapter_media_pip_stream_test",
         pipVideoElementTest: "main_adapter_media_pip_video_element_test",
-        pipVideoElementSizeTest: "main_adapter_media_pip_video_element_size_test",
-        pipVideoElementPosterTest: "main_adapter_media_pip_video_element_poster_test",
-        pipVideoElementLoadedMetadataTest: "main_adapter_media_pip_video_element_loaded_metadata_test",
+        pipVideoElement: {
+          pipVideoElementSizeTest: "main_adapter_media_pip_video_element_size_test",
+          pipVideoElementPosterTest: "main_adapter_media_pip_video_element_poster_test",
+          pipVideoElementLoadedMetadataTest: "main_adapter_media_pip_video_element_loaded_metadata_test",
+        },
       },
     },
     domain: {
@@ -30,9 +32,15 @@ const runtimeTestPathMap = {
       pageTest: "main_domain_page_test",
       statusTest: "main_domain_status_test",
       pipTest: "main_domain_pip_test",
+      pip: {
+        pipRuntimeTest: "main_domain_pip_pip_runtime_test",
+        pipPresentationTest: "main_domain_pip_pip_presentation_test",
+        pipFullscreenTest: "main_domain_pip_pip_fullscreen_test",
+        pipHandlersTest: "main_domain_pip_pip_handlers_test",
+      },
     },
   },
-};
+} as const;
 
 // エクスポート
 export { runtimeTestPathMap };

@@ -9,7 +9,7 @@ import { createMediaSessionDomain } from "@main/domain/media-session";
 import { createPageDomain } from "@main/domain/page";
 import { createStatusDomain } from "@main/domain/status";
 import { createTimeDomain } from "@main/domain/time";
-import { createDomainModule } from "@main/domain/create-domain-module";
+import { createDomainModule } from "@main/domain/shared/create-domain-module";
 import { createAppConfig } from "@main/config/config";
 import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
 import type {
@@ -124,6 +124,16 @@ describe("ドメインモジュール", () => {
       "media-session",
       "pip",
       "ad",
+    ]);
+    expect(modules.map((module) => module.phase)).toEqual([
+      "urlWatch",
+      "coreDetection",
+      "coreDetection",
+      "coreDetection",
+      "control",
+      "control",
+      "control",
+      "presentation",
     ]);
 
     for (const module of modules) {

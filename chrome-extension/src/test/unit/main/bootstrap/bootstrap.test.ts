@@ -11,7 +11,7 @@ import type {
   AppEventRegistry,
   AppStateWriters,
 } from "@main/types/app-context";
-import type { DomainModule } from "@main/domain/create-domain-module";
+import type { DomainModule } from "@main/domain/shared/create-domain-module";
 import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 
 let bootstrap: typeof import("@main/bootstrap/bootstrap").bootstrap;
