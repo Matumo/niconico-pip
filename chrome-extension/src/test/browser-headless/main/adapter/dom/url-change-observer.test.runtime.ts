@@ -52,7 +52,7 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
   const triggersOnDefault: UrlCheckTrigger[] = [];
   const triggersOnEnabled: UrlCheckTrigger[] = [];
   const initialUrl = globalThis.location.href;
-  const nextUrl = new URL(`/watch/url-observer-${Date.now()}`, globalThis.location.origin).toString();
+  const nextUrl = new URL("/watch/url-observer-next", globalThis.location.origin).toString();
 
   const defaultRegistryDouble = createObserverRegistryDouble();
   const enabledRegistryDouble = createObserverRegistryDouble();

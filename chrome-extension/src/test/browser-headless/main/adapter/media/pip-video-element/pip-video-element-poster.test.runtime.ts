@@ -14,6 +14,7 @@ import type {
 
 const tinyPngDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrM0AAAAASUVORK5CYII=";
 const nonImageDataUrl = "data:text/plain;base64,SGVsbG8sIHBvc3RlciB0ZXN0";
+let posterScenarioSequence = 0;
 type PosterRuntimeGlobal = typeof globalThis & {
   Image?: typeof Image;
 };
@@ -82,7 +83,7 @@ const createFixtureImageUrl = (search = ""): string =>
   `${globalThis.location.origin}/assets/tiny.png${search}`;
 
 const createMissingFixtureImageUrl = (): string =>
-  `${globalThis.location.origin}/assets/not-found-${Date.now()}.png`;
+  `${globalThis.location.origin}/assets/not-found-${++posterScenarioSequence}.png`;
 
 const installControlledImageEnvironment = (
   mode: ControlledImageMode,
@@ -261,7 +262,7 @@ const runBasicScenario = async (): Promise<HeadlessBridgeDetails> => {
 
 const runOfflineFailureScenario = async (): Promise<HeadlessBridgeDetails> => {
   const offlineNetworkFailureRejected = await expectRejected(
-    getPosterDataUrlWithFreshCache(createFixtureImageUrl(`?offline=${Date.now()}`)),
+    getPosterDataUrlWithFreshCache(createFixtureImageUrl(`?offline=${++posterScenarioSequence}`)),
   );
   return {
     offlineNetworkFailureRejected,

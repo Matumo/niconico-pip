@@ -16,6 +16,8 @@ import {
 import { executeHeadlessRuntimeTest } from "@test/browser-headless/shared/runtime-test/headless-bridge-client";
 import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/runtime-test-path";
 
+let pageUrlGeneration = 0;
+
 interface AppPageUrlChangedDetails {
   url: string;
   generation: number;
@@ -191,7 +193,7 @@ test.describe("statusドメイン", () => {
 
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageUrlGeneration,
           isWatchPage: true,
         });
         await waitForVideoInfoChanged(session.page, runtimeTestPath, {
@@ -209,7 +211,7 @@ test.describe("statusドメイン", () => {
         });
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm10",
-          generation: Date.now() + 1,
+          generation: ++pageUrlGeneration,
           isWatchPage: true,
         });
         await waitForVideoInfoChanged(session.page, runtimeTestPath, {
@@ -264,7 +266,7 @@ test.describe("statusドメイン", () => {
         });
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageUrlGeneration,
           isWatchPage: true,
         });
         await waitForVideoInfoChanged(session.page, runtimeTestPath, {
@@ -275,7 +277,7 @@ test.describe("statusドメイン", () => {
 
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/ranking",
-          generation: Date.now() + 1,
+          generation: ++pageUrlGeneration,
           isWatchPage: false,
         });
         await waitForVideoInfoChanged(session.page, runtimeTestPath, {

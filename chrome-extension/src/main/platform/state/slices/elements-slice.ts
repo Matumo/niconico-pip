@@ -7,7 +7,7 @@ import type { ElementsState } from "@main/types/app-context";
 // elementsスライスの初期state
 const initialElementsState: ElementsState = {
   lastResolvedGeneration: 0,
-  lastResolvedAt: null,
+  lastResolvedElapsedMs: null,
 };
 
 // elementsスライスを作成する関数

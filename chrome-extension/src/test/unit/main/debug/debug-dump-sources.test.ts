@@ -79,7 +79,7 @@ const createContext = (): AppContext => {
     observerRegistry,
     state: {
       page: { get: () => ({ url: "https://example.test/watch/sm9", isWatchPage: true, generation: 11 }) },
-      elements: { get: () => ({ lastResolvedGeneration: 12, lastResolvedAt: 1234 }) },
+      elements: { get: () => ({ lastResolvedGeneration: 12, lastResolvedElapsedMs: 1234 }) },
       status: { get: () => ({ playbackStatus: "ready" as const }) },
       time: { get: () => ({ currentTime: 5, duration: 10 }) },
       pip: { get: () => ({ enabled: true }) },
@@ -151,7 +151,7 @@ describe("debug dump source生成", () => {
       },
       state: {
         page: { url: "https://example.test/watch/sm9", isWatchPage: true, generation: 11 },
-        elements: { lastResolvedGeneration: 12, lastResolvedAt: 1234 },
+        elements: { lastResolvedGeneration: 12, lastResolvedElapsedMs: 1234 },
         status: { playbackStatus: "ready" },
         time: { currentTime: 5, duration: 10 },
         pip: { enabled: true },
@@ -219,7 +219,7 @@ describe("debug dump source生成", () => {
     });
 
     expect(elementsSource()).toEqual({
-      state: { lastResolvedGeneration: 12, lastResolvedAt: 1234 },
+      state: { lastResolvedGeneration: 12, lastResolvedElapsedMs: 1234 },
       pageState: { url: "https://example.test/watch/sm9", isWatchPage: true, generation: 11 },
       elementsGeneration: 99,
       activePlayerContainer: { kind: "element", value: playerContainer },
@@ -289,7 +289,7 @@ describe("debug dump source生成", () => {
       createEmptySnapshot: () => emptySnapshot as never,
     });
     expect(elementsSource()).toEqual({
-      state: { lastResolvedGeneration: 12, lastResolvedAt: 1234 },
+      state: { lastResolvedGeneration: 12, lastResolvedElapsedMs: 1234 },
       pageState: { url: "https://example.test/watch/sm9", isWatchPage: true, generation: 11 },
       elementsGeneration: null,
       activePlayerContainer: { kind: "element", value: null },

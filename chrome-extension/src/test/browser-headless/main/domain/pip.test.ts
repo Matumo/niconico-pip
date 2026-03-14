@@ -26,6 +26,7 @@ import {
 } from "@test/browser-headless/main/domain/pip/pip-browser-test-helper";
 
 const runtimeTestPath = runtimeTestPathMap.main.domain.pipTest;
+let pageGeneration = 0;
 
 test.describe("pipドメイン", () => {
   let environment: ExtensionFixtureEnvironment | null = null;
@@ -56,7 +57,7 @@ test.describe("pipドメイン", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
 
@@ -78,8 +79,8 @@ test.describe("pipドメイン", () => {
           title: "watch title",
           author: "watch author",
           thumbnail: tinyPngDataUrl,
-          pageGeneration: Date.now(),
-          infoGeneration: Date.now(),
+          pageGeneration: ++pageGeneration,
+          infoGeneration: ++pageGeneration,
         });
         await expect.poll(async () => {
           const pipView = await readPipVideoElementView(session.page);
@@ -112,7 +113,7 @@ test.describe("pipドメイン", () => {
       try {
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/ranking",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: false,
         });
 
@@ -143,7 +144,7 @@ test.describe("pipドメイン", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {
@@ -159,7 +160,7 @@ test.describe("pipドメイン", () => {
 
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {

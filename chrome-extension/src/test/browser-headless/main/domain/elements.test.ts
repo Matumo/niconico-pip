@@ -14,11 +14,13 @@ import {
 import { executeHeadlessRuntimeTest } from "@test/browser-headless/shared/runtime-test/headless-bridge-client";
 import { runtimeTestPathMap } from "@test/browser-headless/shared/runtime-test/runtime-test-path";
 
+let pageUrlGeneration = 0;
+
 const appendHeadMarker = async (page: Page, markerName: string): Promise<void> => {
   await page.evaluate((name) => {
     const marker = globalThis.document.createElement("meta");
     marker.name = name;
-    marker.content = String(Date.now());
+    marker.content = name;
     globalThis.document.head.appendChild(marker);
   }, markerName);
 };
@@ -254,7 +256,7 @@ const expectNoNewElementsEvent = async (page: Page, runtimeTestPath: string): Pr
 const enterWatchPageMode = async (page: Page, runtimeTestPath: string): Promise<void> => {
   await emitPageUrlChanged(page, runtimeTestPath, {
     url: "https://www.nicovideo.jp/watch/sm9",
-    generation: Date.now(),
+    generation: ++pageUrlGeneration,
     isWatchPage: true,
   });
   await waitForElementsUpdated(page, runtimeTestPath, [...expectedPrimaryElementKeys]);
@@ -299,7 +301,7 @@ test.describe("elementsドメイン", () => {
         const playerMenuHtmlSnapshot = await snapshotPlayerMenuHtml(session.page);
 
         // head側のmutationではelements更新イベントが増えないことを確認
-        await appendHeadMarker(session.page, `elements-head-${Date.now()}`);
+        await appendHeadMarker(session.page, "elements-head-marker");
         await expectNoNewElementsEvent(session.page, runtimeTestPath);
 
         // NOTE: discover監視で探すplayerContainerは [data-scope="menu"] を含む前提で解決される。
@@ -312,7 +314,7 @@ test.describe("elementsドメイン", () => {
         await appendSnapshotPlayerMenu(session.page, playerMenuHtmlSnapshot);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageUrlGeneration,
           isWatchPage: true,
         });
         await waitForElementsUpdated(session.page, runtimeTestPath, [...expectedPrimaryElementKeys]);
@@ -463,7 +465,7 @@ test.describe("elementsドメイン", () => {
 
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/ranking",
-          generation: Date.now() + 1,
+          generation: ++pageUrlGeneration,
           isWatchPage: false,
         });
         await waitForElementsUpdated(session.page, runtimeTestPath, [...expectedPrimaryElementKeys]);

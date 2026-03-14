@@ -55,7 +55,7 @@ const createMockContext = (): AppContext => {
     observerRegistry,
     state: {
       page: { get: () => ({ url: "", isWatchPage: false, generation: 0 }) },
-      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedAt: null }) },
+      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedElapsedMs: null }) },
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
       pip: { get: () => ({ enabled: false }) },

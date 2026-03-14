@@ -61,8 +61,8 @@ const waitForCondition = async (
   condition: () => boolean,
   timeoutMs = 1500,
 ): Promise<boolean> => {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
+  const startedAt = performance.now();
+  while (performance.now() - startedAt < timeoutMs) {
     if (condition()) return true;
     await new Promise((resolve) => globalThis.setTimeout(resolve, 16));
   }

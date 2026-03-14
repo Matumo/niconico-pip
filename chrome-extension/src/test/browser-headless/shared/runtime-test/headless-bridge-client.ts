@@ -21,6 +21,7 @@ interface ExecuteHeadlessRuntimeTestResult {
 }
 
 const defaultRequestTimeoutMs = 3000;
+let headlessBridgeRequestSequence = 0;
 
 const executeHeadlessRuntimeTest = async (
   page: Page,
@@ -29,13 +30,18 @@ const executeHeadlessRuntimeTest = async (
 ): Promise<ExecuteHeadlessRuntimeTestResult> => {
   const timeoutMs = options.timeoutMs ?? defaultRequestTimeoutMs;
   const requestDetails = options.details;
+  let requestId: string;
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    requestId = globalThis.crypto.randomUUID();
+  } else {
+    headlessBridgeRequestSequence += 1;
+    requestId = `headless-bridge-request-${headlessBridgeRequestSequence}`;
+  }
 
-  const result = await page.evaluate(({ channel, requestPath, requestTimeoutMs, details }) =>
+  const result = await page.evaluate(({ channel, requestPath, requestTimeoutMs, details, requestId }) =>
       new Promise<ExecuteHeadlessRuntimeTestResult>((resolve, reject) => {
         const targetOrigin = globalThis.location.origin;
         const currentWindowSource = globalThis as unknown as MessageEventSource;
-        const requestId = typeof crypto.randomUUID === "function" ?
-          crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
         const timerId = globalThis.setTimeout(() => {
           globalThis.removeEventListener("message", onMessage);
           reject(new Error(`Headless bridge request timeout: ${requestPath}`));
@@ -76,6 +82,7 @@ const executeHeadlessRuntimeTest = async (
       requestPath: path,
       requestTimeoutMs: timeoutMs,
       details: requestDetails,
+      requestId,
     },
   );
 

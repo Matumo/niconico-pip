@@ -109,7 +109,7 @@ const createElementsDomainTestContext = () => {
   };
   const elementsState = {
     lastResolvedGeneration: 10,
-    lastResolvedAt: null as number | null,
+    lastResolvedElapsedMs: null as number | null,
   };
 
   const elementsPatch = vi.fn((partial: Partial<typeof elementsState>) => {
@@ -322,7 +322,7 @@ describe("elementsドメイン", () => {
     expect(switchToPlayer).toHaveBeenCalledWith(playerContainer);
     expect(elementsPatch).toHaveBeenCalledWith({
       lastResolvedGeneration: 11,
-      lastResolvedAt: expect.any(Number),
+      lastResolvedElapsedMs: expect.any(Number),
     });
     expect(eventRegistryEmit).toHaveBeenCalledTimes(1);
     expect(eventRegistryEmit).toHaveBeenCalledWith({
@@ -487,7 +487,7 @@ describe("elementsドメイン", () => {
 
     expect(elementsPatch).toHaveBeenCalledWith({
       lastResolvedGeneration: 11,
-      lastResolvedAt: expect.any(Number),
+      lastResolvedElapsedMs: expect.any(Number),
     });
     expect(eventRegistryEmit).not.toHaveBeenCalled();
     expect(domainLogger.warn).toHaveBeenCalledWith(

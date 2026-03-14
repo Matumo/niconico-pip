@@ -6,13 +6,14 @@ import { createPipVideoElementAdapter } from "@main/adapter/media/pip-video-elem
 import type { HeadlessBridgeDetails } from "@test/browser-headless/shared/runtime-test/headless-bridge-contract";
 
 const tinyPngDataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jrM0AAAAASUVORK5CYII=";
+let runtimeElementSequence = 0;
 
 const waitForCondition = async (
   condition: () => boolean,
   timeoutMs = 1200,
 ): Promise<boolean> => {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
+  const startedAt = performance.now();
+  while (performance.now() - startedAt < timeoutMs) {
     if (condition()) return true;
     await new Promise((resolve) => globalThis.setTimeout(resolve, 16));
   }
@@ -21,7 +22,13 @@ const waitForCondition = async (
 
 const runTest = async (): Promise<HeadlessBridgeDetails> => {
   const config = createAppConfig();
-  const runtimeElementId = `${config.pipVideoElementId}-runtime-${Date.now()}`;
+  let runtimeElementId: string;
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    runtimeElementId = `${config.pipVideoElementId}-runtime-${globalThis.crypto.randomUUID()}`;
+  } else {
+    runtimeElementSequence += 1;
+    runtimeElementId = `${config.pipVideoElementId}-runtime-${runtimeElementSequence}`;
+  }
   const host = globalThis.document.createElement("div");
   const firstTarget = globalThis.document.createElement("div");
   const secondTarget = globalThis.document.createElement("div");

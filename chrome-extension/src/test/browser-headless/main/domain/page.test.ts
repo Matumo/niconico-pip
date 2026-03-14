@@ -40,7 +40,7 @@ const mutateHead = async (page: Page, markerName: string): Promise<void> => {
   await page.evaluate((name) => {
     const marker = globalThis.document.createElement("meta");
     marker.name = name;
-    marker.content = String(Date.now());
+    marker.content = name;
     globalThis.document.head.appendChild(marker);
   }, markerName);
 };
@@ -103,7 +103,7 @@ test.describe("pageドメイン", () => {
 
       try {
         const initialUrl = session.page.url();
-        const nextPath = `/ranking?browser-headless-${Date.now()}`;
+        const nextPath = "/ranking?browser-headless-next";
         const nextUrl = new URL(nextPath, "https://www.nicovideo.jp").toString();
 
         // pushStateでは検知しないことを確認
@@ -129,7 +129,7 @@ test.describe("pageドメイン", () => {
 
         // mutation-observerで検知することを確認
         logCurrentUrl("[2] mutation-observer", session.page);
-        await mutateHead(session.page, `after-push-state-${Date.now()}`);
+        await mutateHead(session.page, "after-push-state");
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextUrl))
           .toBe(pushStateTargetCountBefore + 1);
         const pushStateMutationResult = await executeHeadlessRuntimeTest(
@@ -167,7 +167,7 @@ test.describe("pageドメイン", () => {
 
         // goBack後のmutation-observerで検知することを確認
         logCurrentUrl("[4] mutation-observer", session.page);
-        await mutateHead(session.page, `after-go-back-${Date.now()}`);
+        await mutateHead(session.page, "after-go-back");
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, initialUrl))
           .toBe(goBackTargetCountBefore + 1);
         const goBackMutationResult = await executeHeadlessRuntimeTest(
@@ -205,7 +205,7 @@ test.describe("pageドメイン", () => {
 
         // goForward後のmutation-observerで検知することを確認
         logCurrentUrl("[6] mutation-observer", session.page);
-        await mutateHead(session.page, `after-go-forward-${Date.now()}`);
+        await mutateHead(session.page, "after-go-forward");
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextUrl))
           .toBe(goForwardTargetCountBefore + 1);
         const goForwardMutationResult = await executeHeadlessRuntimeTest(
@@ -266,7 +266,7 @@ test.describe("pageドメイン", () => {
       expect(initializeResult.ok).toBe(true);
 
       try {
-        const nextWatchPath = `/watch/sm10?browser-headless-${Date.now()}`;
+        const nextWatchPath = "/watch/sm10?browser-headless-next";
         const nextWatchUrl = new URL(nextWatchPath, "https://www.nicovideo.jp").toString();
 
         // pushStateでは検知しないことを確認
@@ -289,7 +289,7 @@ test.describe("pageドメイン", () => {
         expect(pushStateNoEventResult.ok).toBe(true);
 
         // mutation-observerで検知し、isWatchPage=trueで通知することを確認
-        await mutateHead(session.page, `watch-after-push-state-${Date.now()}`);
+        await mutateHead(session.page, "watch-after-push-state");
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, nextWatchUrl))
           .toBe(pushStateTargetCountBefore + 1);
         const pushStateMutationResult = await executeHeadlessRuntimeTest(
@@ -322,7 +322,7 @@ test.describe("pageドメイン", () => {
         );
         expect(goBackNoEventResult.ok).toBe(true);
 
-        await mutateHead(session.page, `watch-after-go-back-${Date.now()}`);
+        await mutateHead(session.page, "watch-after-go-back");
         await expect.poll(() => countPageUrlChangedLogs(session.logCollector, initialWatchUrl))
           .toBe(goBackTargetCountBefore + 1);
         const goBackMutationResult = await executeHeadlessRuntimeTest(

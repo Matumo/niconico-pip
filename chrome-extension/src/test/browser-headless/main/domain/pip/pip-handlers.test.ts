@@ -32,6 +32,7 @@ import {
 } from "./pip-browser-test-helper";
 
 const runtimeTestPath = runtimeTestPathMap.main.domain.pip.pipHandlersTest;
+let pageGeneration = 0;
 
 test.describe("pip-handlers", () => {
   let environment: ExtensionFixtureEnvironment | null = null;
@@ -62,7 +63,7 @@ test.describe("pip-handlers", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {
@@ -103,7 +104,7 @@ test.describe("pip-handlers", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {
@@ -253,7 +254,7 @@ test.describe("pip-handlers", () => {
 
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/ranking",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: false,
         });
         await expect.poll(async () => {
@@ -290,7 +291,7 @@ test.describe("pip-handlers", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {
@@ -331,7 +332,7 @@ test.describe("pip-handlers", () => {
         await setPlayerContainerSize(session.page, 640, 360);
         await emitPageUrlChanged(session.page, runtimeTestPath, {
           url: "https://www.nicovideo.jp/watch/sm9",
-          generation: Date.now(),
+          generation: ++pageGeneration,
           isWatchPage: true,
         });
         await expect.poll(async () => {

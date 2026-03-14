@@ -45,6 +45,7 @@ const playerContainerSelector = String.raw`div.grid-area_\[player\] > div.Player
 const fullscreenToggleButtonSelector =
   `button[data-scope="tooltip"][data-part="trigger"][aria-label="全画面表示する"], ` +
   `button[data-scope="tooltip"][data-part="trigger"][aria-label="全画面表示を終了"]`;
+let pageUrlGeneration = 0;
 
 // playerContainerサイズを変更する関数
 const setPlayerContainerSize = async (
@@ -142,7 +143,7 @@ const emitWatchPageUrlChanged = async (
 ): Promise<void> => {
   await emitPageUrlChanged(page, runtimeTestPath, {
     url: "https://www.nicovideo.jp/watch/sm9",
-    generation: Date.now(),
+    generation: ++pageUrlGeneration,
     isWatchPage: true,
   });
 };

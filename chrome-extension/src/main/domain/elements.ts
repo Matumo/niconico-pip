@@ -151,7 +151,7 @@ const createElementsDomain = (): DomainModule => {
     // state更新
     runtime.stateWriters.elements.patch({
       lastResolvedGeneration: runtime.elementsGeneration,
-      lastResolvedAt: Date.now(),
+      lastResolvedElapsedMs: Number(globalThis.performance.now().toFixed(2)),
     });
 
     // イベントターゲット取得

@@ -56,7 +56,7 @@ const createPageDomainTestContext = (initialUrl: string) => {
     observerRegistry,
     state: {
       page: { get: () => ({ ...pageState }) },
-      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedAt: null }) },
+      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedElapsedMs: null }) },
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
       pip: { get: () => ({ enabled: false }) },

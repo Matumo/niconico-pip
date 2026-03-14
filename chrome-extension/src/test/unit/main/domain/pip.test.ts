@@ -252,7 +252,7 @@ const createPipDomainTestContext = () => {
     observerRegistry,
     state: {
       page: { get: () => ({ url: "", isWatchPage: true, generation: 1 }) },
-      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedAt: null }) },
+      elements: { get: () => ({ lastResolvedGeneration: 0, lastResolvedElapsedMs: null }) },
       status: { get: () => ({ playbackStatus: "idle" as const }) },
       time: { get: () => ({ currentTime: 0, duration: 0 }) },
       pip: { get: () => ({ ...pipState }) },

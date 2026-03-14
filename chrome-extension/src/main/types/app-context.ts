@@ -23,7 +23,7 @@ interface PageState {
 // 要素状態型
 interface ElementsState {
   lastResolvedGeneration: number;
-  lastResolvedAt: number | null;
+  lastResolvedElapsedMs: number | null;
 }
 
 // ステータス状態型
