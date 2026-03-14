@@ -112,6 +112,12 @@ const createPipDomain = (): DomainModule => {
         browserSizeFullscreenActive: null,
         hiddenSourceElements: new Set(),
       };
+      // debug dumpの登録
+      if (nextContext.debugDumpRegistry) {
+        nextContext.debugDumpRegistry.registerPipDomain({
+          resolveRuntime,
+        });
+      }
       log.debug("pip domain init completed");
     },
     // pipドメインを開始する関数
@@ -168,6 +174,10 @@ const createPipDomain = (): DomainModule => {
         runtime.unsubscribePageUrlChanged?.();
         runtime.unsubscribeElementsUpdated?.();
         runtime.unsubscribeVideoInfoChanged?.();
+        // debug dumpの解除
+        if (runtime.context.debugDumpRegistry) {
+          runtime.context.debugDumpRegistry.unregisterPipDomain();
+        }
         // 依存オブジェクトの後処理
         runtime.pipStream.teardown();
         runtime.pipVideoElementAdapter.stop();

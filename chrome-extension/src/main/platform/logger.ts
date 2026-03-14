@@ -15,6 +15,7 @@ interface InitializeLoggersOptions {
 const appLoggerNames = {
   logger: "logger",
   main: "main",
+  debug: "debug",
   bootstrap: "bootstrap",
   domain: "domain",
   media: "media",
@@ -81,6 +82,7 @@ const registerNodeUnhandledErrorHandlers = (): void => {
 const createAppLoggers = (): AppLoggerMap => ({
   logger: getLogger(appLoggerNames.logger),
   main: getLogger(appLoggerNames.main),
+  debug: getLogger(appLoggerNames.debug),
   bootstrap: getLogger(appLoggerNames.bootstrap),
   domain: getLogger(appLoggerNames.domain),
   media: getLogger(appLoggerNames.media),

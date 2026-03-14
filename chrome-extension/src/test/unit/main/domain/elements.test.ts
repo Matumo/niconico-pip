@@ -268,6 +268,26 @@ describe("elementsドメイン", () => {
     expect(unsubscribePageUrlChanged).toHaveBeenCalledTimes(1);
   });
 
+  test("debugDumpRegistryがあるときdebug dumpの登録と解除を行うこと", async () => {
+    const { context, stateWriters } = createElementsDomainTestContext();
+    const debugDumpRegistry = {
+      registerElementsDomain: vi.fn(),
+      unregisterElementsDomain: vi.fn(),
+    } as unknown as NonNullable<AppContext["debugDumpRegistry"]>;
+    context.debugDumpRegistry = debugDumpRegistry;
+    prepareVideoElementObserverMock();
+    const domain = createElementsDomain();
+
+    await domain.init(context, stateWriters);
+    await domain.stop();
+
+    expect(debugDumpRegistry.registerElementsDomain).toHaveBeenCalledWith({
+      resolveRuntime: expect.any(Function),
+      createEmptySnapshot: expect.any(Function),
+    });
+    expect(debugDumpRegistry.unregisterElementsDomain).toHaveBeenCalledTimes(1);
+  });
+
   test("差分あり時のみElementsUpdatedを通知しpayloadをfreezeすること", async () => {
     const {
       context,

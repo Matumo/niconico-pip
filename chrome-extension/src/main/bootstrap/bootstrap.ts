@@ -93,6 +93,12 @@ const bootstrap = async (options: BootstrapOptions = {}): Promise<BootstrapRunti
   const safeRunner = createSafeRunner();
   const orderedDomains = sortDomainModules(options.domainModules ?? createDefaultDomainModules());
 
+  // debug dumpの登録
+  if (context.debugDumpRegistry) {
+    context.debugDumpRegistry.registerAppContext();
+    context.debugDumpRegistry.installTrigger();
+  }
+
   // initを順方向に実行
   for (const domain of orderedDomains) {
     await safeRunner.runAsync(`domain:${domain.name}:init`, async () => {
@@ -118,6 +124,13 @@ const bootstrap = async (options: BootstrapOptions = {}): Promise<BootstrapRunti
       });
     }
 
+    // debug dumpの解除
+    if (context.debugDumpRegistry) {
+      context.debugDumpRegistry.uninstallTrigger();
+      context.debugDumpRegistry.clearSources();
+    }
+
+    // 後処理
     context.observerRegistry.disconnectAll();
     context.eventRegistry.clear();
     context.elementResolver.invalidateAll();

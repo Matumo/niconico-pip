@@ -216,6 +216,12 @@ const createStatusDomain = (): DomainModule => {
         unsubscribePageUrlChanged,
         unsubscribeElementsUpdated,
       };
+      // debug dumpの登録
+      if (nextContext.debugDumpRegistry) {
+        nextContext.debugDumpRegistry.registerStatusDomain({
+          resolveRuntime,
+        });
+      }
       log.debug("status domain init completed");
     },
     // statusドメインを開始する関数
@@ -238,6 +244,10 @@ const createStatusDomain = (): DomainModule => {
         log.debug("status domain stopping");
         runtime.unsubscribePageUrlChanged?.();
         runtime.unsubscribeElementsUpdated?.();
+        // debug dumpの解除
+        if (runtime.context.debugDumpRegistry) {
+          runtime.context.debugDumpRegistry.unregisterStatusDomain();
+        }
       }
       runtime = null;
       await baseDomain.stop();

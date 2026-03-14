@@ -128,6 +128,13 @@ const createPageDomain = (): DomainModule => {
         urlChangeObserver,
         lastKnownUrl,
       };
+      // debug dumpの登録
+      if (nextContext.debugDumpRegistry) {
+        nextContext.debugDumpRegistry.registerPageDomain({
+          resolveRuntime,
+          resolveCurrentUrl,
+        });
+      }
       log.debug("page domain init completed");
     },
     // pageドメインを開始する関数
@@ -144,6 +151,10 @@ const createPageDomain = (): DomainModule => {
         log.debug("page domain stopping");
         // URL変更監視を停止
         runtime.urlChangeObserver.stop();
+        // debug dumpの解除
+        if (runtime.context.debugDumpRegistry) {
+          runtime.context.debugDumpRegistry.unregisterPageDomain();
+        }
       }
       runtime = null;
       await baseDomain.stop();

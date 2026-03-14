@@ -67,6 +67,7 @@ describe("ロガー", () => {
     for (const loggerName of [
       "logger",
       "main",
+      "debug",
       "bootstrap",
       "domain",
       "media",
@@ -82,6 +83,7 @@ describe("ロガー", () => {
     expect(processOn).toHaveBeenCalledTimes(2);
     expect(loggers.logger.name).toBe("logger");
     expect(loggers.main.name).toBe("main");
+    expect(loggers.debug.name).toBe("debug");
     expect(loggers.bootstrap.name).toBe("bootstrap");
     expect(loggers.media.name).toBe("media");
     expect(loggers.eventRegistry.name).toBe("event-registry");
@@ -116,7 +118,7 @@ describe("ロガー", () => {
       now: () => 2,
     });
     expect(setDefaultConfigMock).toHaveBeenCalledTimes(1);
-    expect(setLoggerConfigMock).toHaveBeenCalledTimes(9);
+    expect(setLoggerConfigMock).toHaveBeenCalledTimes(10);
     expect(addEventListener).toHaveBeenCalledTimes(2);
     expect(processOn).toHaveBeenCalledTimes(2);
   });

@@ -245,6 +245,25 @@ describe("statusドメイン", () => {
     expect(domainLogger.warn).toHaveBeenCalledWith("status runtime is not initialized");
   });
 
+  test("debugDumpRegistryがあるときdebug dumpの登録と解除を行うこと", async () => {
+    const { context, stateWriters } = createStatusDomainTestContext();
+    const debugDumpRegistry = {
+      registerStatusDomain: vi.fn(),
+      unregisterStatusDomain: vi.fn(),
+    } as unknown as NonNullable<AppContext["debugDumpRegistry"]>;
+    context.debugDumpRegistry = debugDumpRegistry;
+    prepareVideoInfoAdapterMock();
+    const domain = createStatusDomain();
+
+    await domain.init(context, stateWriters);
+    await domain.stop();
+
+    expect(debugDumpRegistry.registerStatusDomain).toHaveBeenCalledWith({
+      resolveRuntime: expect.any(Function),
+    });
+    expect(debugDumpRegistry.unregisterStatusDomain).toHaveBeenCalledTimes(1);
+  });
+
   test("init前stopは無視されること", async () => {
     const domain = createStatusDomain();
     await expect(domain.stop()).resolves.toBeUndefined();

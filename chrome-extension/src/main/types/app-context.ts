@@ -4,6 +4,7 @@
 import type { AppConfig } from "@main/config/config";
 import type { AppEventKey, AppEventMap } from "@main/config/event";
 import type { SelectorElementMap, SelectorKey } from "@main/config/selector";
+import type { DebugDumpRegistry } from "@main/debug/debug-dump";
 import type { Input as HttpInput, KyInstance, Options as HttpOptions, ResponsePromise } from "ky";
 
 // イベント解除関数型
@@ -153,6 +154,7 @@ interface AppElementResolver {
 // 実行時依存を束ねるアプリコンテキスト型
 interface AppContext {
   config: AppConfig;
+  debugDumpRegistry?: DebugDumpRegistry;
   eventRegistry: AppEventRegistry;
   observerRegistry: AppObserverRegistry;
   state: AppStateStore;
@@ -180,3 +182,4 @@ export type {
   AppElementResolver,
   AppContext,
 };
+export type { DebugDumpRegistry } from "@main/debug/debug-dump";

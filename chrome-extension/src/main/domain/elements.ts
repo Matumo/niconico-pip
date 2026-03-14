@@ -256,6 +256,13 @@ const createElementsDomain = (): DomainModule => {
         activePlayerContainer: null,
         unsubscribePageUrlChanged,
       };
+      // debug dumpの登録
+      if (nextContext.debugDumpRegistry) {
+        nextContext.debugDumpRegistry.registerElementsDomain({
+          resolveRuntime,
+          createEmptySnapshot,
+        });
+      }
       log.debug("elements domain init completed");
     },
     // elementsドメインを開始する関数
@@ -273,6 +280,10 @@ const createElementsDomain = (): DomainModule => {
         log.debug("elements domain stopping");
         runtime.videoElementObserver.stop();
         runtime.unsubscribePageUrlChanged?.();
+        // debug dumpの解除
+        if (runtime.context.debugDumpRegistry) {
+          runtime.context.debugDumpRegistry.unregisterElementsDomain();
+        }
       }
       runtime = null;
       await baseDomain.stop();

@@ -19,8 +19,8 @@ const createObserver = (): MutationObserver =>
   }) as MutationObserver;
 
 // createAppContextへ注入する依存を作成する関数
-const createDependencies = () => ({
-  config: createAppConfig(),
+const createDependencies = (config = createAppConfig()) => ({
+  config,
 });
 
 describe("createAppContext", () => {
@@ -132,5 +132,42 @@ describe("createAppContext", () => {
     stateContainer.writers.page.patch({ generation: 3 });
 
     expect(context.state.page.get().generation).toBe(3);
+  });
+
+  test("既定ではdebugDumpRegistryを作成しないこと", () => {
+    const stateContainer = createAppStateContainer();
+    const context = createAppContext(
+      stateContainer.state,
+      createDependencies(),
+      {
+        fetchFn: (async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+          })) as unknown as typeof fetch,
+        createObserver,
+      },
+    );
+
+    expect(context.debugDumpRegistry).toBeUndefined();
+  });
+
+  test("debugMode=trueのときだけdebugDumpRegistryを作成すること", () => {
+    const stateContainer = createAppStateContainer();
+    const context = createAppContext(
+      stateContainer.state,
+      createDependencies(createAppConfig({
+        debugMode: true,
+        shouldUseDebugLog: true,
+      })),
+      {
+        fetchFn: (async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+          })) as unknown as typeof fetch,
+        createObserver,
+      },
+    );
+
+    expect(context.debugDumpRegistry?.size()).toBe(0);
   });
 });

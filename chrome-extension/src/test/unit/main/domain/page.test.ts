@@ -164,6 +164,27 @@ describe("pageドメイン", () => {
     expect(domainLogger.debug).toHaveBeenCalledWith("page domain stopping");
   });
 
+  test("debugDumpRegistryがあるときdebug dumpの登録と解除を行うこと", async () => {
+    const initialUrl = "https://www.nicovideo.jp/watch/sm9";
+    const { context, stateWriters } = createPageDomainTestContext(initialUrl);
+    const debugDumpRegistry = {
+      registerPageDomain: vi.fn(),
+      unregisterPageDomain: vi.fn(),
+    } as unknown as NonNullable<AppContext["debugDumpRegistry"]>;
+    context.debugDumpRegistry = debugDumpRegistry;
+    prepareUrlChangeObserverMock();
+    const domain = createPageDomain();
+
+    await domain.init(context, stateWriters);
+    await domain.stop();
+
+    expect(debugDumpRegistry.registerPageDomain).toHaveBeenCalledWith({
+      resolveRuntime: expect.any(Function),
+      resolveCurrentUrl: expect.any(Function),
+    });
+    expect(debugDumpRegistry.unregisterPageDomain).toHaveBeenCalledTimes(1);
+  });
+
   test("URL変更時にstate更新とPageUrlChangedイベント通知を行うこと", async () => {
     const initialUrl = "https://www.nicovideo.jp/watch/sm9";
     const changedUrl = "https://www.nicovideo.jp/watch/sm10";

@@ -4,6 +4,7 @@
 import { createAppEventNameMap } from "@main/config/event";
 import { mergeHttpPolicy, type HttpPolicyOverrides } from "@main/config/http";
 import { selectorDefinitions } from "@main/config/selector";
+import { createDebugDumpRegistry } from "@main/debug/debug-dump";
 import { createElementResolver, type QueryRoot } from "@main/platform/element-resolver";
 import { createEventRegistry } from "@main/platform/event-registry";
 import { createHttpClient } from "@main/platform/http/http-client";
@@ -74,8 +75,7 @@ const createAppContext = (
     fetchFn: options.fetchFn,
     randomFn: options.randomFn,
   });
-
-  return {
+  const context: AppContext = {
     config,
     eventRegistry,
     observerRegistry,
@@ -83,6 +83,13 @@ const createAppContext = (
     elementResolver,
     httpClient,
   };
+
+  // debug dumpレジストリを初期化
+  if (config.debugMode) {
+    context.debugDumpRegistry = createDebugDumpRegistry(context);
+  }
+
+  return context;
 };
 
 // エクスポート

@@ -5,6 +5,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createAppConfig } from "@main/config/config";
 import { createForbiddenHttpClient } from "@test/unit/main/shared/http-client";
 import { createTsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
+import {
+  captureGlobalDescriptors,
+  restoreGlobalDescriptors,
+  setGlobalProperty,
+} from "@test/unit/main/shared/global-property";
 import type {
   AppContext,
   AppObserverRegistry,
@@ -15,6 +20,7 @@ import type { DomainModule } from "@main/domain/shared/create-domain-module";
 import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 
 let bootstrap: typeof import("@main/bootstrap/bootstrap").bootstrap;
+let createDebugDumpRegistry: typeof import("@main/debug/debug-dump").createDebugDumpRegistry;
 let loggerMockHarness: TsSimpleLoggerMockHarness;
 
 // テスト用のno-op MutationObserverを返す関数
@@ -116,6 +122,7 @@ describe("bootstrap", () => {
     loggerMockHarness = createTsSimpleLoggerMockHarness();
     vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
     ({ bootstrap } = await import("@main/bootstrap/bootstrap"));
+    ({ createDebugDumpRegistry } = await import("@main/debug/debug-dump"));
     loggerMockHarness.clearLoggerCalls();
   });
 
@@ -208,6 +215,65 @@ describe("bootstrap", () => {
     expect(hasStateWriters).toBe(true);
     expect(runtime.context.state.page.get().generation).toBe(7);
     await runtime.stop();
+  });
+
+  test("debugMode=falseのときdebug dump triggerを登録しないこと", async () => {
+    const globalDescriptors = captureGlobalDescriptors(["addEventListener", "removeEventListener"] as const);
+    const addEventListener = vi.fn();
+    const removeEventListener = vi.fn();
+    setGlobalProperty("addEventListener", addEventListener);
+    setGlobalProperty("removeEventListener", removeEventListener);
+
+    try {
+      const context = createMockContext();
+      const debugDumpEventName = `${context.config.prefixId}-debug-dump-request`;
+      const runtime = await bootstrap({
+        context,
+        stateWriters: createMockStateWriters(),
+        domainModules: [],
+      });
+
+      expect(addEventListener).not.toHaveBeenCalledWith(debugDumpEventName, expect.any(Function));
+
+      await runtime.stop();
+      expect(removeEventListener).not.toHaveBeenCalledWith(debugDumpEventName, expect.any(Function));
+    } finally {
+      restoreGlobalDescriptors(globalDescriptors);
+    }
+  });
+
+  test("debugMode=trueのときだけdebug dump triggerとapp/context sourceを登録すること", async () => {
+    const globalDescriptors = captureGlobalDescriptors(["addEventListener", "removeEventListener"] as const);
+    const addEventListener = vi.fn();
+    const removeEventListener = vi.fn();
+    setGlobalProperty("addEventListener", addEventListener);
+    setGlobalProperty("removeEventListener", removeEventListener);
+
+    try {
+      const context = createMockContext();
+      context.config = createAppConfig({
+        debugMode: true,
+        shouldUseDebugLog: true,
+      });
+      context.debugDumpRegistry = createDebugDumpRegistry(context);
+      const debugDumpEventName = `${context.config.prefixId}-debug-dump-request`;
+
+      const runtime = await bootstrap({
+        context,
+        stateWriters: createMockStateWriters(),
+        domainModules: [],
+      });
+
+      expect(context.debugDumpRegistry.collect()).toHaveProperty("app/context");
+      expect(addEventListener).toHaveBeenCalledWith(debugDumpEventName, expect.any(Function));
+
+      await runtime.stop();
+
+      expect(context.debugDumpRegistry.size()).toBe(0);
+      expect(removeEventListener).toHaveBeenCalledWith(debugDumpEventName, expect.any(Function));
+    } finally {
+      restoreGlobalDescriptors(globalDescriptors);
+    }
   });
 
   test("stop後に再bootstrapしても再初期化できること", async () => {

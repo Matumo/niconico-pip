@@ -5,6 +5,7 @@ import { runTest as run_main_config_config_test } from "@test/browser-headless/m
 import { runTest as run_main_config_event_test } from "@test/browser-headless/main/config/event.test.runtime";
 import { runTest as run_main_config_http_test } from "@test/browser-headless/main/config/http.test.runtime";
 import { runTest as run_main_config_selector_test } from "@test/browser-headless/main/config/selector.test.runtime";
+import { runTest as run_main_debug_debug_dump_trigger_test } from "@test/browser-headless/main/debug/debug-dump-trigger.test.runtime";
 import { runTest as run_main_adapter_dom_video_element_observer_test } from "@test/browser-headless/main/adapter/dom/video-element-observer.test.runtime";
 import { runTest as run_main_adapter_dom_url_change_observer_test } from "@test/browser-headless/main/adapter/dom/url-change-observer.test.runtime";
 import { runTest as run_main_adapter_dom_video_info_test } from "@test/browser-headless/main/adapter/dom/video-info.test.runtime";
@@ -36,6 +37,7 @@ const runtimeTestHandlerMap: Record<string, RuntimeTestHandler> = {
   [runtimeTestPathMap.main.config.eventTest]: () => run_main_config_event_test(),
   [runtimeTestPathMap.main.config.selectorTest]: () => run_main_config_selector_test(),
   [runtimeTestPathMap.main.config.httpTest]: () => run_main_config_http_test(),
+  [runtimeTestPathMap.main.debug.debugDumpTriggerTest]: () => run_main_debug_debug_dump_trigger_test(),
   [runtimeTestPathMap.main.adapter.dom.videoElementObserverTest]: () => run_main_adapter_dom_video_element_observer_test(),
   [runtimeTestPathMap.main.adapter.dom.urlChangeObserverTest]: () => run_main_adapter_dom_url_change_observer_test(),
   [runtimeTestPathMap.main.adapter.dom.videoInfoTest]: () => run_main_adapter_dom_video_info_test(),

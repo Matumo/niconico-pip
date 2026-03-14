@@ -10,6 +10,9 @@ const runtimeTestPathMap = {
       selectorTest: "main_config_selector_test",
       httpTest: "main_config_http_test",
     },
+    debug: {
+      debugDumpTriggerTest: "main_debug_debug_dump_trigger_test",
+    },
     adapter: {
       dom: {
         videoElementObserverTest: "main_adapter_dom_video_element_observer_test",

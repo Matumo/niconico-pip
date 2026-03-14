@@ -396,6 +396,27 @@ describe("pipドメイン", () => {
     expect(pipPatch).toHaveBeenCalledWith({ enabled: false });
   });
 
+  test("debugDumpRegistryがあるときdebug dumpの登録と解除を行うこと", async () => {
+    const { context, stateWriters } = createPipDomainTestContext();
+    const debugDumpRegistry = {
+      registerPipDomain: vi.fn(),
+      unregisterPipDomain: vi.fn(),
+    } as unknown as NonNullable<AppContext["debugDumpRegistry"]>;
+    context.debugDumpRegistry = debugDumpRegistry;
+    preparePipVideoElementAdapterMock();
+    preparePipRendererMock();
+    preparePipStreamMock();
+    const domain = createPipDomain();
+
+    await domain.init(context, stateWriters);
+    await domain.stop();
+
+    expect(debugDumpRegistry.registerPipDomain).toHaveBeenCalledWith({
+      resolveRuntime: expect.any(Function),
+    });
+    expect(debugDumpRegistry.unregisterPipDomain).toHaveBeenCalledTimes(1);
+  });
+
   test("ElementsUpdatedで挿入し、VideoInfoChangedでposter更新すること", async () => {
     const {
       context,
