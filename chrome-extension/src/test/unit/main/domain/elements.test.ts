@@ -378,6 +378,7 @@ describe("elementsドメイン", () => {
       url: "https://www.nicovideo.jp/watch/sm10",
       generation: 6,
       isWatchPage: true,
+      changedKeys: ["url"],
     });
 
     expect(switchToDiscover).toHaveBeenCalled();
@@ -416,6 +417,7 @@ describe("elementsドメイン", () => {
       url: "https://www.nicovideo.jp/ranking",
       generation: 6,
       isWatchPage: false,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     expect(stop).toHaveBeenCalledTimes(1);
@@ -523,6 +525,7 @@ describe("elementsドメイン", () => {
       url: "https://www.nicovideo.jp/watch/sm10",
       generation: 6,
       isWatchPage: true,
+      changedKeys: ["url"],
     })).not.toThrow();
 
     expect(eventRegistryEmit).not.toHaveBeenCalled();

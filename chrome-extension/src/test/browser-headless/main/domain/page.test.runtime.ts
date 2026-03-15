@@ -65,9 +65,12 @@ const initializeState = (): HeadlessBridgeDetails => {
   // 収集対象イベントだけを履歴に積む関数
   const listener = (event: Event): void => {
     const customEvent = event as CustomEvent<AppEventMap["PageUrlChanged"]>;
+    const changedKeys = customEvent.detail?.changedKeys;
     if (customEvent.detail && typeof customEvent.detail.url === "string"
         && typeof customEvent.detail.generation === "number"
-        && typeof customEvent.detail.isWatchPage === "boolean") {
+        && typeof customEvent.detail.isWatchPage === "boolean"
+        && Array.isArray(changedKeys)
+        && changedKeys.every((key) => typeof key === "string")) {
       observedEvents.push(customEvent.detail);
     }
   };

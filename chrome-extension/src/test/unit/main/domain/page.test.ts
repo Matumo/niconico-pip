@@ -212,6 +212,7 @@ describe("pageドメイン", () => {
         url: changedUrl,
         generation: 1,
         isWatchPage: true,
+        changedKeys: Object.freeze(["url"]),
       },
     });
     expect(domainLogger.info).toHaveBeenCalledWith(
@@ -264,6 +265,7 @@ describe("pageドメイン", () => {
         url: changedUrl,
         generation: 1,
         isWatchPage: false,
+        changedKeys: Object.freeze(["url", "isWatchPage"]),
       },
     });
   });

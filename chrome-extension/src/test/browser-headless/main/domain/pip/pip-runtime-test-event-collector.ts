@@ -23,7 +23,10 @@ const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
 // PipStatusChanged payloadの最小構造を判定する関数
 const isPipStatusChangedPayload = (value: unknown): value is AppEventMap["PipStatusChanged"] => {
   if (!isObjectRecord(value)) return false;
-  return typeof value.enabled === "boolean";
+  const changedKeys = value.changedKeys;
+  return typeof value.enabled === "boolean" &&
+    Array.isArray(changedKeys) &&
+    changedKeys.every((key) => typeof key === "string");
 };
 
 // 収集済みの最新イベントを取得するヘルパー関数

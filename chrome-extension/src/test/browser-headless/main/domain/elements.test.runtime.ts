@@ -234,6 +234,7 @@ const emitPageUrlChanged = (request: HeadlessBridgeRequest): HeadlessBridgeDetai
       url,
       generation,
       isWatchPage,
+      changedKeys: isWatchPage ? ["url"] : ["url", "isWatchPage"],
     } satisfies AppEventMap["PageUrlChanged"],
   }));
 

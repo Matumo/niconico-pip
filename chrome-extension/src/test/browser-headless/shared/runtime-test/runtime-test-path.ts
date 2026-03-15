@@ -13,6 +13,9 @@ const runtimeTestPathMap = {
     debug: {
       debugDumpTriggerTest: "main_debug_debug_dump_trigger_test",
     },
+    platform: {
+      eventRegistryTest: "main_platform_event_registry_test",
+    },
     adapter: {
       dom: {
         videoElementObserverTest: "main_adapter_dom_video_element_observer_test",

@@ -2,8 +2,25 @@
  * イベントレジストリテスト
  */
 import { describe, expect, test, vi } from "vitest";
+import { selectorDefinitions } from "@main/config/selector";
+import type { AppEventMap, ElementsSnapshot } from "@main/config/event";
 import { createEventRegistry } from "@main/platform/event-registry";
 import { createAppEventNameMap } from "@main/config/event";
+
+// 空の要素スナップショットを作る関数
+const createEmptyElementsSnapshot = (): ElementsSnapshot => {
+  const snapshot = {} as ElementsSnapshot;
+  for (const key of Object.keys(selectorDefinitions) as (keyof ElementsSnapshot)[]) {
+    snapshot[key] = null;
+  }
+  return snapshot;
+};
+
+// null値を検出したら例外にする関数
+const resolveRequiredValue = <T>(value: T | null, errorMessage: string): NonNullable<T> => {
+  if (value === null) throw new Error(errorMessage);
+  return value as NonNullable<T>;
+};
 
 describe("イベントレジストリ", () => {
   test("型付きイベントを登録して発火できること", () => {
@@ -82,6 +99,7 @@ describe("イベントレジストリ", () => {
         thumbnail: "https://example.test/thumb.jpg",
         pageGeneration: 1,
         infoGeneration: 1,
+        changedKeys: ["title", "author", "thumbnail"],
       },
     });
 
@@ -142,5 +160,150 @@ describe("イベントレジストリ", () => {
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledTimes(1);
     expect(eventRegistry.size()).toBe(1);
+  });
+
+  test("emit時にpayloadを読み取り専用のcloneへ変換して後続listenerへ渡すこと", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const originalPayload: AppEventMap["PageUrlChanged"] = {
+      url: "https://example.test/watch/sm9",
+      generation: 1,
+      isWatchPage: true,
+      changedKeys: ["url"] as const,
+    };
+
+    let firstPayload: AppEventMap["PageUrlChanged"] | null = null;
+    let secondPayload: AppEventMap["PageUrlChanged"] | null = null;
+    let topLevelMutationRejected = false;
+    let changedKeysMutationRejected = false;
+
+    eventRegistry.on({
+      target,
+      key: "readonly-first",
+      eventKey: "PageUrlChanged",
+      listener: (payload) => {
+        firstPayload = payload;
+        topLevelMutationRejected = Reflect.set(payload as Record<string, unknown>, "url", "mutated-url") === false;
+        changedKeysMutationRejected = Reflect.set(
+          payload.changedKeys as unknown as Record<string, unknown>,
+          "0",
+          "mutated-key",
+        ) === false;
+      },
+    });
+    eventRegistry.on({
+      target,
+      key: "readonly-second",
+      eventKey: "PageUrlChanged",
+      listener: (payload) => {
+        secondPayload = payload;
+      },
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "PageUrlChanged",
+      payload: originalPayload,
+    });
+
+    const receivedFirstPayload = resolveRequiredValue<AppEventMap["PageUrlChanged"]>(
+      firstPayload,
+      "PageUrlChanged listener did not receive payload",
+    );
+    const receivedSecondPayload = resolveRequiredValue<AppEventMap["PageUrlChanged"]>(
+      secondPayload,
+      "PageUrlChanged listener did not receive payload",
+    );
+
+    expect(receivedFirstPayload).not.toBe(originalPayload);
+    expect(receivedFirstPayload.changedKeys).not.toBe(originalPayload.changedKeys);
+    expect(Object.isFrozen(receivedFirstPayload)).toBe(true);
+    expect(Object.isFrozen(receivedFirstPayload.changedKeys)).toBe(true);
+    expect(topLevelMutationRejected).toBe(true);
+    expect(changedKeysMutationRejected).toBe(true);
+    expect(receivedSecondPayload).toEqual(originalPayload);
+    expect(Object.isFrozen(originalPayload)).toBe(false);
+    expect(Object.isFrozen(originalPayload.changedKeys)).toBe(false);
+  });
+
+  test("emit時にnested plain objectも読み取り専用のcloneへ変換すること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const originalSnapshot = createEmptyElementsSnapshot();
+    const originalPayload: AppEventMap["ElementsUpdated"] = {
+      pageGeneration: 1,
+      elementsGeneration: 1,
+      changedKeys: ["video"] as const,
+      snapshot: originalSnapshot,
+    };
+
+    let receivedPayload: AppEventMap["ElementsUpdated"] | null = null;
+    let snapshotMutationRejected = false;
+
+    eventRegistry.on({
+      target,
+      key: "readonly-elements",
+      eventKey: "ElementsUpdated",
+      listener: (payload) => {
+        receivedPayload = payload;
+        snapshotMutationRejected = Reflect.set(
+          payload.snapshot as unknown as Record<string, unknown>,
+          "video",
+          "mutated-video",
+        ) === false;
+      },
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "ElementsUpdated",
+      payload: originalPayload,
+    });
+
+    const receivedElementsPayload = resolveRequiredValue<AppEventMap["ElementsUpdated"]>(
+      receivedPayload,
+      "ElementsUpdated listener did not receive payload",
+    );
+
+    expect(receivedElementsPayload.snapshot).not.toBe(originalSnapshot);
+    expect(Object.isFrozen(receivedElementsPayload.snapshot)).toBe(true);
+    expect(snapshotMutationRejected).toBe(true);
+    expect(Object.isFrozen(originalSnapshot)).toBe(false);
+  });
+
+  test("prototypeがnullのplain objectも読み取り専用のcloneへ変換すること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const originalPayload = Object.assign(Object.create(null), {
+      status: "ready" as const,
+    }) as AppEventMap["StatusChanged"];
+
+    let receivedPayload: AppEventMap["StatusChanged"] | null = null;
+
+    eventRegistry.on({
+      target,
+      key: "null-prototype",
+      eventKey: "StatusChanged",
+      listener: (payload) => {
+        receivedPayload = payload;
+      },
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "StatusChanged",
+      payload: originalPayload,
+    });
+
+    const readonlyPayload = resolveRequiredValue<AppEventMap["StatusChanged"]>(
+      receivedPayload,
+      "StatusChanged listener did not receive payload",
+    );
+
+    expect(Object.getPrototypeOf(originalPayload)).toBeNull();
+    expect(readonlyPayload).not.toBe(originalPayload);
+    expect(readonlyPayload).toEqual({ status: "ready" });
+    expect(Object.isFrozen(readonlyPayload)).toBe(true);
+    expect(Object.isFrozen(originalPayload)).toBe(false);
   });
 });

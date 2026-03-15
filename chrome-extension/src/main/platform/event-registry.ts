@@ -16,6 +16,33 @@ type RegisteredEvent = {
 
 const log = getLogger(appLoggerNames.eventRegistry);
 
+// plain objectかどうかを判定する関数
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  if (typeof value !== "object" || value === null) return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+};
+
+// イベントpayloadをdispatch専用の読み取り専用値へ変換する関数
+const createReadonlyEventPayloadValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return Object.freeze(value.map((entry) => createReadonlyEventPayloadValue(entry)));
+  }
+  if (isPlainObject(value)) {
+    const readonlyObject: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(value)) {
+      readonlyObject[key] = createReadonlyEventPayloadValue(entry);
+    }
+    return Object.freeze(readonlyObject);
+  }
+  return value;
+};
+
+// NOTE: DOM要素などのlive objectはclone/freezeせず参照のまま通し、
+// payloadの入れ物と配列・plain objectだけをread-only化する。
+const createReadonlyEventPayload = <K extends AppEventKey>(payload: AppEventMap[K]): AppEventMap[K] =>
+  createReadonlyEventPayloadValue(payload) as AppEventMap[K];
+
 // イベントの登録、発火、解除を管理する関数
 const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry => {
   // 登録済みイベント情報
@@ -72,8 +99,9 @@ const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry =>
     payload: AppEventMap[K];
   }): void => {
     const eventName = eventNameMap[params.eventKey];
-    log.debug(`----- Event Emitted ----- (event=${eventName})`, params.payload);
-    params.target.dispatchEvent(new CustomEvent(eventName, { detail: params.payload }));
+    const readonlyPayload = createReadonlyEventPayload(params.payload);
+    log.debug(`----- Event Emitted ----- (event=${eventName})`, readonlyPayload);
+    params.target.dispatchEvent(new CustomEvent(eventName, { detail: readonlyPayload }));
   };
 
   // 全イベント登録を解除する関数

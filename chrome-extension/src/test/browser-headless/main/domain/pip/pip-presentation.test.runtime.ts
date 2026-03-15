@@ -153,7 +153,10 @@ const runTest = (): HeadlessBridgeDetails => {
   const pipEnabledEventEmittedOnce = emittedEvents.length === 1 &&
     emittedEvents[0]?.target === globalThis &&
     emittedEvents[0]?.eventKey === "PipStatusChanged" &&
-    JSON.stringify(emittedEvents[0]?.payload) === JSON.stringify({ enabled: true });
+    JSON.stringify(emittedEvents[0]?.payload) === JSON.stringify({
+      enabled: true,
+      changedKeys: ["enabled"],
+    });
 
   return {
     rendererSourcesUpdated,

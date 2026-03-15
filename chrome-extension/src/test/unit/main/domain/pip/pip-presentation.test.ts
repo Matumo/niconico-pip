@@ -196,6 +196,7 @@ describe("pipドメイン表示同期", () => {
         eventKey: "PipStatusChanged",
         payload: {
           enabled: true,
+          changedKeys: ["enabled"],
         },
       },
     ]);

@@ -101,6 +101,7 @@ describe("pipドメインイベント処理", () => {
       thumbnail: null,
       pageGeneration: 1,
       infoGeneration: 1,
+      changedKeys: [],
     });
     handlers.handleEnterPictureInPicture(new Event("enterpictureinpicture"));
     handlers.handleLeavePictureInPicture(new Event("leavepictureinpicture"));
@@ -109,6 +110,7 @@ describe("pipドメインイベント処理", () => {
       url: "https://www.nicovideo.jp/watch/sm9",
       isWatchPage: false,
       generation: 1,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     expect(syncPipEnabledMock).not.toHaveBeenCalled();
@@ -205,6 +207,7 @@ describe("pipドメインイベント処理", () => {
       url: "https://www.nicovideo.jp/ranking",
       isWatchPage: false,
       generation: 1,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     runtime.context.config.shouldExitPipOnNonWatchPage = true;
@@ -212,11 +215,13 @@ describe("pipドメインイベント処理", () => {
       url: "https://www.nicovideo.jp/watch/sm9",
       isWatchPage: true,
       generation: 2,
+      changedKeys: ["url", "isWatchPage"],
     });
     handlers.handlePageUrlChanged({
       url: "https://www.nicovideo.jp/ranking",
       isWatchPage: false,
       generation: 3,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     expect(requestExitOwnPictureInPictureMock).toHaveBeenCalledTimes(1);

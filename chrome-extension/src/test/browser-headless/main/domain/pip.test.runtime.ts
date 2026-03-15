@@ -93,6 +93,7 @@ const emitPageUrlChanged = (request: HeadlessBridgeRequest): HeadlessBridgeDetai
       url,
       generation,
       isWatchPage,
+      changedKeys: isWatchPage ? ["url"] : ["url", "isWatchPage"],
     } satisfies AppEventMap["PageUrlChanged"],
   }));
 
@@ -148,6 +149,7 @@ const emitVideoInfoChanged = (request: HeadlessBridgeRequest): HeadlessBridgeDet
       thumbnail,
       pageGeneration,
       infoGeneration,
+      changedKeys: ["title", "author", "thumbnail"],
     } satisfies AppEventMap["VideoInfoChanged"],
   }));
 

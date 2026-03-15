@@ -41,17 +41,26 @@ const isSameVideoInfoSnapshot = (left: VideoInfoSnapshot, right: VideoInfoSnapsh
 
 // VideoInfoChangedのpayloadを作成する関数
 const createVideoInfoChangedPayload = (params: {
+  previousSnapshot: VideoInfoSnapshot;
   snapshot: VideoInfoSnapshot;
   pageGeneration: number;
   infoGeneration: number;
-}): AppEventMap["VideoInfoChanged"] =>
-  Object.freeze({
+}): AppEventMap["VideoInfoChanged"] => {
+  const changedKeys: AppEventMap["VideoInfoChanged"]["changedKeys"][number][] = [];
+
+  if (params.previousSnapshot.title !== params.snapshot.title) changedKeys.push("title");
+  if (params.previousSnapshot.author !== params.snapshot.author) changedKeys.push("author");
+  if (params.previousSnapshot.thumbnail !== params.snapshot.thumbnail) changedKeys.push("thumbnail");
+
+  return Object.freeze({
     title: params.snapshot.title,
     author: params.snapshot.author,
     thumbnail: params.snapshot.thumbnail,
     pageGeneration: params.pageGeneration,
     infoGeneration: params.infoGeneration,
+    changedKeys: Object.freeze(changedKeys),
   });
+};
 
 // statusドメインを作成する関数
 const createStatusDomain = (): DomainModule => {
@@ -84,6 +93,7 @@ const createStatusDomain = (): DomainModule => {
       return;
     }
 
+    const previousSnapshot = runtime.snapshot;
     runtime.snapshot = nextSnapshot;
     runtime.pageGeneration = pageGeneration;
     runtime.infoGeneration += 1;
@@ -102,6 +112,7 @@ const createStatusDomain = (): DomainModule => {
       return;
     }
     const payload = createVideoInfoChangedPayload({
+      previousSnapshot,
       snapshot: runtime.snapshot,
       pageGeneration,
       infoGeneration: runtime.infoGeneration,

@@ -63,11 +63,14 @@ const resolveNullableStringDetail = (request: HeadlessBridgeRequest, key: string
 // VideoInfoChanged payloadの最小構造を判定する関数
 const isVideoInfoChangedPayload = (value: unknown): value is AppEventMap["VideoInfoChanged"] => {
   if (!isObjectRecord(value)) return false;
+  const changedKeys = value.changedKeys;
   return isNullableString(value.title) &&
     isNullableString(value.author) &&
     isNullableString(value.thumbnail) &&
     typeof value.pageGeneration === "number" &&
-    typeof value.infoGeneration === "number";
+    typeof value.infoGeneration === "number" &&
+    Array.isArray(changedKeys) &&
+    changedKeys.every((key) => typeof key === "string");
 };
 
 // 収集済みの最新イベントを取得するヘルパー関数
@@ -232,6 +235,7 @@ const emitPageUrlChanged = (request: HeadlessBridgeRequest): HeadlessBridgeDetai
       url,
       generation,
       isWatchPage,
+      changedKeys: isWatchPage ? ["url"] : ["url", "isWatchPage"],
     } satisfies AppEventMap["PageUrlChanged"],
   }));
 

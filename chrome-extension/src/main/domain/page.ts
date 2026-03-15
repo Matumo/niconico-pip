@@ -6,6 +6,7 @@ import {
   type UrlChangeObserver,
   type UrlCheckTrigger,
 } from "@main/adapter/dom/url-change-observer";
+import type { AppEventMap } from "@main/config/event";
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
 import { resolveEventTarget } from "@main/domain/shared/resolve-event-target";
 import { appLoggerNames } from "@main/platform/logger";
@@ -72,6 +73,9 @@ const createPageDomain = (): DomainModule => {
     const currentState = runtime.context.state.page.get();
     const nextGeneration = currentState.generation + 1;
     const isWatchPage = runtime.context.config.watchPageUrlPattern.test(currentUrl);
+    const changedKeys: AppEventMap["PageUrlChanged"]["changedKeys"][number][] = [];
+    changedKeys.push("url");
+    if (currentState.isWatchPage !== isWatchPage) changedKeys.push("isWatchPage");
 
     // 次回比較用に最新URLを保持する
     runtime.lastKnownUrl = currentUrl;
@@ -94,6 +98,7 @@ const createPageDomain = (): DomainModule => {
           url: currentUrl,
           generation: nextGeneration,
           isWatchPage,
+          changedKeys: Object.freeze(changedKeys),
         },
       });
     } else {

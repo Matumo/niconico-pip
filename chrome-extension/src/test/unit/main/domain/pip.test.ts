@@ -454,6 +454,7 @@ describe("pipドメイン", () => {
       thumbnail: "https://example.test/updated-thumbnail.jpg",
       pageGeneration: 1,
       infoGeneration: 1,
+      changedKeys: ["title", "author", "thumbnail"],
     });
 
     expect(setSources).toHaveBeenCalledWith({
@@ -715,6 +716,7 @@ describe("pipドメイン", () => {
       eventKey: "PipStatusChanged",
       payload: {
         enabled: true,
+        changedKeys: ["enabled"],
       },
     });
 
@@ -732,6 +734,7 @@ describe("pipドメイン", () => {
       eventKey: "PipStatusChanged",
       payload: {
         enabled: false,
+        changedKeys: ["enabled"],
       },
     });
   });
@@ -1363,6 +1366,7 @@ describe("pipドメイン", () => {
       url: "https://www.nicovideo.jp/watch/sm9",
       generation: 1,
       isWatchPage: true,
+      changedKeys: ["url"],
     });
     await Promise.resolve();
     expect(exitPictureInPicture).toHaveBeenCalledTimes(0);
@@ -1372,6 +1376,7 @@ describe("pipドメイン", () => {
       url: "https://www.nicovideo.jp/ranking",
       generation: 2,
       isWatchPage: false,
+      changedKeys: ["url", "isWatchPage"],
     });
     await Promise.resolve();
     expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
@@ -1381,6 +1386,7 @@ describe("pipドメイン", () => {
       url: "https://www.nicovideo.jp/tag/test",
       generation: 3,
       isWatchPage: false,
+      changedKeys: ["url"],
     });
     await Promise.resolve();
     expect(exitPictureInPicture).toHaveBeenCalledTimes(1);
@@ -1417,6 +1423,7 @@ describe("pipドメイン", () => {
       url: "https://www.nicovideo.jp/ranking",
       generation: 1,
       isWatchPage: false,
+      changedKeys: ["url", "isWatchPage"],
     });
     await Promise.resolve();
     expect(exitPictureInPicture).not.toHaveBeenCalled();
@@ -1560,6 +1567,7 @@ describe("pipドメイン", () => {
       thumbnail: "https://example.test/updated-thumbnail.jpg",
       pageGeneration: 1,
       infoGeneration: 1,
+      changedKeys: ["title", "author", "thumbnail"],
     });
     await Promise.resolve();
 
@@ -1679,11 +1687,13 @@ describe("pipドメイン", () => {
       thumbnail: "https://example.test/updated-thumbnail.jpg",
       pageGeneration: 1,
       infoGeneration: 1,
+      changedKeys: ["title", "author", "thumbnail"],
     });
     emitPageUrlChanged({
       url: "https://www.nicovideo.jp/ranking",
       generation: 2,
       isWatchPage: false,
+      changedKeys: ["url", "isWatchPage"],
     });
     enterListener?.(new Event("enterpictureinpicture"));
     leaveListener?.(new Event("leavepictureinpicture"));

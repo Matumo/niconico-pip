@@ -240,6 +240,7 @@ describe("statusドメイン", () => {
       url: "https://www.nicovideo.jp/watch/sm9",
       generation: 2,
       isWatchPage: true,
+      changedKeys: ["url"],
     });
     emitElementsUpdated();
     expect(domainLogger.warn).toHaveBeenCalledWith("status runtime is not initialized");
@@ -314,8 +315,10 @@ describe("statusドメイン", () => {
       thumbnail: "https://example.test/watch.jpg",
       pageGeneration: 5,
       infoGeneration: 1,
+      changedKeys: ["title", "author", "thumbnail"],
     });
     expect(Object.isFrozen(payload)).toBe(true);
+    expect(Object.isFrozen(payload.changedKeys)).toBe(true);
   });
 
   test("page-url-changedはgeneration差分のみでも同期できること", async () => {
@@ -351,6 +354,7 @@ describe("statusドメイン", () => {
       url: "https://www.nicovideo.jp/watch/sm9",
       generation: 2,
       isWatchPage: true,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     expect(infoPatch).toHaveBeenCalledWith({
@@ -400,6 +404,7 @@ describe("statusドメイン", () => {
       url: "https://www.nicovideo.jp/ranking",
       generation: 6,
       isWatchPage: false,
+      changedKeys: ["url", "isWatchPage"],
     });
 
     expect(infoPatch).toHaveBeenCalledWith({
@@ -416,6 +421,7 @@ describe("statusドメイン", () => {
       thumbnail: null,
       pageGeneration: 6,
       infoGeneration: 2,
+      changedKeys: ["title", "author", "thumbnail"],
     });
   });
 

@@ -90,12 +90,15 @@ const syncPipEnabled = (
     log.warn("PipStatusChanged emit skipped: global event target is unavailable");
     return;
   }
+  const changedKeys: AppEventMap["PipStatusChanged"]["changedKeys"][number][] = [];
+  changedKeys.push("enabled");
 
   runtime.context.eventRegistry.emit({
     target: eventTarget,
     eventKey: "PipStatusChanged",
     payload: {
       enabled,
+      changedKeys: Object.freeze(changedKeys),
     },
   });
   log.info(`pip status updated: enabled=${enabled} (trigger=${trigger})`);

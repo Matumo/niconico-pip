@@ -10,43 +10,53 @@ type ElementsSnapshot = {
 
 // ElementsUpdatedで公開する読み取り専用スナップショット型
 type ReadonlyElementsSnapshot = Readonly<ElementsSnapshot>;
+// NOTE: changedKeysは実質データ差分だけを表し、generation系の補助メタデータは含めない。
+// PageUrlChangedで通知するchanged key型
+type PageUrlChangedKey = "url" | "isWatchPage";
+// VideoInfoChangedで通知するchanged key型
+type VideoInfoChangedKey = "title" | "author" | "thumbnail";
+// PipStatusChangedで通知するchanged key型
+type PipStatusChangedKey = "enabled";
 
 // アプリで扱うイベントのペイロード型
 interface AppEventMap {
   // ページURL変更を通知するイベント
-  PageUrlChanged: {
+  PageUrlChanged: Readonly<{
     url: string;
     generation: number;
     isWatchPage: boolean;
-  };
+    changedKeys: readonly PageUrlChangedKey[];
+  }>;
   // 主要要素の再解決完了を通知するイベント
-  ElementsUpdated: {
-    readonly pageGeneration: number;
-    readonly elementsGeneration: number;
-    readonly changedKeys: readonly SelectorKey[];
-    readonly snapshot: ReadonlyElementsSnapshot;
-  };
+  ElementsUpdated: Readonly<{
+    pageGeneration: number;
+    elementsGeneration: number;
+    changedKeys: readonly SelectorKey[];
+    snapshot: ReadonlyElementsSnapshot;
+  }>;
   // 再生状態の変化を通知するイベント
-  StatusChanged: {
+  StatusChanged: Readonly<{
     status: "idle" | "loading" | "ready" | "error";
-  };
+  }>;
   // 動画メタ情報の更新を通知するイベント
-  VideoInfoChanged: {
+  VideoInfoChanged: Readonly<{
     title: string | null;
     author: string | null;
     thumbnail: string | null;
     pageGeneration: number;
     infoGeneration: number;
-  };
+    changedKeys: readonly VideoInfoChangedKey[];
+  }>;
   // 再生時刻情報の更新を通知するイベント
-  VideoTimeChanged: {
+  VideoTimeChanged: Readonly<{
     currentTime: number;
     duration: number;
-  };
+  }>;
   // PiP有効状態の変化を通知するイベント
-  PipStatusChanged: {
+  PipStatusChanged: Readonly<{
     enabled: boolean;
-  };
+    changedKeys: readonly PipStatusChangedKey[];
+  }>;
 }
 
 // イベントキー型
@@ -66,4 +76,13 @@ const createAppEventNameMap = (prefixId: string): AppEventNameMap => ({
 
 // エクスポート
 export { createAppEventNameMap };
-export type { ElementsSnapshot, ReadonlyElementsSnapshot, AppEventMap, AppEventKey, AppEventNameMap };
+export type {
+  ElementsSnapshot,
+  ReadonlyElementsSnapshot,
+  PageUrlChangedKey,
+  VideoInfoChangedKey,
+  PipStatusChangedKey,
+  AppEventMap,
+  AppEventKey,
+  AppEventNameMap,
+};
