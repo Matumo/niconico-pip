@@ -17,6 +17,7 @@ RUN apt-get update && \
       locales \
       sudo \
       tzdata \
+      wget \
       zip \
       libatomic1 \
       openjdk-25-jdk \
@@ -48,7 +49,7 @@ RUN apt-get update && \
 
 # pnpm
 RUN corepack enable && \
-    corepack prepare pnpm@10.27.0 --activate && \
+    corepack prepare pnpm@10.32.1 --activate && \
     pnpm completion bash > ~/completion-for-pnpm.bash && \
     echo 'source ~/completion-for-pnpm.bash' >> ~/.bashrc
 
