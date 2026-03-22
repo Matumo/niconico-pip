@@ -38,7 +38,7 @@ const log = getLogger(appLoggerNames.domain);
 
 // pageドメインを作成する関数
 const createPageDomain = (): DomainModule => {
-  const baseDomain = createDomainModule("page", "urlWatch");
+  const baseDomain = createDomainModule("page");
   // 実行時の情報
   let runtime: PageDomainRuntime | null = null;
 

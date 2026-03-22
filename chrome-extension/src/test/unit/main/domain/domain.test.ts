@@ -125,16 +125,6 @@ describe("ドメインモジュール", () => {
       "pip",
       "ad",
     ]);
-    expect(modules.map((module) => module.phase)).toEqual([
-      "urlWatch",
-      "coreDetection",
-      "coreDetection",
-      "coreDetection",
-      "control",
-      "control",
-      "control",
-      "presentation",
-    ]);
 
     for (const module of modules) {
       await module.init(context, stateWriters);
@@ -144,7 +134,7 @@ describe("ドメインモジュール", () => {
   });
 
   test("init前のstartで例外を返すこと", async () => {
-    const module = createDomainModule("sample", "control");
+    const module = createDomainModule("elements");
 
     await expect(module.start()).rejects.toThrowError(/must be initialized/);
   });

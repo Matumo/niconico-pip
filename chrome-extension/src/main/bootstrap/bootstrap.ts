@@ -5,7 +5,8 @@ import { createAppContext, type CreateAppContextOptions } from "@main/bootstrap/
 import { createAppConfig } from "@main/config/config";
 import { createAdDomain } from "@main/domain/ad";
 import { createControllerDomain } from "@main/domain/controller";
-import type { DomainModule, DomainPhase } from "@main/domain/shared/create-domain-module";
+import type { DomainModule } from "@main/domain/shared/create-domain-module";
+import { domainNameOrderList, type DomainName } from "@main/domain/shared/domain-name";
 import { createElementsDomain } from "@main/domain/elements";
 import { createMediaSessionDomain } from "@main/domain/media-session";
 import { createPageDomain } from "@main/domain/page";
@@ -36,29 +37,36 @@ type BootstrapOptions =
     domainModules?: DomainModule[];
   });
 
-// ドメイン起動順の優先度定義
-const domainPhaseOrder = {
-  coreDetection: 1,
-  control: 2,
-  presentation: 3,
-  urlWatch: 4,
-} as const satisfies Record<DomainPhase, number>;
+const domainModuleFactories = {
+  "elements": createElementsDomain,
+  "status": createStatusDomain,
+  "time": createTimeDomain,
+  "controller": createControllerDomain,
+  "media-session": createMediaSessionDomain,
+  "pip": createPipDomain,
+  "ad": createAdDomain,
+  "page": createPageDomain,
+} as const satisfies Record<DomainName, () => DomainModule>;
+
+// 起動順リストから優先度レコードを構築する
+const defaultDomainOrderRecord = domainNameOrderList.reduce<Record<DomainName, number>>(
+  (record, domainName, index) => {
+    record[domainName] = index;
+    return record;
+  },
+  {} as Record<DomainName, number>,
+);
+
+// ドメイン名から既定起動順を取得する関数
+const resolveDomainOrder = (domainName: DomainName): number => defaultDomainOrderRecord[domainName];
 
 // 既定のドメイン一覧を作成する関数
-const createDefaultDomainModules = (): DomainModule[] => [
-  createPageDomain(),
-  createElementsDomain(),
-  createStatusDomain(),
-  createTimeDomain(),
-  createControllerDomain(),
-  createMediaSessionDomain(),
-  createPipDomain(),
-  createAdDomain(),
-];
+const createDefaultDomainModules = (): DomainModule[] =>
+  domainNameOrderList.map((domainName) => domainModuleFactories[domainName]());
 
-// ドメイン一覧をフェーズ順へ整列する関数
+// ドメイン一覧を起動順リストへ整列する関数
 const sortDomainModules = (domainModules: DomainModule[]): DomainModule[] =>
-  [...domainModules].sort((left, right) => domainPhaseOrder[left.phase] - domainPhaseOrder[right.phase]);
+  [...domainModules].sort((left, right) => resolveDomainOrder(left.name) - resolveDomainOrder(right.name));
 
 // 起動処理を実行して停止関数を返す関数
 const bootstrap = async (options: BootstrapOptions = {}): Promise<BootstrapRuntime> => {

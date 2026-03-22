@@ -17,6 +17,7 @@ import type {
   AppStateWriters,
 } from "@main/types/app-context";
 import type { DomainModule } from "@main/domain/shared/create-domain-module";
+import { domainNameOrderList, type DomainName } from "@main/domain/shared/domain-name";
 import type { TsSimpleLoggerMockHarness } from "@test/unit/main/shared/logger";
 
 let bootstrap: typeof import("@main/bootstrap/bootstrap").bootstrap;
@@ -89,13 +90,11 @@ const createMockStateWriters = (): AppStateWriters => ({
 
 // テスト用ドメインを作成する関数
 const createDomain = (
-  name: string,
-  phase: DomainModule["phase"],
+  name: DomainName,
   record: string[],
   throwOn?: "init" | "start" | "stop",
 ): DomainModule => ({
   name,
-  phase,
   init: async () => {
     record.push(`${name}:init`);
     if (throwOn === "init") {
@@ -135,26 +134,33 @@ describe("bootstrap", () => {
       context,
       stateWriters,
       domainModules: [
-        createDomain("p", "presentation", record),
-        createDomain("c", "control", record),
-        createDomain("d", "coreDetection", record),
+        createDomain("page", record),
+        createDomain("pip", record),
+        createDomain("elements", record),
       ],
     });
 
-    expect(record).toEqual(["d:init", "c:init", "p:init", "d:start", "c:start", "p:start"]);
+    expect(record).toEqual([
+      "elements:init",
+      "pip:init",
+      "page:init",
+      "elements:start",
+      "pip:start",
+      "page:start",
+    ]);
 
     await runtime.stop();
 
     expect(record).toEqual([
-      "d:init",
-      "c:init",
-      "p:init",
-      "d:start",
-      "c:start",
-      "p:start",
-      "p:stop",
-      "c:stop",
-      "d:stop",
+      "elements:init",
+      "pip:init",
+      "page:init",
+      "elements:start",
+      "pip:start",
+      "page:start",
+      "page:stop",
+      "pip:stop",
+      "elements:stop",
     ]);
 
     expect(context.observerRegistry.disconnectAll).toHaveBeenCalledTimes(1);
@@ -162,6 +168,95 @@ describe("bootstrap", () => {
     expect(context.elementResolver.invalidateAll).toHaveBeenCalledTimes(1);
     expect(context.httpClient.clearInFlight).toHaveBeenCalledTimes(1);
     expect(context.httpClient.clearCache).toHaveBeenCalledTimes(1);
+  });
+
+  test("既定ドメインを明示リスト順で生成し起動すること", async () => {
+    vi.resetModules();
+    loggerMockHarness = createTsSimpleLoggerMockHarness();
+    vi.doMock("@matumo/ts-simple-logger", () => loggerMockHarness.createModuleFactory());
+
+    const record: string[] = [];
+    const context = createMockContext();
+    const stateWriters = createMockStateWriters();
+
+    const createFactoryMock = (name: DomainName) => vi.fn(() => createDomain(name, record));
+
+    const createElementsDomain = createFactoryMock("elements");
+    const createStatusDomain = createFactoryMock("status");
+    const createTimeDomain = createFactoryMock("time");
+    const createControllerDomain = createFactoryMock("controller");
+    const createMediaSessionDomain = createFactoryMock("media-session");
+    const createPipDomain = createFactoryMock("pip");
+    const createAdDomain = createFactoryMock("ad");
+    const createPageDomain = createFactoryMock("page");
+
+    vi.doMock("@main/domain/elements", () => ({ createElementsDomain }));
+    vi.doMock("@main/domain/status", () => ({ createStatusDomain }));
+    vi.doMock("@main/domain/time", () => ({ createTimeDomain }));
+    vi.doMock("@main/domain/controller", () => ({ createControllerDomain }));
+    vi.doMock("@main/domain/media-session", () => ({ createMediaSessionDomain }));
+    vi.doMock("@main/domain/pip", () => ({ createPipDomain }));
+    vi.doMock("@main/domain/ad", () => ({ createAdDomain }));
+    vi.doMock("@main/domain/page", () => ({ createPageDomain }));
+
+    const { bootstrap: bootstrapWithMocks } = await import("@main/bootstrap/bootstrap");
+    const runtime = await bootstrapWithMocks({
+      context,
+      stateWriters,
+    });
+
+    expect(record).toEqual([
+      "elements:init",
+      "status:init",
+      "time:init",
+      "controller:init",
+      "media-session:init",
+      "pip:init",
+      "ad:init",
+      "page:init",
+      "elements:start",
+      "status:start",
+      "time:start",
+      "controller:start",
+      "media-session:start",
+      "pip:start",
+      "ad:start",
+      "page:start",
+    ]);
+
+    await runtime.stop();
+
+    expect(record).toEqual([
+      "elements:init",
+      "status:init",
+      "time:init",
+      "controller:init",
+      "media-session:init",
+      "pip:init",
+      "ad:init",
+      "page:init",
+      "elements:start",
+      "status:start",
+      "time:start",
+      "controller:start",
+      "media-session:start",
+      "pip:start",
+      "ad:start",
+      "page:start",
+      "page:stop",
+      "ad:stop",
+      "pip:stop",
+      "media-session:stop",
+      "controller:stop",
+      "time:stop",
+      "status:stop",
+      "elements:stop",
+    ]);
+
+    for (const domainName of domainNameOrderList) {
+      const domainCreateRecord = `${domainName}:init`;
+      expect(record).toContain(domainCreateRecord);
+    }
   });
 
   test("init失敗時も他ドメインの起動処理を継続すること", async () => {
@@ -173,14 +268,14 @@ describe("bootstrap", () => {
       context,
       stateWriters,
       domainModules: [
-        createDomain("broken", "coreDetection", record, "init"),
-        createDomain("next", "coreDetection", record),
+        createDomain("elements", record, "init"),
+        createDomain("status", record),
       ],
     });
 
-    expect(record).toContain("broken:init");
-    expect(record).toContain("next:init");
-    expect(record).toContain("next:start");
+    expect(record).toContain("elements:init");
+    expect(record).toContain("status:init");
+    expect(record).toContain("status:start");
     expect(loggerMockHarness.resolveMockLogger("safe-runner").error).toHaveBeenCalledTimes(1);
     expect(loggerMockHarness.resolveMockLogger("domain").error).not.toHaveBeenCalled();
   });
@@ -196,8 +291,7 @@ describe("bootstrap", () => {
     let hasStateWriters = false;
 
     const domain: DomainModule = {
-      name: "writer-check",
-      phase: "coreDetection",
+      name: "page",
       init: async (context, dependencies) => {
         hasStateWriters = Boolean(dependencies.page);
         dependencies.page.patch({ generation: 7 });
@@ -281,8 +375,7 @@ describe("bootstrap", () => {
     const generationsAtInit: number[] = [];
 
     const domain: DomainModule = {
-      name: "restart-check",
-      phase: "coreDetection",
+      name: "page",
       init: async (context, dependencies) => {
         generationsAtInit.push(context.state.page.get().generation);
         dependencies.page.patch({ generation: 1 });
@@ -321,13 +414,13 @@ describe("bootstrap", () => {
       context: firstContext,
       stateWriters: firstStateWriters,
       domainModules: [
-        createDomain("broken-start", "control", firstRecord, "start"),
-        createDomain("next-start", "control", firstRecord),
+        createDomain("elements", firstRecord, "start"),
+        createDomain("status", firstRecord),
       ],
     });
 
-    expect(firstRecord).toContain("broken-start:start");
-    expect(firstRecord).toContain("next-start:start");
+    expect(firstRecord).toContain("elements:start");
+    expect(firstRecord).toContain("status:start");
     const safeRunnerLogger = loggerMockHarness.resolveMockLogger("safe-runner");
     expect(safeRunnerLogger.error).toHaveBeenCalledTimes(1);
     safeRunnerLogger.error.mockClear();
@@ -340,13 +433,13 @@ describe("bootstrap", () => {
       context: secondContext,
       stateWriters: secondStateWriters,
       domainModules: [
-        createDomain("first-start", "control", secondRecord),
-        createDomain("broken-start-2", "control", secondRecord, "start"),
+        createDomain("elements", secondRecord),
+        createDomain("status", secondRecord, "start"),
       ],
     });
 
-    expect(secondRecord).toContain("first-start:start");
-    expect(secondRecord).toContain("broken-start-2:start");
+    expect(secondRecord).toContain("elements:start");
+    expect(secondRecord).toContain("status:start");
     expect(safeRunnerLogger.error).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,7 +4,7 @@
 import { createDomainModule, type DomainModule } from "@main/domain/shared/create-domain-module";
 
 // media-sessionドメインを作成する関数
-const createMediaSessionDomain = (): DomainModule => createDomainModule("media-session", "control");
+const createMediaSessionDomain = (): DomainModule => createDomainModule("media-session");
 
 // エクスポート
 export { createMediaSessionDomain };

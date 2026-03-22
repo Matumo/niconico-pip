@@ -3,27 +3,23 @@
  */
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
+import type { DomainName } from "@main/domain/shared/domain-name";
 import type { Lifecycle } from "@main/types/lifecycle";
 import type { AppContext, AppStateWriters } from "@main/types/app-context";
 
-// ドメインフェーズ型
-type DomainPhase = "coreDetection" | "control" | "presentation" | "urlWatch";
-
 // ドメインモジュール型
-interface DomainModule extends Lifecycle {
-  readonly name: string;
-  readonly phase: DomainPhase;
+interface DomainModule<TName extends DomainName = DomainName> extends Lifecycle {
+  readonly name: TName;
 }
 
 const log = getLogger(appLoggerNames.domain);
 
 // ドメインモジュールの骨格を作成する関数
-const createDomainModule = (name: string, phase: DomainPhase): DomainModule => {
+const createDomainModule = <TName extends DomainName>(name: TName): DomainModule<TName> => {
   let initialized = false;
 
   return {
     name,
-    phase,
     // ドメインを初期化する関数
     init: async (_: AppContext, __: AppStateWriters): Promise<void> => {
       log.debug(`Domain init: ${name}`);
@@ -44,4 +40,4 @@ const createDomainModule = (name: string, phase: DomainPhase): DomainModule => {
 
 // エクスポート
 export { createDomainModule };
-export type { DomainPhase, DomainModule };
+export type { DomainModule };

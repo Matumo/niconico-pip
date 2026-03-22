@@ -4,6 +4,9 @@
 
 const runtimeTestPathMap = {
   main: {
+    bootstrap: {
+      bootstrapTest: "main_bootstrap_bootstrap_test",
+    },
     config: {
       configTest: "main_config_config_test",
       eventTest: "main_config_event_test",

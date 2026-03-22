@@ -64,7 +64,7 @@ const createVideoInfoChangedPayload = (params: {
 
 // statusドメインを作成する関数
 const createStatusDomain = (): DomainModule => {
-  const baseDomain = createDomainModule("status", "coreDetection");
+  const baseDomain = createDomainModule("status");
   // 実行時の情報
   let runtime: StatusDomainRuntime | null = null;
 

@@ -1,6 +1,7 @@
 /**
  * ランタイムテストハンドラーのレジストリ
  */
+import { runTest as run_main_bootstrap_bootstrap_test } from "@test/browser-headless/main/bootstrap/bootstrap.test.runtime";
 import { runTest as run_main_config_config_test } from "@test/browser-headless/main/config/config.test.runtime";
 import { runTest as run_main_config_event_test } from "@test/browser-headless/main/config/event.test.runtime";
 import { runTest as run_main_config_http_test } from "@test/browser-headless/main/config/http.test.runtime";
@@ -35,6 +36,7 @@ type RuntimeTestCheckMap = HeadlessBridgeDetails;
 type RuntimeTestHandler = (request: HeadlessBridgeRequest) => RuntimeTestCheckMap | Promise<RuntimeTestCheckMap>;
 
 const runtimeTestHandlerMap: Record<string, RuntimeTestHandler> = {
+  [runtimeTestPathMap.main.bootstrap.bootstrapTest]: () => run_main_bootstrap_bootstrap_test(),
   [runtimeTestPathMap.main.config.configTest]: () => run_main_config_config_test(),
   [runtimeTestPathMap.main.config.eventTest]: () => run_main_config_event_test(),
   [runtimeTestPathMap.main.config.selectorTest]: () => run_main_config_selector_test(),

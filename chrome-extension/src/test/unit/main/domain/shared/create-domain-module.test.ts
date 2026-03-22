@@ -13,15 +13,14 @@ vi.mock("@matumo/ts-simple-logger", () => ({
 }));
 
 describe("create-domain-module", () => {
-  test("nameとphaseを保持したドメイン骨格を返すこと", () => {
-    const module = createDomainModule("sample", "presentation");
+  test("nameを保持したドメイン骨格を返すこと", () => {
+    const module = createDomainModule("elements");
 
-    expect(module.name).toBe("sample");
-    expect(module.phase).toBe("presentation");
+    expect(module.name).toBe("elements");
   });
 
   test("stop後は再度initしないとstartできないこと", async () => {
-    const module = createDomainModule("sample", "control");
+    const module = createDomainModule("elements");
 
     await module.init({} as never, {} as never);
     await module.start();
@@ -31,7 +30,7 @@ describe("create-domain-module", () => {
   });
 
   test("stop後に再initすれば再startできること", async () => {
-    const module = createDomainModule("sample", "urlWatch");
+    const module = createDomainModule("elements");
 
     await module.init({} as never, {} as never);
     await module.start();

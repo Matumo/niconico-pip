@@ -18,7 +18,7 @@ const log = getLogger(appLoggerNames.domain);
 
 // pipドメインを作成する関数
 const createPipDomain = (): DomainModule => {
-  const baseDomain = createDomainModule("pip", "control");
+  const baseDomain = createDomainModule("pip");
   // 実行時の情報
   let runtime: PipDomainRuntime | null = null;
 

@@ -87,7 +87,7 @@ const createElementsUpdatedPayload = (params: {
 
 // elementsドメインを作成する関数
 const createElementsDomain = (): DomainModule => {
-  const baseDomain = createDomainModule("elements", "coreDetection");
+  const baseDomain = createDomainModule("elements");
   // 実行時の情報
   let runtime: ElementsDomainRuntime | null = null;
 
