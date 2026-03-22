@@ -22,7 +22,7 @@ const log = getLogger(appLoggerNames.eventRegistry);
 // plain objectかどうかを判定する関数
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   if (typeof value !== "object" || value === null) return false;
-  const prototype = Object.getPrototypeOf(value);
+  const prototype: unknown = Object.getPrototypeOf(value) as unknown;
   return prototype === Object.prototype || prototype === null;
 };
 

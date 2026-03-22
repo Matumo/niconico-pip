@@ -196,6 +196,7 @@ describe("createDebugDumpRegistry", () => {
           reason: "broken dump",
           retriable: false,
         };
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw thrownValue;
       },
       resolveCurrentUrl: () => "https://www.nicovideo.jp/watch/sm9",
@@ -379,6 +380,7 @@ describe("createDebugDumpRegistry", () => {
     circular.self = circular;
     registry.registerPageDomain({
       resolveRuntime: () => {
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw circular;
       },
       resolveCurrentUrl: () => "https://www.nicovideo.jp/watch/sm9",
@@ -394,6 +396,7 @@ describe("createDebugDumpRegistry", () => {
     registry.registerPageDomain({
       resolveRuntime: () => {
         const thrownValue = createAnonymousThrowValue();
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw thrownValue;
       },
       resolveCurrentUrl: () => "https://www.nicovideo.jp/watch/sm10",

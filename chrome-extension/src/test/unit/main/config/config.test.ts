@@ -36,20 +36,20 @@ describe("config", () => {
 
     // 型チェック
     expect(config).toMatchObject({
-      appName: expect.any(String),
-      prefixId: expect.any(String),
-      debugMode: expect.any(Boolean),
-      shouldUseDebugLog: expect.any(Boolean),
-      shouldExitPipOnNonWatchPage: expect.any(Boolean),
-      watchPageUrlPattern: expect.any(RegExp),
-      pipButtonElementId: expect.any(String),
-      pipVideoElementId: expect.any(String),
-      videoPipCanvasHeight: expect.any(Number),
-      videoPipCanvasWidth: expect.any(Number),
-      pipButtonOnMouseOverColor: expect.any(String),
-      pipButtonOnMouseOutColor: expect.any(String),
-      seekBackwardDefaultOffset: expect.any(Number),
-      seekForwardDefaultOffset: expect.any(Number),
+      appName: expect.any(String) as unknown,
+      prefixId: expect.any(String) as unknown,
+      debugMode: expect.any(Boolean) as unknown,
+      shouldUseDebugLog: expect.any(Boolean) as unknown,
+      shouldExitPipOnNonWatchPage: expect.any(Boolean) as unknown,
+      watchPageUrlPattern: expect.any(RegExp) as unknown,
+      pipButtonElementId: expect.any(String) as unknown,
+      pipVideoElementId: expect.any(String) as unknown,
+      videoPipCanvasHeight: expect.any(Number) as unknown,
+      videoPipCanvasWidth: expect.any(Number) as unknown,
+      pipButtonOnMouseOverColor: expect.any(String) as unknown,
+      pipButtonOnMouseOutColor: expect.any(String) as unknown,
+      seekBackwardDefaultOffset: expect.any(Number) as unknown,
+      seekForwardDefaultOffset: expect.any(Number) as unknown,
     });
 
     // 値パターン確認

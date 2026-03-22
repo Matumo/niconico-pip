@@ -254,15 +254,15 @@ describe("elementsドメイン", () => {
 
     expect(createVideoElementObserverMock).toHaveBeenCalledWith({
       observerRegistry: context.observerRegistry,
-      onDiscoverCheckRequested: expect.any(Function),
-      onPlayerCheckRequested: expect.any(Function),
+      onDiscoverCheckRequested: expect.any(Function) as unknown,
+      onPlayerCheckRequested: expect.any(Function) as unknown,
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:elements:page-url-changed",
       eventKey: "PageUrlChanged",
       listenerDomain: "elements",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(start).toHaveBeenCalledTimes(1);
     expect(stop).toHaveBeenCalledTimes(1);
@@ -283,8 +283,8 @@ describe("elementsドメイン", () => {
     await domain.stop();
 
     expect(debugDumpRegistry.registerElementsDomain).toHaveBeenCalledWith({
-      resolveRuntime: expect.any(Function),
-      createEmptySnapshot: expect.any(Function),
+      resolveRuntime: expect.any(Function) as unknown,
+      createEmptySnapshot: expect.any(Function) as unknown,
     });
     expect(debugDumpRegistry.unregisterElementsDomain).toHaveBeenCalledTimes(1);
   });
@@ -323,17 +323,17 @@ describe("elementsドメイン", () => {
     expect(switchToPlayer).toHaveBeenCalledWith(playerContainer);
     expect(elementsPatch).toHaveBeenCalledWith({
       lastResolvedGeneration: 11,
-      lastResolvedElapsedMs: expect.any(Number),
+      lastResolvedElapsedMs: expect.any(Number) as unknown,
     });
     expect(eventRegistryEmit).toHaveBeenCalledTimes(1);
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "ElementsUpdated",
       ownerDomain: "elements",
-      payload: expect.any(Object),
+      payload: expect.any(Object) as unknown,
     });
 
-    const payload = eventRegistryEmit.mock.calls[0][0].payload as AppEventMap["ElementsUpdated"];
+    const payload = (eventRegistryEmit.mock.calls[0][0] as { payload: AppEventMap["ElementsUpdated"] }).payload;
     expect(payload.pageGeneration).toBe(7);
     expect(payload.elementsGeneration).toBe(11);
     expect(payload.changedKeys).toEqual(["commentToggleButton", "playerContainer"]);
@@ -386,7 +386,7 @@ describe("elementsドメイン", () => {
     expect(switchToDiscover).toHaveBeenCalled();
     expect(eventRegistryEmit).toHaveBeenCalledTimes(2);
 
-    const payload = eventRegistryEmit.mock.calls[1][0].payload as AppEventMap["ElementsUpdated"];
+    const payload = (eventRegistryEmit.mock.calls[1][0] as { payload: AppEventMap["ElementsUpdated"] }).payload;
     expect(payload.changedKeys).toContain("playerContainer");
     expect(payload.snapshot.playerContainer).toBeNull();
   });
@@ -426,7 +426,7 @@ describe("elementsドメイン", () => {
     expect(switchToDiscover).not.toHaveBeenCalled();
     expect(eventRegistryEmit).toHaveBeenCalledTimes(2);
 
-    const payload = eventRegistryEmit.mock.calls[1][0].payload as AppEventMap["ElementsUpdated"];
+    const payload = (eventRegistryEmit.mock.calls[1][0] as { payload: AppEventMap["ElementsUpdated"] }).payload;
     expect(payload.changedKeys).toContain("playerContainer");
     expect(payload.snapshot.playerContainer).toBeNull();
     expect(payload.snapshot.playerMenu).toBeNull();
@@ -461,7 +461,7 @@ describe("elementsドメイン", () => {
 
     expect(switchToDiscover).toHaveBeenCalledTimes(1);
     expect(eventRegistryEmit).toHaveBeenCalledTimes(2);
-    const payload = eventRegistryEmit.mock.calls[1][0].payload as AppEventMap["ElementsUpdated"];
+    const payload = (eventRegistryEmit.mock.calls[1][0] as { payload: AppEventMap["ElementsUpdated"] }).payload;
     expect(payload.changedKeys).toContain("playerContainer");
   });
 
@@ -491,7 +491,7 @@ describe("elementsドメイン", () => {
 
     expect(elementsPatch).toHaveBeenCalledWith({
       lastResolvedGeneration: 11,
-      lastResolvedElapsedMs: expect.any(Number),
+      lastResolvedElapsedMs: expect.any(Number) as unknown,
     });
     expect(eventRegistryEmit).not.toHaveBeenCalled();
     expect(domainLogger.warn).toHaveBeenCalledWith(

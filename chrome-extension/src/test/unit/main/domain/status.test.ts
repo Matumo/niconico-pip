@@ -223,14 +223,14 @@ describe("statusドメイン", () => {
       key: "domain:status:page-url-changed",
       eventKey: "PageUrlChanged",
       listenerDomain: "status",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:status:elements-updated",
       eventKey: "ElementsUpdated",
       listenerDomain: "status",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(unsubscribePageUrlChanged).toHaveBeenCalledTimes(1);
     expect(unsubscribeElementsUpdated).toHaveBeenCalledTimes(1);
@@ -262,7 +262,7 @@ describe("statusドメイン", () => {
     await domain.stop();
 
     expect(debugDumpRegistry.registerStatusDomain).toHaveBeenCalledWith({
-      resolveRuntime: expect.any(Function),
+      resolveRuntime: expect.any(Function) as unknown,
     });
     expect(debugDumpRegistry.unregisterStatusDomain).toHaveBeenCalledTimes(1);
   });
@@ -308,10 +308,10 @@ describe("statusドメイン", () => {
       target: globalThis,
       eventKey: "VideoInfoChanged",
       ownerDomain: "status",
-      payload: expect.any(Object),
+      payload: expect.any(Object) as unknown,
     });
 
-    const payload = eventRegistryEmit.mock.calls[0][0].payload as AppEventMap["VideoInfoChanged"];
+    const payload = (eventRegistryEmit.mock.calls[0][0] as { payload: AppEventMap["VideoInfoChanged"] }).payload;
     expect(payload).toEqual({
       title: "watch title",
       author: "watch author",
@@ -417,7 +417,7 @@ describe("statusドメイン", () => {
       pageGeneration: 6,
       infoGeneration: 2,
     });
-    const payload = eventRegistryEmit.mock.calls[0][0].payload as AppEventMap["VideoInfoChanged"];
+    const payload = (eventRegistryEmit.mock.calls[0][0] as { payload: AppEventMap["VideoInfoChanged"] }).payload;
     expect(payload).toEqual({
       title: null,
       author: null,

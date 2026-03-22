@@ -155,7 +155,7 @@ describe("pageドメイン", () => {
 
     expect(createUrlChangeObserverMock).toHaveBeenCalledWith({
       observerRegistry,
-      onUrlCheckRequested: expect.any(Function),
+      onUrlCheckRequested: expect.any(Function) as unknown,
     });
     expect(start).toHaveBeenCalledTimes(1);
     expect(stop).toHaveBeenCalledTimes(1);
@@ -179,8 +179,8 @@ describe("pageドメイン", () => {
     await domain.stop();
 
     expect(debugDumpRegistry.registerPageDomain).toHaveBeenCalledWith({
-      resolveRuntime: expect.any(Function),
-      resolveCurrentUrl: expect.any(Function),
+      resolveRuntime: expect.any(Function) as unknown,
+      resolveCurrentUrl: expect.any(Function) as unknown,
     });
     expect(debugDumpRegistry.unregisterPageDomain).toHaveBeenCalledTimes(1);
   });

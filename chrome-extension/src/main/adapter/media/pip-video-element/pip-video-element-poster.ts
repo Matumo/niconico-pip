@@ -79,7 +79,7 @@ const makePoster16By9 = async (
         // 変換後のデータURLを渡す
         resolve(canvasElement.toDataURL());
       } catch (error: unknown) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     };
     // 失敗時はrejectする

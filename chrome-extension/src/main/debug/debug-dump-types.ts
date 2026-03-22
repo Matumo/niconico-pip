@@ -83,21 +83,21 @@ interface RegisterPipDomainDebugDumpOptions {
 
 // main codeから経由して使うdebug dump公開API
 interface DebugDumpRegistry {
-  registerAppContext(): void;
-  unregisterAppContext(): void;
-  registerPageDomain(options: RegisterPageDomainDebugDumpOptions): void;
-  unregisterPageDomain(): void;
-  registerElementsDomain(options: RegisterElementsDomainDebugDumpOptions): void;
-  unregisterElementsDomain(): void;
-  registerStatusDomain(options: RegisterStatusDomainDebugDumpOptions): void;
-  unregisterStatusDomain(): void;
-  registerPipDomain(options: RegisterPipDomainDebugDumpOptions): void;
-  unregisterPipDomain(): void;
-  installTrigger(): void;
-  uninstallTrigger(): void;
-  clearSources(): void;
-  size(): number;
-  collect(): DebugDumpObject;
+  registerAppContext: () => void;
+  unregisterAppContext: () => void;
+  registerPageDomain: (options: RegisterPageDomainDebugDumpOptions) => void;
+  unregisterPageDomain: () => void;
+  registerElementsDomain: (options: RegisterElementsDomainDebugDumpOptions) => void;
+  unregisterElementsDomain: () => void;
+  registerStatusDomain: (options: RegisterStatusDomainDebugDumpOptions) => void;
+  unregisterStatusDomain: () => void;
+  registerPipDomain: (options: RegisterPipDomainDebugDumpOptions) => void;
+  unregisterPipDomain: () => void;
+  installTrigger: () => void;
+  uninstallTrigger: () => void;
+  clearSources: () => void;
+  size: () => number;
+  collect: () => DebugDumpObject;
 }
 
 // エクスポート

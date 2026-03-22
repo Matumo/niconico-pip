@@ -292,6 +292,26 @@ describe("PiP動画要素poster変換", () => {
     );
   });
 
+  test("onload内で非Errorがthrowされた場合はErrorへラップしてrejectすること", async () => {
+    setGlobalProperty("Image", FakeImage);
+    setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);
+    setGlobalProperty("document", {
+      createElement: vi.fn(() => {
+        const canvas = new FakeCanvasElement();
+        canvas.context.drawImage = vi.fn(() => {
+          const nonError = "non-error string";
+          // eslint-disable-next-line @typescript-eslint/only-throw-error
+          throw nonError;
+        });
+        return canvas as unknown as HTMLElement;
+      }),
+    });
+
+    await expect(getPosterDataUrlWithFreshCache("https://example.test/non-error-throw.jpg")).rejects.toThrow(
+      "non-error string",
+    );
+  });
+
   test("onloadの後にonerrorが来ても最初の成功結果を維持すること", async () => {
     setGlobalProperty("Image", FakeImage);
     setGlobalProperty("HTMLCanvasElement", FakeCanvasElement);

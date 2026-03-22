@@ -104,9 +104,9 @@ interface AppEventRegistry {
     ownerDomain: DomainName;
     payload: AppEventMap[K];
   }): void;
-  off(key: string): boolean;
-  clear(): void;
-  size(): number;
+  off: (key: string) => boolean;
+  clear: () => void;
+  size: () => number;
 }
 
 // オブザーバーレジストリインターフェース型
@@ -117,9 +117,9 @@ interface AppObserverRegistry {
     callback: MutationCallback;
     options: MutationObserverInit;
   }): MutationObserver;
-  disconnect(key: string): boolean;
-  disconnectAll(): void;
-  size(): number;
+  disconnect: (key: string) => boolean;
+  disconnectAll: () => void;
+  size: () => number;
 }
 
 // HTTPクライアントインターフェース型
@@ -141,17 +141,17 @@ interface AppHttpClient {
   // HEADリクエスト関数
   head(input: HttpInput, options?: HttpOptions): ResponsePromise<unknown>;
   // 互換APIとしてキャッシュクリアを提供する関数
-  clearCache(): void;
+  clearCache: () => void;
   // 互換APIとしてin-flightクリアを提供する関数
-  clearInFlight(): void;
+  clearInFlight: () => void;
 }
 
 // 要素リゾルバーインターフェース型
 interface AppElementResolver {
   resolve<K extends SelectorKey>(key: K): SelectorElementMap[K] | null;
   peek<K extends SelectorKey>(key: K): SelectorElementMap[K] | null;
-  invalidate(key: SelectorKey): void;
-  invalidateAll(): void;
+  invalidate: (key: SelectorKey) => void;
+  invalidateAll: () => void;
 }
 
 // 実行時依存を束ねるアプリコンテキスト型

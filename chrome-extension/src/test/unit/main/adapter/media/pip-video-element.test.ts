@@ -241,7 +241,7 @@ describe("PiP動画要素アダプター", () => {
     helperMocks.calculatePipVideoElementSize.mockReset();
     helperMocks.waitForLoadedMetadata.mockResolvedValue(true);
     helperMocks.getPosterDataUrl.mockResolvedValue("data:image/png;base64,converted");
-    helperMocks.calculatePipVideoElementSize.mockImplementation((options) => ({
+    helperMocks.calculatePipVideoElementSize.mockImplementation((options: { parentWidth: number; parentHeight: number }) => ({
       width: Math.max(1, Math.floor(options.parentWidth)),
       height: Math.max(0, Math.floor(options.parentHeight)),
     }));
@@ -582,10 +582,10 @@ describe("PiP動画要素アダプター", () => {
     expect(helperMocks.getPosterDataUrl).toHaveBeenCalledWith(expect.objectContaining({
       thumbnailUrl: "https://example.test/success.jpg",
       posterDataUrlCache: expect.objectContaining({
-        get: expect.any(Function),
-        set: expect.any(Function),
-        delete: expect.any(Function),
-      }),
+        get: expect.any(Function) as unknown,
+        set: expect.any(Function) as unknown,
+        delete: expect.any(Function) as unknown,
+      }) as unknown,
     }));
     expect(await adapter.updatePoster(null)).toBe(false);
     expect(pipVideoElement.getAttribute("poster")).toBeNull();

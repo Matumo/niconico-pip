@@ -91,7 +91,9 @@ const installControlledImageEnvironment = (
   const browserGlobal = globalThis as PosterRuntimeGlobal;
   const RealImage = resolveRuntimeImageCtor();
   const imageGlobal = browserGlobal as { Image?: typeof Image };
-  const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src");
+  const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, "src") as
+    | { get?: () => string; set?: (v: string) => void }
+    | undefined;
   const srcSetterCandidate = srcDescriptor?.set;
   const srcGetterCandidate = srcDescriptor?.get;
   if (!srcSetterCandidate || !srcGetterCandidate) {

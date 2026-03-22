@@ -81,7 +81,7 @@ describe("要素リゾルバー", () => {
     for (const key of selectorKeys) {
       expect(resolver.resolve(key)).toBeNull();
       expect(elementResolverLogger.warn).toHaveBeenCalledWith(`Selector guard rejected element for key=${key}`, {
-        selector: expect.any(String),
+        selector: expect.any(String) as unknown,
       });
     }
 

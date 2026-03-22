@@ -56,7 +56,7 @@ const registerBrowserUnhandledErrorHandlers = (): void => {
   if (typeof globalThis.addEventListener !== "function") return;
 
   globalThis.addEventListener("error", (event: ErrorEvent): void => {
-    const detail = event.error ?? event.message;
+    const detail: unknown = (event.error as unknown) ?? event.message;
     log.error("Unhandled error:", detail);
   });
 

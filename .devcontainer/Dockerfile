@@ -23,6 +23,7 @@ RUN apt-get update && \
       openjdk-25-jdk \
       x11-apps \
       imagemagick \
+      jq \
     && \
     rm -rf /var/lib/apt/lists/*
 

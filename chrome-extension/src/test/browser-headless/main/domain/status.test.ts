@@ -54,10 +54,10 @@ const createVideoInfoJsonLdFromFixture = (
   fixture: Record<string, unknown>,
   videoInfo: VideoInfoFixture,
 ): Record<string, unknown> => {
-  const thumbnailEntries = Array.isArray(fixture.thumbnail) ?
-    fixture.thumbnail.slice(1) : [];
-  const thumbnailUrlEntries = Array.isArray(fixture.thumbnailUrl) ?
-    fixture.thumbnailUrl.slice(1) : [];
+  const thumbnailEntries: unknown[] = Array.isArray(fixture.thumbnail) ?
+    (fixture.thumbnail as unknown[]).slice(1) : [];
+  const thumbnailUrlEntries: unknown[] = Array.isArray(fixture.thumbnailUrl) ?
+    (fixture.thumbnailUrl as unknown[]).slice(1) : [];
 
   return {
     ...fixture,

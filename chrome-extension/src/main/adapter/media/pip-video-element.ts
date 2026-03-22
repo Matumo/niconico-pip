@@ -15,13 +15,13 @@ interface CreatePipVideoElementAdapterOptions {
 
 // PiP動画要素アダプター型
 interface PipVideoElementAdapter {
-  getElement(): HTMLVideoElement;
-  updatePipVideoPlacement(target: HTMLDivElement | null): boolean;
-  updateSize(): boolean;
-  updatePoster(thumbnailUrl: string | null): Promise<boolean>;
-  requestPictureInPicture(): Promise<boolean>;
-  isOwnPictureInPictureElement(eventTarget?: EventTarget | null): boolean;
-  stop(): void;
+  getElement: () => HTMLVideoElement;
+  updatePipVideoPlacement: (target: HTMLDivElement | null) => boolean;
+  updateSize: () => boolean;
+  updatePoster: (thumbnailUrl: string | null) => Promise<boolean>;
+  requestPictureInPicture: () => Promise<boolean>;
+  isOwnPictureInPictureElement: (eventTarget?: EventTarget | null) => boolean;
+  stop: () => void;
 }
 
 // 実行環境へアクセスするための最小型

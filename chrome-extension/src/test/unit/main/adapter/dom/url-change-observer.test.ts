@@ -133,7 +133,7 @@ describe("URL変更監視アダプター", () => {
     expect(observe).toHaveBeenCalledWith({
       key: "page:url-change-observer",
       target: documentHead,
-      callback: expect.any(Function),
+      callback: expect.any(Function) as unknown,
       options: { childList: true, attributes: true },
     });
 

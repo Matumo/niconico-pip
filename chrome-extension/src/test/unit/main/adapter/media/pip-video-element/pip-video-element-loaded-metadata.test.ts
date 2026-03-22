@@ -6,15 +6,16 @@ import { waitForLoadedMetadata } from "@main/adapter/media/pip-video-element/pip
 
 describe("PiP動画要素loadedmetadata待機", () => {
   test("開始時点でreadyStateが準備済みなら即時trueで終了すること", async () => {
-    const videoElement = {
+    const videoElementMock = {
       readyState: 1,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-    } as unknown as HTMLVideoElement;
+    };
+    const videoElement = videoElementMock as unknown as HTMLVideoElement;
 
     await expect(waitForLoadedMetadata(videoElement)).resolves.toBe(true);
-    expect(videoElement.addEventListener).not.toHaveBeenCalled();
-    expect(videoElement.removeEventListener).not.toHaveBeenCalled();
+    expect(videoElementMock.addEventListener).not.toHaveBeenCalled();
+    expect(videoElementMock.removeEventListener).not.toHaveBeenCalled();
   });
 
   test("初回チェック後に準備済みへ遷移した場合は後段チェックでtrueにすること", async () => {

@@ -14,7 +14,7 @@ interface StaticFixtureServerOptions {
 
 interface StaticFixtureServer {
   baseUrl: string;
-  close(): Promise<void>;
+  close: () => Promise<void>;
 }
 
 // 拡張子からContent-Typeを決める最小マップ
@@ -47,7 +47,7 @@ const startStaticFixtureServer = async (
   let server: Server | null = null;
 
   // 受信したパスに対応するfixtureファイルを返すHTTPハンドラー
-  server = createServer(async (request, response) => {
+  server = createServer((request, response) => { void (async () => {
     try {
       const requestUrl = request.url ?? "/";
       const pathname = new URL(requestUrl, `http://${host}`).pathname;
@@ -71,7 +71,7 @@ const startStaticFixtureServer = async (
       response.statusCode = 404;
       response.end("Not Found");
     }
-  });
+  })(); });
 
   // ポート0で空きポートを自動採番して起動する
   await new Promise<void>((resolveReady, reject) => {

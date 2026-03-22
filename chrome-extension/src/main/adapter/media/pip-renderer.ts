@@ -17,8 +17,8 @@ interface PipRendererSources {
 
 // PiPレンダラー型
 interface PipRenderer {
-  setSources(nextSources: PipRendererSources): void;
-  drawFrame(drawContext: CanvasRenderingContext2D, drawCanvas: HTMLCanvasElement): boolean;
+  setSources: (nextSources: PipRendererSources) => void;
+  drawFrame: (drawContext: CanvasRenderingContext2D, drawCanvas: HTMLCanvasElement) => boolean;
 }
 
 type DrawErrorLogger = (error: unknown) => void;

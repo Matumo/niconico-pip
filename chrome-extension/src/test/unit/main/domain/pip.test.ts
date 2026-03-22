@@ -361,7 +361,7 @@ describe("pipドメイン", () => {
     });
     expect(createPipRendererMock).toHaveBeenCalledWith();
     expect(createPipStreamMock).toHaveBeenCalledWith({
-      pipVideoElement: expect.any(EventTarget),
+      pipVideoElement: expect.any(EventTarget) as unknown,
       renderFrame: drawFrame,
       canvasWidth: context.config.videoPipCanvasWidth,
       canvasHeight: context.config.videoPipCanvasHeight,
@@ -371,21 +371,21 @@ describe("pipドメイン", () => {
       key: "domain:pip:page-url-changed",
       eventKey: "PageUrlChanged",
       listenerDomain: "pip",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:pip:elements-updated",
       eventKey: "ElementsUpdated",
       listenerDomain: "pip",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:pip:video-info-changed",
       eventKey: "VideoInfoChanged",
       listenerDomain: "pip",
-      listener: expect.any(Function),
+      listener: expect.any(Function) as unknown,
     });
     expect(nativeEventApi.addEventListener).toHaveBeenCalledWith("enterpictureinpicture", expect.any(Function));
     expect(nativeEventApi.addEventListener).toHaveBeenCalledWith("leavepictureinpicture", expect.any(Function));
@@ -415,7 +415,7 @@ describe("pipドメイン", () => {
     await domain.stop();
 
     expect(debugDumpRegistry.registerPipDomain).toHaveBeenCalledWith({
-      resolveRuntime: expect.any(Function),
+      resolveRuntime: expect.any(Function) as unknown,
     });
     expect(debugDumpRegistry.unregisterPipDomain).toHaveBeenCalledTimes(1);
   });
@@ -901,7 +901,7 @@ describe("pipドメイン", () => {
     expect(observerRegistryObserve).toHaveBeenCalledWith({
       key: "domain:pip:fullscreen-toggle-label",
       target: fullscreenToggleButton,
-      callback: expect.any(Function),
+      callback: expect.any(Function) as unknown,
       options: {
         attributes: true,
         attributeFilter: ["aria-label"],
@@ -945,7 +945,7 @@ describe("pipドメイン", () => {
         fullscreenToggleButton,
       })),
     });
-    const observerCallback = observerRegistryObserve.mock.calls[0]?.[0]?.callback as MutationCallback;
+    const observerCallback = observerRegistryObserve.mock.calls[0]?.[0]?.callback;
 
     emitElementsUpdated({
       pageGeneration: 1,
