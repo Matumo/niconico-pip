@@ -69,6 +69,7 @@ const createPipDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:pip:page-url-changed",
           eventKey: "PageUrlChanged",
+          listenerDomain: "pip",
           listener: (payload) => {
             handlers.handlePageUrlChanged(payload);
           },
@@ -78,6 +79,7 @@ const createPipDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:pip:elements-updated",
           eventKey: "ElementsUpdated",
+          listenerDomain: "pip",
           listener: (payload) => {
             handlers.handleElementsUpdated(payload);
           },
@@ -87,6 +89,7 @@ const createPipDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:pip:video-info-changed",
           eventKey: "VideoInfoChanged",
+          listenerDomain: "pip",
           listener: (payload) => {
             handlers.handleVideoInfoChanged(payload);
           },

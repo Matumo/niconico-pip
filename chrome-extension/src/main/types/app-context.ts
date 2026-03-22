@@ -5,6 +5,7 @@ import type { AppConfig } from "@main/config/config";
 import type { AppEventKey, AppEventMap } from "@main/config/event";
 import type { SelectorElementMap, SelectorKey } from "@main/config/selector";
 import type { DebugDumpRegistry } from "@main/debug/debug-dump";
+import type { DomainName } from "@main/domain/shared/domain-name";
 import type { Input as HttpInput, KyInstance, Options as HttpOptions, ResponsePromise } from "ky";
 
 // イベント解除関数型
@@ -93,12 +94,14 @@ interface AppEventRegistry {
     target: EventTarget;
     key: string;
     eventKey: K;
+    listenerDomain: DomainName;
     listener: (payload: AppEventMap[K]) => void;
     options?: AddEventListenerOptions;
   }): Unsubscribe;
   emit<K extends AppEventKey>(params: {
     target: EventTarget;
     eventKey: K;
+    ownerDomain: DomainName;
     payload: AppEventMap[K];
   }): void;
   off(key: string): boolean;

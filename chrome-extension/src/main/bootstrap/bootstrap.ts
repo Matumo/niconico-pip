@@ -6,7 +6,7 @@ import { createAppConfig } from "@main/config/config";
 import { createAdDomain } from "@main/domain/ad";
 import { createControllerDomain } from "@main/domain/controller";
 import type { DomainModule } from "@main/domain/shared/create-domain-module";
-import { domainNameOrderList, type DomainName } from "@main/domain/shared/domain-name";
+import { domainNameOrderList, resolveDomainOrder, type DomainName } from "@main/domain/shared/domain-name";
 import { createElementsDomain } from "@main/domain/elements";
 import { createMediaSessionDomain } from "@main/domain/media-session";
 import { createPageDomain } from "@main/domain/page";
@@ -47,18 +47,6 @@ const domainModuleFactories = {
   "ad": createAdDomain,
   "page": createPageDomain,
 } as const satisfies Record<DomainName, () => DomainModule>;
-
-// 起動順リストから優先度レコードを構築する
-const defaultDomainOrderRecord = domainNameOrderList.reduce<Record<DomainName, number>>(
-  (record, domainName, index) => {
-    record[domainName] = index;
-    return record;
-  },
-  {} as Record<DomainName, number>,
-);
-
-// ドメイン名から既定起動順を取得する関数
-const resolveDomainOrder = (domainName: DomainName): number => defaultDomainOrderRecord[domainName];
 
 // 既定のドメイン一覧を作成する関数
 const createDefaultDomainModules = (): DomainModule[] =>

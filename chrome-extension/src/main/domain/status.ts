@@ -120,6 +120,7 @@ const createStatusDomain = (): DomainModule => {
     runtime.context.eventRegistry.emit({
       target: eventTarget,
       eventKey: "VideoInfoChanged",
+      ownerDomain: "status",
       payload,
     });
     log.info(`video info updated (trigger=${trigger})`);
@@ -185,6 +186,7 @@ const createStatusDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:status:page-url-changed",
           eventKey: "PageUrlChanged",
+          listenerDomain: "status",
           listener: (payload) => {
             handlePageUrlChanged(payload);
           },
@@ -193,6 +195,7 @@ const createStatusDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:status:elements-updated",
           eventKey: "ElementsUpdated",
+          listenerDomain: "status",
           listener: (payload) => {
             handleElementsUpdated(payload);
           },

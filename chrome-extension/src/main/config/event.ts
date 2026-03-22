@@ -2,6 +2,7 @@
  * イベント設定
  */
 import type { SelectorElementMap, SelectorKey } from "@main/config/selector";
+import type { DomainName } from "@main/domain/shared/domain-name";
 
 // 要素スナップショット型
 type ElementsSnapshot = {
@@ -63,6 +64,51 @@ interface AppEventMap {
 type AppEventKey = keyof AppEventMap;
 // イベント名マップ型
 type AppEventNameMap = Record<AppEventKey, string>;
+// イベント契約型
+type AppEventContract = Readonly<{
+  ownerDomain: DomainName;
+  allowCrossDomainEmit: boolean;
+}>;
+// イベント契約マップ型
+type AppEventContractRecord = Record<AppEventKey, AppEventContract>;
+
+// app event 順序の正本
+const appEventOrderList = [
+  "PageUrlChanged",
+  "ElementsUpdated",
+  "StatusChanged",
+  "VideoInfoChanged",
+  "VideoTimeChanged",
+  "PipStatusChanged",
+] as const satisfies readonly AppEventKey[];
+
+// app event 契約の正本
+const appEventContractRecord = {
+  PageUrlChanged: {
+    ownerDomain: "page",
+    allowCrossDomainEmit: true,
+  },
+  ElementsUpdated: {
+    ownerDomain: "elements",
+    allowCrossDomainEmit: true,
+  },
+  StatusChanged: {
+    ownerDomain: "status",
+    allowCrossDomainEmit: false,
+  },
+  VideoInfoChanged: {
+    ownerDomain: "status",
+    allowCrossDomainEmit: true,
+  },
+  VideoTimeChanged: {
+    ownerDomain: "time",
+    allowCrossDomainEmit: false,
+  },
+  PipStatusChanged: {
+    ownerDomain: "pip",
+    allowCrossDomainEmit: false,
+  },
+} as const satisfies AppEventContractRecord;
 
 // prefix付きイベント名マップを作成する関数
 const createAppEventNameMap = (prefixId: string): AppEventNameMap => ({
@@ -75,13 +121,15 @@ const createAppEventNameMap = (prefixId: string): AppEventNameMap => ({
 });
 
 // エクスポート
-export { createAppEventNameMap };
+export { appEventOrderList, appEventContractRecord, createAppEventNameMap };
 export type {
   ElementsSnapshot,
   ReadonlyElementsSnapshot,
   PageUrlChangedKey,
   VideoInfoChangedKey,
   PipStatusChangedKey,
+  AppEventContract,
+  AppEventContractRecord,
   AppEventMap,
   AppEventKey,
   AppEventNameMap,

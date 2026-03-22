@@ -222,12 +222,14 @@ describe("statusドメイン", () => {
       target: globalThis,
       key: "domain:status:page-url-changed",
       eventKey: "PageUrlChanged",
+      listenerDomain: "status",
       listener: expect.any(Function),
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:status:elements-updated",
       eventKey: "ElementsUpdated",
+      listenerDomain: "status",
       listener: expect.any(Function),
     });
     expect(unsubscribePageUrlChanged).toHaveBeenCalledTimes(1);
@@ -305,6 +307,7 @@ describe("statusドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "VideoInfoChanged",
+      ownerDomain: "status",
       payload: expect.any(Object),
     });
 

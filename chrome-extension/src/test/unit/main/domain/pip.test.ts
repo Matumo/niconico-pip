@@ -370,18 +370,21 @@ describe("pipドメイン", () => {
       target: globalThis,
       key: "domain:pip:page-url-changed",
       eventKey: "PageUrlChanged",
+      listenerDomain: "pip",
       listener: expect.any(Function),
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:pip:elements-updated",
       eventKey: "ElementsUpdated",
+      listenerDomain: "pip",
       listener: expect.any(Function),
     });
     expect(eventRegistryOn).toHaveBeenCalledWith({
       target: globalThis,
       key: "domain:pip:video-info-changed",
       eventKey: "VideoInfoChanged",
+      listenerDomain: "pip",
       listener: expect.any(Function),
     });
     expect(nativeEventApi.addEventListener).toHaveBeenCalledWith("enterpictureinpicture", expect.any(Function));
@@ -714,6 +717,7 @@ describe("pipドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "PipStatusChanged",
+      ownerDomain: "pip",
       payload: {
         enabled: true,
         changedKeys: ["enabled"],
@@ -732,6 +736,7 @@ describe("pipドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenLastCalledWith({
       target: globalThis,
       eventKey: "PipStatusChanged",
+      ownerDomain: "pip",
       payload: {
         enabled: false,
         changedKeys: ["enabled"],

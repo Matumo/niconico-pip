@@ -194,6 +194,7 @@ describe("pipドメイン表示同期", () => {
       {
         target: globalThis,
         eventKey: "PipStatusChanged",
+        ownerDomain: "pip",
         payload: {
           enabled: true,
           changedKeys: ["enabled"],

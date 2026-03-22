@@ -161,6 +161,7 @@ const createElementsDomain = (): DomainModule => {
     runtime.context.eventRegistry.emit({
       target: eventTarget,
       eventKey: "ElementsUpdated",
+      ownerDomain: "elements",
       payload,
     });
 
@@ -225,6 +226,7 @@ const createElementsDomain = (): DomainModule => {
           target: eventTarget,
           key: "domain:elements:page-url-changed",
           eventKey: "PageUrlChanged",
+          listenerDomain: "elements",
           listener: (payload) => {
             handlePageUrlChanged(payload);
           },

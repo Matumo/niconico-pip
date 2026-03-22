@@ -94,6 +94,7 @@ const createPageDomain = (): DomainModule => {
       runtime.context.eventRegistry.emit({
         target: eventTarget,
         eventKey: "PageUrlChanged",
+        ownerDomain: "page",
         payload: {
           url: currentUrl,
           generation: nextGeneration,

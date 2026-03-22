@@ -141,26 +141,26 @@ describe("bootstrap", () => {
     });
 
     expect(record).toEqual([
-      "elements:init",
       "pip:init",
+      "elements:init",
       "page:init",
-      "elements:start",
       "pip:start",
+      "elements:start",
       "page:start",
     ]);
 
     await runtime.stop();
 
     expect(record).toEqual([
-      "elements:init",
       "pip:init",
+      "elements:init",
       "page:init",
-      "elements:start",
       "pip:start",
+      "elements:start",
       "page:start",
       "page:stop",
-      "pip:stop",
       "elements:stop",
+      "pip:stop",
     ]);
 
     expect(context.observerRegistry.disconnectAll).toHaveBeenCalledTimes(1);
@@ -206,20 +206,20 @@ describe("bootstrap", () => {
     });
 
     expect(record).toEqual([
-      "elements:init",
+      "pip:init",
       "status:init",
+      "elements:init",
       "time:init",
       "controller:init",
       "media-session:init",
-      "pip:init",
       "ad:init",
       "page:init",
-      "elements:start",
+      "pip:start",
       "status:start",
+      "elements:start",
       "time:start",
       "controller:start",
       "media-session:start",
-      "pip:start",
       "ad:start",
       "page:start",
     ]);
@@ -227,30 +227,30 @@ describe("bootstrap", () => {
     await runtime.stop();
 
     expect(record).toEqual([
-      "elements:init",
+      "pip:init",
       "status:init",
+      "elements:init",
       "time:init",
       "controller:init",
       "media-session:init",
-      "pip:init",
       "ad:init",
       "page:init",
-      "elements:start",
+      "pip:start",
       "status:start",
+      "elements:start",
       "time:start",
       "controller:start",
       "media-session:start",
-      "pip:start",
       "ad:start",
       "page:start",
       "page:stop",
       "ad:stop",
-      "pip:stop",
       "media-session:stop",
       "controller:stop",
       "time:stop",
-      "status:stop",
       "elements:stop",
+      "status:stop",
+      "pip:stop",
     ]);
 
     for (const domainName of domainNameOrderList) {

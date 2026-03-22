@@ -4,6 +4,7 @@
 import { createAppEventNameMap, type AppEventMap, type ElementsSnapshot } from "@main/config/event";
 import { createAppConfig } from "@main/config/config";
 import { selectorDefinitions } from "@main/config/selector";
+import type { DomainName } from "@main/domain/shared/domain-name";
 import { createEventRegistry } from "@main/platform/event-registry";
 import type { HeadlessBridgeDetails } from "@test/browser-headless/shared/runtime-test/headless-bridge-contract";
 
@@ -15,6 +16,14 @@ const createEmptyElementsSnapshot = (): ElementsSnapshot => {
   }
   return snapshot;
 };
+
+const eventTestDomains = {
+  page: "page",
+  elements: "elements",
+  status: "status",
+  time: "time",
+  pip: "pip",
+} as const satisfies Record<string, DomainName>;
 
 const runTest = (): HeadlessBridgeDetails => {
   const config = createAppConfig();
@@ -57,11 +66,31 @@ const runTest = (): HeadlessBridgeDetails => {
   let nullPrototypePayloadCloned = false;
   let nullPrototypePayloadFrozen = false;
   let nullPrototypePayloadPreserved = false;
+  const foreignRegistrationGuardTarget = new EventTarget();
+  const allowedCrossDomainTarget = new EventTarget();
+  const listenerOrderGuardTarget = new EventTarget();
+  const ownerMismatchGuardTarget = new EventTarget();
+  const differentTargetGuardTarget = new EventTarget();
+  const differentTargetOtherTarget = new EventTarget();
+  let rejectedForeignStatusListenerCallCount = 0;
+  let acceptedOwnerStatusListenerCallCount = 0;
+  let allowedCrossDomainPageListenerCallCount = 0;
+  let foreignStatusRegistrationThrew = false;
+  let rejectedLateElementsListenerCallCount = 0;
+  let acceptedOwnerElementsListenerCallCount = 0;
+  let listenerOrderRegistrationThrew = false;
+  let ownerMismatchPageOwnerListenerCallCount = 0;
+  let ownerMismatchPageForeignListenerCallCount = 0;
+  let ownerMismatchEmitThrew = false;
+  let differentTargetDeliveredCallCount = 0;
+  let differentTargetIgnoredCallCount = 0;
+  let differentEventIgnoredCallCount = 0;
 
   eventRegistry.on({
     target,
     key: "status-typed",
     eventKey: "StatusChanged",
+    listenerDomain: eventTestDomains.status,
     listener: (payload) => {
       statusListenerReceivedReady = payload.status === "ready";
     },
@@ -69,13 +98,148 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "StatusChanged",
+    ownerDomain: eventTestDomains.status,
     payload: statusPayload,
+  });
+
+  try {
+    eventRegistry.on({
+      target: foreignRegistrationGuardTarget,
+      key: "foreign-status-listener",
+      eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.page,
+      listener: () => {
+        rejectedForeignStatusListenerCallCount += 1;
+      },
+    });
+  } catch {
+    foreignStatusRegistrationThrew = true;
+  }
+  eventRegistry.on({
+    target: foreignRegistrationGuardTarget,
+    key: "owner-status-listener",
+    eventKey: "StatusChanged",
+    listenerDomain: eventTestDomains.status,
+    listener: () => {
+      acceptedOwnerStatusListenerCallCount += 1;
+    },
+  });
+  eventRegistry.emit({
+    target: foreignRegistrationGuardTarget,
+    eventKey: "StatusChanged",
+    ownerDomain: eventTestDomains.status,
+    payload: statusPayload,
+  });
+  eventRegistry.on({
+    target: allowedCrossDomainTarget,
+    key: "cross-domain-allowed-foreign",
+    eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.status,
+    listener: () => {
+      allowedCrossDomainPageListenerCallCount += 1;
+    },
+  });
+  eventRegistry.emit({
+    target: allowedCrossDomainTarget,
+    eventKey: "PageUrlChanged",
+    ownerDomain: eventTestDomains.page,
+    payload: originalPagePayload,
+  });
+  try {
+    eventRegistry.on({
+      target: listenerOrderGuardTarget,
+      key: "late-elements-listener",
+      eventKey: "ElementsUpdated",
+      listenerDomain: eventTestDomains.page,
+      listener: () => {
+        rejectedLateElementsListenerCallCount += 1;
+      },
+    });
+  } catch {
+    listenerOrderRegistrationThrew = true;
+  }
+  eventRegistry.on({
+    target: listenerOrderGuardTarget,
+    key: "owner-elements-listener",
+    eventKey: "ElementsUpdated",
+    listenerDomain: eventTestDomains.elements,
+    listener: () => {
+      acceptedOwnerElementsListenerCallCount += 1;
+    },
+  });
+  eventRegistry.emit({
+    target: listenerOrderGuardTarget,
+    eventKey: "ElementsUpdated",
+    ownerDomain: eventTestDomains.elements,
+    payload: originalElementsPayload,
+  });
+  eventRegistry.on({
+    target: ownerMismatchGuardTarget,
+    key: "owner-mismatch-page-owner",
+    eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.page,
+    listener: () => {
+      ownerMismatchPageOwnerListenerCallCount += 1;
+    },
+  });
+  eventRegistry.on({
+    target: ownerMismatchGuardTarget,
+    key: "owner-mismatch-page-foreign",
+    eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.status,
+    listener: () => {
+      ownerMismatchPageForeignListenerCallCount += 1;
+    },
+  });
+  try {
+    eventRegistry.emit({
+      target: ownerMismatchGuardTarget,
+      eventKey: "PageUrlChanged",
+      ownerDomain: eventTestDomains.status,
+      payload: originalPagePayload,
+    });
+  } catch {
+    ownerMismatchEmitThrew = true;
+  }
+  eventRegistry.on({
+    target: differentTargetGuardTarget,
+    key: "different-target-delivered",
+    eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.page,
+    listener: () => {
+      differentTargetDeliveredCallCount += 1;
+    },
+  });
+  eventRegistry.on({
+    target: differentTargetOtherTarget,
+    key: "different-target-ignored",
+    eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.status,
+    listener: () => {
+      differentTargetIgnoredCallCount += 1;
+    },
+  });
+  eventRegistry.on({
+    target: differentTargetGuardTarget,
+    key: "different-event-ignored",
+    eventKey: "ElementsUpdated",
+    listenerDomain: eventTestDomains.elements,
+    listener: () => {
+      differentEventIgnoredCallCount += 1;
+    },
+  });
+  eventRegistry.emit({
+    target: differentTargetGuardTarget,
+    eventKey: "PageUrlChanged",
+    ownerDomain: eventTestDomains.page,
+    payload: originalPagePayload,
   });
 
   eventRegistry.on({
     target,
     key: "duplicate",
     eventKey: "VideoTimeChanged",
+    listenerDomain: eventTestDomains.time,
     listener: () => {
       duplicateFirstCalled = true;
     },
@@ -84,6 +248,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "duplicate",
     eventKey: "VideoTimeChanged",
+    listenerDomain: eventTestDomains.time,
     listener: () => {
       duplicateSecondCalled = true;
     },
@@ -91,6 +256,7 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "VideoTimeChanged",
+    ownerDomain: eventTestDomains.time,
     payload: { currentTime: 10, duration: 30 },
   });
 
@@ -98,6 +264,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "unsubscribe",
     eventKey: "VideoInfoChanged",
+    listenerDomain: eventTestDomains.status,
     listener: () => {
       unsubscribeCalled = true;
     },
@@ -106,6 +273,7 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "VideoInfoChanged",
+    ownerDomain: eventTestDomains.status,
     payload: {
       title: "title",
       author: "author",
@@ -120,12 +288,14 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "off-a",
     eventKey: "PipStatusChanged",
+    listenerDomain: eventTestDomains.pip,
     listener: () => undefined,
   });
   eventRegistry.on({
     target,
     key: "off-b",
     eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.page,
     listener: () => undefined,
   });
   const offRemovedExisting = eventRegistry.off("off-a");
@@ -137,6 +307,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "re-add",
     eventKey: "StatusChanged",
+    listenerDomain: eventTestDomains.status,
     listener: () => {
       reAddFirstCalled = true;
     },
@@ -146,6 +317,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "re-add",
     eventKey: "StatusChanged",
+    listenerDomain: eventTestDomains.status,
     listener: () => {
       reAddSecondCalled = true;
     },
@@ -153,6 +325,7 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "StatusChanged",
+    ownerDomain: eventTestDomains.status,
     payload: statusPayload,
   });
 
@@ -160,6 +333,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "page-first",
     eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.page,
     listener: (payload) => {
       pagePayloadReceived = true;
       pagePayloadCloned = payload !== originalPagePayload;
@@ -178,6 +352,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "page-second",
     eventKey: "PageUrlChanged",
+    listenerDomain: eventTestDomains.page,
     listener: (payload) => {
       pageSecondListenerSawOriginalUrl = payload.url === originalPagePayload.url;
     },
@@ -186,6 +361,7 @@ const runTest = (): HeadlessBridgeDetails => {
     target,
     key: "elements",
     eventKey: "ElementsUpdated",
+    listenerDomain: eventTestDomains.elements,
     listener: (payload) => {
       elementsPayloadSnapshot = payload.snapshot;
       snapshotMutationRejected = Reflect.set(
@@ -199,17 +375,20 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "PageUrlChanged",
+    ownerDomain: eventTestDomains.page,
     payload: originalPagePayload,
   });
   eventRegistry.emit({
     target,
     eventKey: "ElementsUpdated",
+    ownerDomain: eventTestDomains.elements,
     payload: originalElementsPayload,
   });
   eventRegistry.on({
     target,
     key: "null-prototype",
     eventKey: "StatusChanged",
+    listenerDomain: eventTestDomains.status,
     listener: (payload) => {
       nullPrototypePayloadCloned = payload !== nullPrototypeStatusPayload;
       nullPrototypePayloadFrozen = Object.isFrozen(payload);
@@ -219,11 +398,29 @@ const runTest = (): HeadlessBridgeDetails => {
   eventRegistry.emit({
     target,
     eventKey: "StatusChanged",
+    ownerDomain: eventTestDomains.status,
     payload: nullPrototypeStatusPayload,
   });
 
   return {
     statusListenerReceivedReady,
+    foreignStatusListenerRegistrationRejected:
+      foreignStatusRegistrationThrew &&
+      rejectedForeignStatusListenerCallCount === 0 &&
+      acceptedOwnerStatusListenerCallCount === 1,
+    allowedCrossDomainPageListenerDelivered: allowedCrossDomainPageListenerCallCount === 1,
+    listenerOrderGuardRejected:
+      listenerOrderRegistrationThrew &&
+      rejectedLateElementsListenerCallCount === 0 &&
+      acceptedOwnerElementsListenerCallCount === 1,
+    ownerMismatchPageEmitBlocked:
+      ownerMismatchEmitThrew &&
+      ownerMismatchPageOwnerListenerCallCount === 0 &&
+      ownerMismatchPageForeignListenerCallCount === 0,
+    emitIgnoredDifferentTargetAndDifferentEvent:
+      differentTargetDeliveredCallCount === 1 &&
+      differentTargetIgnoredCallCount === 0 &&
+      differentEventIgnoredCallCount === 0,
     duplicateKeyOverwroteFirstListener: !duplicateFirstCalled && duplicateSecondCalled,
     unsubscribePreventedDelivery: unsubscribeCalled === false,
     offRemovedExisting,

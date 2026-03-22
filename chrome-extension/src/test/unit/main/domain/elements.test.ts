@@ -261,6 +261,7 @@ describe("elementsドメイン", () => {
       target: globalThis,
       key: "domain:elements:page-url-changed",
       eventKey: "PageUrlChanged",
+      listenerDomain: "elements",
       listener: expect.any(Function),
     });
     expect(start).toHaveBeenCalledTimes(1);
@@ -328,6 +329,7 @@ describe("elementsドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "ElementsUpdated",
+      ownerDomain: "elements",
       payload: expect.any(Object),
     });
 

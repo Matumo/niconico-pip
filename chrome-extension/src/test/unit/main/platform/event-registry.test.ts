@@ -3,9 +3,10 @@
  */
 import { describe, expect, test, vi } from "vitest";
 import { selectorDefinitions } from "@main/config/selector";
-import type { AppEventMap, ElementsSnapshot } from "@main/config/event";
+import { type AppEventMap, type ElementsSnapshot } from "@main/config/event";
 import { createEventRegistry } from "@main/platform/event-registry";
 import { createAppEventNameMap } from "@main/config/event";
+import type { DomainName } from "@main/domain/shared/domain-name";
 
 // 空の要素スナップショットを作る関数
 const createEmptyElementsSnapshot = (): ElementsSnapshot => {
@@ -22,6 +23,14 @@ const resolveRequiredValue = <T>(value: T | null, errorMessage: string): NonNull
   return value as NonNullable<T>;
 };
 
+const eventTestDomains = {
+  page: "page",
+  elements: "elements",
+  status: "status",
+  time: "time",
+  pip: "pip",
+} as const satisfies Record<string, DomainName>;
+
 describe("イベントレジストリ", () => {
   test("型付きイベントを登録して発火できること", () => {
     const target = new EventTarget();
@@ -32,12 +41,14 @@ describe("イベントレジストリ", () => {
       target,
       key: "listener-1",
       eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.status,
       listener,
     });
 
     eventRegistry.emit({
       target,
       eventKey: "StatusChanged",
+      ownerDomain: eventTestDomains.status,
       payload: { status: "ready" },
     });
 
@@ -55,6 +66,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "duplicate",
       eventKey: "VideoTimeChanged",
+      listenerDomain: eventTestDomains.time,
       listener: first,
     });
 
@@ -62,12 +74,14 @@ describe("イベントレジストリ", () => {
       target,
       key: "duplicate",
       eventKey: "VideoTimeChanged",
+      listenerDomain: eventTestDomains.time,
       listener: second,
     });
 
     eventRegistry.emit({
       target,
       eventKey: "VideoTimeChanged",
+      ownerDomain: eventTestDomains.time,
       payload: { currentTime: 10, duration: 30 },
     });
 
@@ -85,6 +99,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "unsubscribe",
       eventKey: "VideoInfoChanged",
+      listenerDomain: eventTestDomains.status,
       listener,
     });
 
@@ -93,6 +108,7 @@ describe("イベントレジストリ", () => {
     eventRegistry.emit({
       target,
       eventKey: "VideoInfoChanged",
+      ownerDomain: eventTestDomains.status,
       payload: {
         title: "title",
         author: "author",
@@ -115,12 +131,14 @@ describe("イベントレジストリ", () => {
       target,
       key: "a",
       eventKey: "PipStatusChanged",
+      listenerDomain: eventTestDomains.pip,
       listener: vi.fn(),
     });
     eventRegistry.on({
       target,
       key: "b",
       eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.page,
       listener: vi.fn(),
     });
 
@@ -141,6 +159,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "re-add",
       eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.status,
       listener: first,
     });
     expect(eventRegistry.off("re-add")).toBe(true);
@@ -149,11 +168,13 @@ describe("イベントレジストリ", () => {
       target,
       key: "re-add",
       eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.status,
       listener: second,
     });
     eventRegistry.emit({
       target,
       eventKey: "StatusChanged",
+      ownerDomain: eventTestDomains.status,
       payload: { status: "ready" },
     });
 
@@ -181,6 +202,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "readonly-first",
       eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.page,
       listener: (payload) => {
         firstPayload = payload;
         topLevelMutationRejected = Reflect.set(payload as Record<string, unknown>, "url", "mutated-url") === false;
@@ -195,6 +217,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "readonly-second",
       eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.page,
       listener: (payload) => {
         secondPayload = payload;
       },
@@ -203,6 +226,7 @@ describe("イベントレジストリ", () => {
     eventRegistry.emit({
       target,
       eventKey: "PageUrlChanged",
+      ownerDomain: eventTestDomains.page,
       payload: originalPayload,
     });
 
@@ -244,6 +268,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "readonly-elements",
       eventKey: "ElementsUpdated",
+      listenerDomain: eventTestDomains.elements,
       listener: (payload) => {
         receivedPayload = payload;
         snapshotMutationRejected = Reflect.set(
@@ -257,6 +282,7 @@ describe("イベントレジストリ", () => {
     eventRegistry.emit({
       target,
       eventKey: "ElementsUpdated",
+      ownerDomain: eventTestDomains.elements,
       payload: originalPayload,
     });
 
@@ -284,6 +310,7 @@ describe("イベントレジストリ", () => {
       target,
       key: "null-prototype",
       eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.status,
       listener: (payload) => {
         receivedPayload = payload;
       },
@@ -292,6 +319,7 @@ describe("イベントレジストリ", () => {
     eventRegistry.emit({
       target,
       eventKey: "StatusChanged",
+      ownerDomain: eventTestDomains.status,
       payload: originalPayload,
     });
 
@@ -306,4 +334,188 @@ describe("イベントレジストリ", () => {
     expect(Object.isFrozen(readonlyPayload)).toBe(true);
     expect(Object.isFrozen(originalPayload)).toBe(false);
   });
+
+  test("allowCrossDomainEmit=falseのeventはforeign listener登録を拒否すること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const foreignListener = vi.fn();
+    const ownerListener = vi.fn();
+
+    expect(() => eventRegistry.on({
+      target,
+      key: "foreign-status-listener",
+      eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.page,
+      listener: foreignListener,
+    })).toThrowError("event listener registration blocked: StatusChanged owned by status cannot register foreign listener owned by page");
+    eventRegistry.on({
+      target,
+      key: "owner-status-listener",
+      eventKey: "StatusChanged",
+      listenerDomain: eventTestDomains.status,
+      listener: ownerListener,
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "StatusChanged",
+      ownerDomain: eventTestDomains.status,
+      payload: { status: "ready" },
+    });
+
+    expect(foreignListener).not.toHaveBeenCalled();
+    expect(ownerListener).toHaveBeenCalledTimes(1);
+    expect(eventRegistry.size()).toBe(1);
+  });
+
+  test("allowCrossDomainEmit=trueのeventはforeign listenerへ配信できること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const listener = vi.fn();
+
+    eventRegistry.on({
+      target,
+      key: "unguarded-page-url-changed",
+      eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.status,
+      listener,
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "PageUrlChanged",
+      ownerDomain: eventTestDomains.page,
+      payload: {
+        url: "https://example.test/watch/sm9",
+        generation: 1,
+        isWatchPage: true,
+        changedKeys: ["url"],
+      },
+    });
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  test("allowCrossDomainEmit=trueでもownerより後ろのdomainはforeign listener登録を拒否すること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const lateListener = vi.fn();
+    const ownerListener = vi.fn();
+
+    expect(() => eventRegistry.on({
+      target,
+      key: "late-elements-listener",
+      eventKey: "ElementsUpdated",
+      listenerDomain: eventTestDomains.page,
+      listener: lateListener,
+    })).toThrowError("event listener registration blocked: ElementsUpdated owned by elements cannot register listener owned by page after owner domain in bootstrap start order");
+    eventRegistry.on({
+      target,
+      key: "owner-elements-listener",
+      eventKey: "ElementsUpdated",
+      listenerDomain: eventTestDomains.elements,
+      listener: ownerListener,
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "ElementsUpdated",
+      ownerDomain: eventTestDomains.elements,
+      payload: {
+        pageGeneration: 1,
+        elementsGeneration: 1,
+        changedKeys: ["video"],
+        snapshot: createEmptyElementsSnapshot(),
+      },
+    });
+
+    expect(lateListener).not.toHaveBeenCalled();
+    expect(ownerListener).toHaveBeenCalledTimes(1);
+    expect(eventRegistry.size()).toBe(1);
+  });
+
+  test("ownerDomainと異なるdomainからのemitはdispatch前に例外で中止すること", () => {
+    const target = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const ownerListener = vi.fn();
+    const foreignListener = vi.fn();
+
+    eventRegistry.on({
+      target,
+      key: "owner-page-listener",
+      eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.page,
+      listener: ownerListener,
+    });
+    eventRegistry.on({
+      target,
+      key: "foreign-page-listener",
+      eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.status,
+      listener: foreignListener,
+    });
+
+    expect(() => eventRegistry.emit({
+      target,
+      eventKey: "PageUrlChanged",
+      ownerDomain: eventTestDomains.status,
+      payload: {
+        url: "https://example.test/watch/sm9",
+        generation: 1,
+        isWatchPage: true,
+        changedKeys: ["url"],
+      },
+    })).toThrowError("event emit blocked: PageUrlChanged from status must be emitted by page");
+
+    expect(ownerListener).not.toHaveBeenCalled();
+    expect(foreignListener).not.toHaveBeenCalled();
+  });
+
+  test("emit時は別targetや別eventKeyの登録を無視して一致listenerだけへ配信すること", () => {
+    const target = new EventTarget();
+    const otherTarget = new EventTarget();
+    const eventRegistry = createEventRegistry(createAppEventNameMap("test-prefix"));
+    const deliveredListener = vi.fn();
+    const differentTargetListener = vi.fn();
+    const differentEventListener = vi.fn();
+
+    eventRegistry.on({
+      target,
+      key: "delivered-page-listener",
+      eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.page,
+      listener: deliveredListener,
+    });
+    eventRegistry.on({
+      target: otherTarget,
+      key: "different-target-page-listener",
+      eventKey: "PageUrlChanged",
+      listenerDomain: eventTestDomains.status,
+      listener: differentTargetListener,
+    });
+    eventRegistry.on({
+      target,
+      key: "different-event-listener",
+      eventKey: "ElementsUpdated",
+      listenerDomain: eventTestDomains.elements,
+      listener: differentEventListener,
+    });
+
+    eventRegistry.emit({
+      target,
+      eventKey: "PageUrlChanged",
+      ownerDomain: eventTestDomains.page,
+      payload: {
+        url: "https://example.test/watch/sm9",
+        generation: 1,
+        isWatchPage: true,
+        changedKeys: ["url"],
+      },
+    });
+
+    expect(deliveredListener).toHaveBeenCalledTimes(1);
+    expect(differentTargetListener).not.toHaveBeenCalled();
+    expect(differentEventListener).not.toHaveBeenCalled();
+  });
+
 });

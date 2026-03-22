@@ -36,22 +36,22 @@ const runTest = async (): Promise<HeadlessBridgeDetails> => {
 
   const details: HeadlessBridgeDetails = {
     domainsSortedByBootstrapList: JSON.stringify(record.slice(0, 4)) === JSON.stringify([
-      "elements:init",
-      "status:init",
       "pip:init",
+      "status:init",
+      "elements:init",
       "page:init",
     ]),
     domainsStartedByBootstrapList: JSON.stringify(record.slice(4, 8)) === JSON.stringify([
-      "elements:start",
-      "status:start",
       "pip:start",
+      "status:start",
+      "elements:start",
       "page:start",
     ]),
     stopRunsInReverseOrder: JSON.stringify(record.slice(8)) === JSON.stringify([
       "page:stop",
-      "pip:stop",
-      "status:stop",
       "elements:stop",
+      "status:stop",
+      "pip:stop",
     ]),
   };
 

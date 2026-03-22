@@ -1,7 +1,8 @@
 /**
  * イベントレジストリ
  */
-import type { AppEventKey, AppEventMap, AppEventNameMap } from "@main/config/event";
+import { appEventContractRecord, type AppEventKey, type AppEventMap, type AppEventNameMap } from "@main/config/event";
+import { resolveDomainOrder, type DomainName } from "@main/domain/shared/domain-name";
 import { appLoggerNames } from "@main/platform/logger";
 import { getLogger } from "@matumo/ts-simple-logger";
 import type { AppEventRegistry, Unsubscribe } from "@main/types/app-context";
@@ -10,6 +11,8 @@ import type { AppEventRegistry, Unsubscribe } from "@main/types/app-context";
 type RegisteredEvent = {
   target: EventTarget;
   eventName: string;
+  eventKey: AppEventKey;
+  listenerDomain: DomainName;
   listener: EventListener;
   options?: AddEventListenerOptions;
 };
@@ -47,6 +50,48 @@ const createReadonlyEventPayload = <K extends AppEventKey>(payload: AppEventMap[
 const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry => {
   // 登録済みイベント情報
   const registeredEvents = new Map<string, RegisteredEvent>();
+  // 指定イベントの契約を解決する関数
+  const resolveEventContract = <K extends AppEventKey>(eventKey: K) => appEventContractRecord[eventKey];
+  // イベントの違反検知をログ出力してエラーを投げる関数
+  const throwContractViolation = (message: string): never => {
+    log.error(message);
+    throw new Error(message);
+  };
+  // listener登録時にイベント契約へ違反していないか判定する関数
+  const assertCanRegisterListener = (params: {
+    eventKey: AppEventKey;
+    listenerDomain: DomainName;
+  }): void => {
+    const eventContract = resolveEventContract(params.eventKey);
+    if (params.listenerDomain === eventContract.ownerDomain) return;
+    if (!eventContract.allowCrossDomainEmit) {
+      throwContractViolation(
+        `event listener registration blocked: ${params.eventKey} owned by ${eventContract.ownerDomain} ` +
+        `cannot register foreign listener owned by ${params.listenerDomain}`,
+      );
+    }
+    // start順は listener-first order のため、cross-domain listener は owner より前だけ許可する。
+    if (resolveDomainOrder(params.listenerDomain) < resolveDomainOrder(eventContract.ownerDomain)) return;
+
+    throwContractViolation(
+      `event listener registration blocked: ${params.eventKey} owned by ${eventContract.ownerDomain} ` +
+      `cannot register listener owned by ${params.listenerDomain} after owner domain in bootstrap start order`,
+    );
+  };
+  // emit時にイベント契約へ違反していないか判定する関数
+  const assertCanEmitEvent = (params: {
+    eventKey: AppEventKey;
+    ownerDomain: DomainName;
+  }): void => {
+    const eventContract = resolveEventContract(params.eventKey);
+    // 各eventは単一 ownerDomain だけが emit できる。
+    if (params.ownerDomain !== eventContract.ownerDomain) {
+      throwContractViolation(
+        `event emit blocked: ${params.eventKey} from ${params.ownerDomain} ` +
+        `must be emitted by ${eventContract.ownerDomain}`,
+      );
+    }
+  };
 
   // 指定キーのイベント登録を解除する関数
   const off = (key: string): boolean => {
@@ -62,9 +107,11 @@ const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry =>
     target: EventTarget;
     key: string;
     eventKey: K;
+    listenerDomain: DomainName;
     listener: (payload: AppEventMap[K]) => void;
     options?: AddEventListenerOptions;
   }): Unsubscribe => {
+    assertCanRegisterListener(params);
     // 同一キーの二重登録を防ぐ
     off(params.key);
 
@@ -83,6 +130,8 @@ const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry =>
     registeredEvents.set(params.key, {
       target: params.target,
       eventName,
+      eventKey: params.eventKey,
+      listenerDomain: params.listenerDomain,
       listener: wrappedListener,
       options: params.options,
     });
@@ -96,8 +145,10 @@ const createEventRegistry = (eventNameMap: AppEventNameMap): AppEventRegistry =>
   const emit = <K extends AppEventKey>(params: {
     target: EventTarget;
     eventKey: K;
+    ownerDomain: DomainName;
     payload: AppEventMap[K];
   }): void => {
+    assertCanEmitEvent(params);
     const eventName = eventNameMap[params.eventKey];
     const readonlyPayload = createReadonlyEventPayload(params.payload);
     log.debug(`----- Event Emitted ----- (event=${eventName})`, readonlyPayload);

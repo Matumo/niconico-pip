@@ -208,6 +208,7 @@ describe("pageドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "PageUrlChanged",
+      ownerDomain: "page",
       payload: {
         url: changedUrl,
         generation: 1,
@@ -261,6 +262,7 @@ describe("pageドメイン", () => {
     expect(eventRegistryEmit).toHaveBeenCalledWith({
       target: globalThis,
       eventKey: "PageUrlChanged",
+      ownerDomain: "page",
       payload: {
         url: changedUrl,
         generation: 1,

@@ -96,6 +96,7 @@ const syncPipEnabled = (
   runtime.context.eventRegistry.emit({
     target: eventTarget,
     eventKey: "PipStatusChanged",
+    ownerDomain: "pip",
     payload: {
       enabled,
       changedKeys: Object.freeze(changedKeys),
