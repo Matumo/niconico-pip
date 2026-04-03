@@ -12,6 +12,7 @@ const videoPipElement = document.createElement('video');
 // -----------------------------------------------------------------------------
 
 {
+  // Stream管理
   let currentStream = null;
   function stopStream(stream) {
     if (stream && stream.getTracks) {
@@ -29,6 +30,21 @@ const videoPipElement = document.createElement('video');
   function clearStream() {
     if (currentStream) stopStream(currentStream);
     currentStream = null;
+  }
+
+  // コメント透過の管理
+  let currentCommentsOpacity = 1;
+  function getElementOpacity(element) {
+    if (!element) return 1;
+    const opacity = Number.parseFloat(window.getComputedStyle(element).opacity);
+    if (Number.isNaN(opacity)) return 1;
+    return Math.min(1, Math.max(0, opacity));
+  }
+  function updateCommentsOpacityCache(nicoCommentsElement) {
+    const nicoCommentsOpacityElement = nicoCommentsElement?.parentElement ?? nicoCommentsElement;
+    const nextCommentsOpacity = getElementOpacity(nicoCommentsOpacityElement);
+    console.debug("Comments opacity updated:", `${currentCommentsOpacity} -> ${nextCommentsOpacity}`);
+    currentCommentsOpacity = nextCommentsOpacity;
   }
 
   // 親要素のサイズに合わせてvideo要素を整数pxで更新
@@ -233,7 +249,9 @@ const videoPipElement = document.createElement('video');
 
       // nicoCommentsElementを描画（canvas全体に描画）
       if (nicoCommentsElement.width > 0 && nicoCommentsElement.height > 0) {
+        ctx.globalAlpha = currentCommentsOpacity;
         ctx.drawImage(nicoCommentsElement, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1;
       }
 
       // アニメーションを続ける
@@ -254,6 +272,8 @@ const videoPipElement = document.createElement('video');
   // PIP用のvideo要素を破棄
   function destroyPipVideoElement() {
     clearStream();
+    // WARNING: currentCommentsOpacityはクリアしてはいけない
+    // この直前で更新しているパターンがあるので、クリアすると次のイベントまでコメントの透過が効かない
     currentPipVideoElementData = {
       "nicoVideoElement": null,
       "nicoCommentsElement": null
@@ -284,6 +304,9 @@ const videoPipElement = document.createElement('video');
       console.warn("Nico comments element is null.");
       return;
     }
+
+    // コメント透過のキャッシュを更新
+    updateCommentsOpacityCache(nicoCommentsElement);
 
     // video要素の描画を行う処理
     createPipVideoElement(nicoVideoElement, nicoCommentsElement);
