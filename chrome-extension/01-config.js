@@ -23,6 +23,27 @@ const nicoVideoElementSelector = '[data-name="content"] > video';
 // コメントキャンバスのセレクタ
 const nicoCommentsElementSelector = 'div[data-name="comment"] > canvas';
 
+// ニコニコショート用セレクタ
+// アクティブなショート動画（video/コメントが複数同時に存在するため active で絞る）
+const shortsActiveEntrySelector =
+  '[data-playlist-type="shorts"][data-playlist-state="active"]';
+// ショートのPIPボタン挿入位置
+const shortsPipButtonAnchorSelector =
+  'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを非表示にする"], ' +
+  'button[data-scope="tooltip"][data-part="trigger"][aria-label="コメントを表示する"]';
+// コメントトグルが見つからない場合の代替アンカー（再生/一時停止トグル）
+const shortsPipButtonAnchorFallbackSelector =
+  'button[data-scope="tooltip"][data-part="trigger"][aria-label="一時停止する"], ' +
+  'button[data-scope="tooltip"][data-part="trigger"][aria-label="再生する"]';
+// ショートPIP用canvasの短辺基準サイズ（縦横比はコメントcanvasに追従）
+const shortsPipCanvasBaseSize = 720;
+// ショートPIPの縦長クランプ
+//   0.8  = 4:5    窓高さ 1.25×幅 （バランス）
+//   0.75 = 3:4    窓高さ 1.33×幅 （9:16寄り）
+//   1.0  = 1:1    窓高さ 1.00×幅 （正方形）
+//   0    = 無効
+const shortsPipMinAspectRatio = 0;
+
 // バックオフ実装用
 const waitForElementsIntervalTimeMin = 10;  // 待機間隔時間の最小値（ミリ秒）
 const waitForElementsIntervalTimeMax = 500; // 待機間隔時間の最大値（ミリ秒）
@@ -44,6 +65,8 @@ const nicoVideoElementChangedEventName = `${prefixId}-nicoVideoElementChanged`;
 const nicoVideoPageUrlChangedEventName = `${prefixId}-nicoVideoPageUrlChanged`;
 // 動画再生ページのURLパターン（正規表現）
 const nicoVideoPageUrlPatternRegExp = new RegExp('^https://www\\.nicovideo\\.jp/watch/.+$');
+// ショート動画ページのURLパターン（正規表現）
+const nicoShortsPageUrlPatternRegExp = new RegExp('^https://www\\.nicovideo\\.jp/shorts/.+$');
 
 // シークバーのデフォルトのシークオフセット（秒）
 const seekBackwardDefaultOffset = 10;

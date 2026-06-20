@@ -47,6 +47,8 @@
 
   // PIP開始のイベントリスナーを登録
   window.addEventListener('enterpictureinpicture', (event) => {
+    // ショートは43-shortsMain.js側で処理するため、この処理を実行しない
+    if (nicoShortsPageUrlPatternRegExp.test(window.location.href)) return;
     console.log("Entery PIP event.");
 
     // videoPipElementではなければvideoPipElementで開き直す
@@ -73,6 +75,8 @@
 
   // PIP終了のイベントリスナーを登録
   window.addEventListener('leavepictureinpicture', (event) => {
+    // ショートは43-shortsMain.js側で処理するため、この処理を実行しない
+    if (nicoShortsPageUrlPatternRegExp.test(window.location.href)) return;
     console.log("Leave PIP event.");
 
     const nicoVideoElement = document.querySelector(nicoVideoElementSelector);
@@ -95,6 +99,11 @@
     console.log("Change nico video element event.");
     // 正規表現を使ってURLが動画再生ページかどうかを確認
     const url = window.location.href;
+    // ショートは43-shortsMain.js側で処理するため、この処理を実行しない
+    if (nicoShortsPageUrlPatternRegExp.test(url)) {
+      console.debug("Nico shorts page detected. Watch initialization is skipped.");
+      return;
+    }
     if (!nicoVideoPageUrlPatternRegExp.test(url)) {
       console.debug("Not a Nico video page. Skipping initialization.");
       // videoPipElementがPiP状態であれば終了
@@ -123,6 +132,8 @@
 
   // URLが変更されたときのイベントリスナーを登録
   window.addEventListener(nicoVideoPageUrlChangedEventName, () => {
+    // ショートは43-shortsMain.js側で処理するため、この処理を実行しない
+    if (nicoShortsPageUrlPatternRegExp.test(window.location.href)) return;
     console.log("Change nico video page URL event.");
     // とりあえず動画要素の変更イベントを発火（動画再生ページであるかどうかはイベントハンドラに判断させる）
     window.dispatchEvent(new CustomEvent(nicoVideoElementChangedEventName, {}));
@@ -130,6 +141,8 @@
 
   // bodyに対してラジオボタンの変更を監視
   document.body.addEventListener('change', (event) => {
+    // ショートは43-shortsMain.js側で処理するため、この処理を実行しない
+    if (nicoShortsPageUrlPatternRegExp.test(window.location.href)) return;
     // 動画プレイヤー設定の「コントローラーを常に表示」を切り替えた際にPIPボタンを再描画するための処理
     if (event.target.matches('input[type="radio"]')) {
       console.debug("Radio button changed. Redrawing PIP button.");

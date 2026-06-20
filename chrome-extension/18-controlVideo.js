@@ -113,7 +113,20 @@ let registerSyncPlaybackStateEvent = null;
     // シーク時間を正規化
     const normalizedSeekTime = normalizeSeekTime(seekTime, duration);
     // 動画をシーク
-    playerController_seek(normalizedSeekTime);
+    if (nicoShortsPageUrlPatternRegExp.test(window.location.href)) {
+      // WARNING: ショート動画はvideo要素やシークバー要素が複数同時に存在する
+      // 必ずアクティブなショート動画配下から取得した要素を使う
+      const shortsActiveEntry = document.querySelector(shortsActiveEntrySelector);
+      const seeked = playerController_seek(normalizedSeekTime, shortsActiveEntry || document);
+      if (!seeked) {
+        // シークバーが畳まれている（rect=0）等でクリックできなかった場合のフォールバック。
+        // 前進は直接代入でも正しく追従する。巻き戻しは早期終了の可能性が残るが、PiP中は開いているため稀。
+        console.debug("Shorts seekbar click unavailable, fallback to direct currentTime.", normalizedSeekTime);
+        nicoVideoElement.currentTime = normalizedSeekTime;
+      }
+    } else {
+      playerController_seek(normalizedSeekTime);
+    }
     // ステータスを同期
     syncPlaybackState(nicoVideoElement, videoPipElement);
   }
@@ -133,43 +146,45 @@ let registerSyncPlaybackStateEvent = null;
   }
 
   // 動画のシーク
-  const playerController_seek = function (_seconds) {
-    //const duration = parseDurationToSeconds(context.time.duration);
-    const currentTimeElement = document.querySelector('div[aria-label="video - currentTime"]');
+  // _root: シークバー要素を探す起点（watchはdocument、ショート動画はアクティブなショート動画要素）
+  // シークバークリックを発火できたかどうかを返す
+  const playerController_seek = function (_seconds, _root) {
+    const root = _root || document;
+    const currentTimeElement = root.querySelector('div[aria-label="video - currentTime"]');
     if (!currentTimeElement) {
       console.debug("Current time element not found.");
-      return;
+      return false;
     }
     // aria-valuemax 属性から総再生時間を取得（数値）
     const duration_text = currentTimeElement.getAttribute('aria-valuemax');
     if (!duration_text) {
       console.debug("Duration text not found in current time element.");
-      return;
+      return false;
     }
     // 総再生時間を数字に変換
     const duration = parseFloat(duration_text);
     if (isNaN(duration)) {
       console.debug("Invalid duration format:", duration_text);
-      return;
+      return false;
     }
     if (duration < 0) {
-      console.debug("Invalid duration format:", context.time.duration);
-      return;
+      console.debug("Invalid duration format:", duration_text);
+      return false;
     }
     if (isNaN(_seconds)) {
       console.debug("Invalid seconds input:", _seconds);
-      return;
+      return false;
     }
     const seconds = Math.max(0, Math.min(_seconds, duration)); // 範囲を0〜durationに制限
     // 秒数からパーセンテージを計算
     const percent = getPercentFromSeconds(seconds, duration);
     if (isNaN(percent)) {
       console.debug("Invalid percent calculated from seconds:", seconds, "Duration:", duration);
-      return;
+      return false;
     }
     // シーク
     console.debug(`Seeking to ${seconds} seconds (${percent * 100}%)...`);
-    seekTo(percent);
+    return seekTo(percent, root);
   }
 
   // 再生時間と総再生時間から再生割合を計算する関数
@@ -180,19 +195,21 @@ let registerSyncPlaybackStateEvent = null;
   }
 
   // シークバーのクリックイベントを発火する関数
-  function seekTo(_percent) {
+  // _root: シークバー要素を探す起点（watchはdocument、ショート動画はアクティブなショート動画要素）
+  function seekTo(_percent, _root) {
+    const root = _root || document;
     // パーセンテージを0〜1の範囲に制限
     const percent = Math.min(Math.max(_percent, 0), 1);
-    const currentTimeElement = document.querySelector('div[aria-label="video - currentTime"]');
+    const currentTimeElement = root.querySelector('div[aria-label="video - currentTime"]');
     if (!currentTimeElement) {
       console.debug("Current time element not found.");
-      return;
+      return false;
     }
     // シークバー全体（3階層上が典型的）
     let seekbarRoot = currentTimeElement;
     if (!seekbarRoot.parentElement) {
       console.debug("Seekbar root not found.");
-      return;
+      return false;
     }
     for (let i = 0; i < 3; i++) {
       if (seekbarRoot.parentElement) seekbarRoot = seekbarRoot.parentElement;
@@ -201,10 +218,15 @@ let registerSyncPlaybackStateEvent = null;
     const hitArea = seekbarRoot.querySelector('.cursor_pointer');
     if (!hitArea) {
       console.debug("Hit area not found.");
-      return;
+      return false;
     }
     // シークバーの位置を計算
     const rect = hitArea.getBoundingClientRect();
+    // コントローラが畳まれているとrect=0でクリック座標を計算できない（座標0でクリックすると先頭へ飛ぶ）
+    if (rect.width === 0) {
+      console.debug("Seekbar hit area has zero width (controller closed).");
+      return false;
+    }
     const x = rect.left + rect.width * percent;
     const y = rect.top + rect.height / 2;
     // ヒットエリアの指定位置にクリックイベントを発火
@@ -216,6 +238,7 @@ let registerSyncPlaybackStateEvent = null;
       view: window
     });
     hitArea.dispatchEvent(evt);
+    return true;
   }
 
   // 動画ステータスの同期イベント登録
@@ -237,10 +260,10 @@ let registerSyncPlaybackStateEvent = null;
       syncPlaybackState(nicoVideoElement, videoPipElement);
     }
     // 既存のイベントリスナーを削除
-    if (lastSyncPlaybackStateFunc) {
+    if (lastNicoVideoElement && lastSyncPlaybackStateFunc) {
       try {
-        nicoVideoElement.removeEventListener('play', lastSyncPlaybackStateFunc);
-        nicoVideoElement.removeEventListener('pause', lastSyncPlaybackStateFunc);
+        lastNicoVideoElement.removeEventListener('play', lastSyncPlaybackStateFunc);
+        lastNicoVideoElement.removeEventListener('pause', lastSyncPlaybackStateFunc);
         console.debug("Existing event listener removed.");
       } catch (e) {
         console.warn("Failed to remove existing event listener.", e);

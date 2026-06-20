@@ -100,9 +100,9 @@ let setMediaSession = null;
       updatePositionState(nicoVideoElement);
     }
     // 既存のイベントリスナーを削除
-    if (lastUpdatePositionStateFunc) {
+    if (lastNicoVideoElement && lastUpdatePositionStateFunc) {
       try {
-        nicoVideoElement.removeEventListener('timeupdate', lastUpdatePositionStateFunc);
+        lastNicoVideoElement.removeEventListener('timeupdate', lastUpdatePositionStateFunc);
         console.debug("Existing event listener removed.");
       } catch (e) {
         console.warn("Failed to remove existing event listener.", e);
