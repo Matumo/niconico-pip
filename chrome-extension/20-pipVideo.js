@@ -11,6 +11,12 @@ let showShortsBlackPip = null;
 
 // --- variable ----------------------------------------------------------------
 const videoPipElement = document.createElement('video');
+// 29-avoidBugs.jsが描画停止を検知するためのHeartbeat
+const pipVideoRenderHeartbeat = {
+  count: 0,
+  lastRenderedAt: 0,
+  sourceVideoElement: null
+};
 // -----------------------------------------------------------------------------
 
 {
@@ -388,9 +394,16 @@ const videoPipElement = document.createElement('video');
         ctx.globalAlpha = 1;
       }
 
+      // Heartbeatの更新
+      pipVideoRenderHeartbeat.count += 1;
+      pipVideoRenderHeartbeat.lastRenderedAt = performance.now();
+
       // アニメーションを続ける
       requestAnimationFrame(drawVideo);
     };
+
+    // Heartbeatの監視対象を更新
+    pipVideoRenderHeartbeat.sourceVideoElement = nicoVideoElement;
     drawVideo();
 
     setPipVideoSrc('srcObject', stream);
@@ -408,6 +421,9 @@ const videoPipElement = document.createElement('video');
   // PIP用のvideo要素を破棄
   function destroyPipVideoElement(options = {}) {
     if (options.restoreSourceElements !== false) restoreHiddenSourceElements();
+    // Heartbeatの描画時刻と監視対象をリセット
+    pipVideoRenderHeartbeat.lastRenderedAt = 0;
+    pipVideoRenderHeartbeat.sourceVideoElement = null;
     clearStream();
     // WARNING: currentCommentsOpacityはクリアしてはいけない
     // この直前で更新しているパターンがあるので、クリアすると次のイベントまでコメントの透過が効かない
@@ -525,6 +541,9 @@ const videoPipElement = document.createElement('video');
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     const stream = canvas.captureStream(1); // 1fps
+    // Heartbeatの描画時刻と監視対象をリセット
+    pipVideoRenderHeartbeat.lastRenderedAt = 0;
+    pipVideoRenderHeartbeat.sourceVideoElement = null;
     setStream(stream);
     setPipVideoSrc('srcObject', stream);
     videoPipElement.removeAttribute('poster'); // 広告中はポスター不要

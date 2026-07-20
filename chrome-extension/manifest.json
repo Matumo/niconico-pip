@@ -25,7 +25,8 @@
         "18-controlVideo.js", "19-mediaSession.js",
         "20-pipVideo.js", "21-pipButton.js",
         "29-avoidBugs.js", "30-main.js",
-        "41-shortsContext.js", "42-shortsButton.js", "43-shortsMain.js"
+        "41-shortsContext.js", "42-shortsButton.js", "43-shortsMain.js",
+        "99-debugcode.js"
       ]
     }
   ],

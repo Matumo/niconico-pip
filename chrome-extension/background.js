@@ -41,10 +41,29 @@ let console = Object.create(originalConsole);
 
 
 // https://github.com/Matumo/niconico-pip/issues/69
+// https://github.com/Matumo/niconico-pip/issues/80
 (function() {
 
   const pipStateRequestMessageType = "com-matumo-dev-niconico-pip:msg:get-pip-state";
+  const pipTabActivationRequestMessageType = "com-matumo-dev-niconico-pip:msg:request-pip-tab-activation";
   const targetTabUrlPatterns = ["https://www.nicovideo.jp/*"];
+
+  // Content ScriptからPiPタブのアクティブ化要求を受信
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message?.type !== pipTabActivationRequestMessageType) return;
+
+    const pipTabId = sender.tab?.id;
+    const windowId = sender.tab?.windowId;
+    if (typeof pipTabId !== "number" || typeof windowId !== "number") {
+      sendResponse({ accepted: false });
+      return;
+    }
+
+    const reason = typeof message.reason === "string" ? message.reason : "content-recovery";
+    console.debug("バグ回避#69: タブアクティブ化要求", { pipTabId, windowId, reason });
+    activatePipTabThenRestoreOriginal(windowId, pipTabId, reason);
+    sendResponse({ accepted: true });
+  });
 
   // タブをアクティブ化して成功時コールバックを実行する関数
   function activateTabWithCallback(tabId, reason, onSuccess) {
@@ -89,47 +108,52 @@ let console = Object.create(originalConsole);
     });
   }
 
-  // タブのPiP状態を問い合わせる関数
-  function queryPipState(tabId, callback) {
+  // タブのPiP状態を問い合わせてリカバリを要求する関数
+  function queryPipState(tabId, reason, callback) {
     // 不正なタブIDではないことを確認
     if (typeof tabId !== "number") {
-      callback(false);
+      callback({ pipActive: false, recoveryAccepted: false });
       return;
     }
     // メッセージ送信
-    chrome.tabs.sendMessage(tabId, { type: pipStateRequestMessageType }, (response) => {
+    chrome.tabs.sendMessage(tabId, { type: pipStateRequestMessageType, reason }, (response) => {
       if (chrome.runtime.lastError) {
-        callback(false);
+        callback({ pipActive: false, recoveryAccepted: false });
         return;
       }
-      callback(Boolean(response?.pipActive));
+      callback({
+        pipActive: Boolean(response?.pipActive),
+        recoveryAccepted: Boolean(response?.recoveryAccepted)
+      });
     });
   }
 
   // 指定ウィンドウ内のPiP中タブを探索する関数
-  function resolvePipTabIdByCandidates(candidateTabIds, callback) {
+  function resolvePipTabByCandidates(candidateTabIds, reason, callback) {
     if (!candidateTabIds.length) {
       callback(null);
       return;
     }
 
     let remaining = candidateTabIds.length;
-    let pipTabId = null;
-    const handleProbeResult = (tabId, isPipActive) => {
-      if (isPipActive && pipTabId === null) pipTabId = tabId;
+    let pipTab = null;
+    const handleProbeResult = (tabId, pipState) => {
+      if (pipState.pipActive && pipTab === null) {
+        pipTab = { tabId, recoveryAccepted: pipState.recoveryAccepted };
+      }
       remaining -= 1;
-      if (remaining === 0) callback(pipTabId);
+      if (remaining === 0) callback(pipTab);
     };
 
     for (const tabId of candidateTabIds) {
-      queryPipState(tabId, (isPipActive) => {
-        handleProbeResult(tabId, isPipActive);
+      queryPipState(tabId, reason, (pipState) => {
+        handleProbeResult(tabId, pipState);
       });
     }
   }
 
   // 指定ウィンドウ内のPiP中タブを探索する関数
-  function findPipTabInWindow(windowId, callback) {
+  function findPipTabInWindow(windowId, reason, callback) {
     if (typeof windowId !== "number") {
       callback(null);
       return;
@@ -143,19 +167,21 @@ let console = Object.create(originalConsole);
       }
 
       const candidateTabIds = tabs.map((tab) => tab.id).filter((tabId) => typeof tabId === "number");
-      resolvePipTabIdByCandidates(candidateTabIds, callback);
+      resolvePipTabByCandidates(candidateTabIds, reason, callback);
     });
   }
 
-  // 検出したPiPタブをアクティブ化する関数
-  function activateDetectedPipTab(windowId, reason) {
-    findPipTabInWindow(windowId, (pipTabId) => {
-      if (typeof pipTabId !== "number") {
+  // PiP実行中のタブへリカバリを要求する関数
+  function requestRecoveryFromPipTab(windowId, reason) {
+    findPipTabInWindow(windowId, reason, (pipTab) => {
+      if (typeof pipTab?.tabId !== "number") {
         console.debug("バグ回避#69: PiP実行中のタブなし:", `windowId=${windowId}`, `reason=${reason}`);
         return;
       }
-      // PiPタブをアクティブ化した後、元のタブを再アクティブ化する
-      activatePipTabThenRestoreOriginal(windowId, pipTabId, reason);
+      if (!pipTab.recoveryAccepted) {
+        console.debug("バグ回避#69: リカバリ要求 受付失敗:",
+          `windowId=${windowId}`, `tabId=${pipTab.tabId}`, `reason=${reason}`);
+      }
     });
   }
 
@@ -168,7 +194,7 @@ let console = Object.create(originalConsole);
 
     // 最小化しているウインドウのみ処理を進める
     if (windowInfo.state === "minimized") {
-      activateDetectedPipTab(windowInfo.id, reason);
+      requestRecoveryFromPipTab(windowInfo.id, reason);
     }
   }
 
